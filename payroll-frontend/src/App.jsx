@@ -19,6 +19,8 @@ import FrmLeaveApprovalList from '@/pages/Masters/FrmLeaveApprovalList';
 import FrmLeaveApplication from '@/pages/Masters/FrmLeaveApplication';
 import FrmLeaveList from '@/pages/Masters/FrmLeaveList';
 import FrmLeaveMaster from '@/pages/Masters/FrmLeaveMst';
+import FrmBankBranchList from './pages/Masters/FrmBankBranchList';
+import FrmBankBranchMst from './pages/Masters/FrmBankBranchMst';
 
 const Home = () => {
   return (
@@ -106,6 +108,14 @@ export const router = createBrowserRouter([
         {
           path:"Masters/FrmLeaveMst",
           element : <FrmLeaveMaster/>
+        },
+        {
+          path:"Masters/FrmBankBranchList",
+          element : <FrmBankBranchList/>
+        },
+        {
+          path:"Masters/FrmBankBranchMst",
+          element : <FrmBankBranchMst/>
         }
       ]
     }
