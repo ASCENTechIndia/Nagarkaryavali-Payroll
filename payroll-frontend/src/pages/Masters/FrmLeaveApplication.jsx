@@ -46,7 +46,7 @@ const FrmLeaveApplication = () => {
   const [designationList, setDesignationList] = useState([]);
 
   const [leaveList, setLeaveList] = useState([]);
-  const [leaveSummary, setLeaveSummary] = useState([]);
+  const [visibleEmployees, setVisibleEmployees] = useState([]);
 
   const axiosConfig = {
     headers: {
@@ -70,7 +70,7 @@ const FrmLeaveApplication = () => {
     totalDays: 1,
     reason: "",
     contact: "",
-    halfDay: true,
+    halfDay: false,
   };
 
   /* -------------------------------------------------------------------------- */
@@ -120,7 +120,12 @@ const FrmLeaveApplication = () => {
             ),
           ]);
 
-        setEmployeeList(employeeRes?.data?.data?.data || []);
+        const employees = employeeRes?.data?.data?.data || [];
+
+        setEmployeeList(employees);
+
+        // initially load only first 50
+        setVisibleEmployees(employees.slice(0, 50));
         setDepartmentList(departmentRes?.data?.data?.data || []);
         setDesignationList(designationRes?.data?.data?.data || []);
         setLeaveList(leaveRes?.data?.data?.data || []);
@@ -324,9 +329,29 @@ const FrmLeaveApplication = () => {
                       <SelectValue placeholder="Select Employee" />
                     </SelectTrigger>
 
-                    <SelectContent className="max-h-72 overflow-y-auto">
-                      {employeeList?.length > 0 ? (
-                        employeeList.map((item) => (
+                    <SelectContent
+                      className="max-h-72 overflow-y-auto"
+                      onScroll={(e) => {
+                        const target = e.target;
+
+                        if (
+                          target.scrollTop + target.clientHeight >=
+                          target.scrollHeight - 20
+                        ) {
+                          if (visibleEmployees.length < employeeList.length) {
+                            setVisibleEmployees((prev) => [
+                              ...prev,
+                              ...employeeList.slice(
+                                prev.length,
+                                prev.length + 50,
+                              ),
+                            ]);
+                          }
+                        }
+                      }}
+                    >
+                      {visibleEmployees?.length > 0 ? (
+                        visibleEmployees.map((item) => (
                           <SelectItem
                             key={item.NUM_EMPLOYEE_EMPID}
                             value={String(item.NUM_EMPLOYEE_EMPID)}
@@ -482,7 +507,11 @@ const FrmLeaveApplication = () => {
                     {/* Allotted */}
 
                     <div className="space-y-2">
-                      <Label text="Allotted Leaves" required />
+                      <Label
+                        text="Allotted Leaves"
+                        required
+                        className="min-w-[180px]"
+                      />
                       <Input value={values.allottedLeaves} readOnly />
                     </div>
 
