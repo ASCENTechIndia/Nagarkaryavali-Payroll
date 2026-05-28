@@ -6,7 +6,7 @@ function Label({
   text,
   required = false,
   className,
-  copyText = "Mehnat kr 🖕 badh AAGE🤏", //--
+  copyText = "Mehnat kr badh AAGE", //--
   children,
   ...props
 }) {
