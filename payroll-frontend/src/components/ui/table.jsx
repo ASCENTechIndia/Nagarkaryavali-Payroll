@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useState } from "react";
-import { motion } from "framer-motion";
+//import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -158,13 +158,7 @@ const ShadCNTable = ({
     }`;
 
   return (
-    <motion.div
-      variants={fadeInUp}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      className="rounded-lg border border-indigo-200 bg-white shadow-lg"
-    >
+    <>
       {/* ✅ HORIZONTAL SCROLLER */}
       <div className="overflow-x-auto">
         <div className={cn("w-auto", className)}>
@@ -283,7 +277,7 @@ const ShadCNTable = ({
           </button>
         </div>
       )}
-    </motion.div>
+    </>
   );
 };
 
