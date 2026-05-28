@@ -57,6 +57,12 @@ app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/
 app.use("/api/FrmEmployeeMstNewTest",require("./modules/Master/FrmEmployeeMstNewTest/FrmEmployeeMstNewTest.route"))
 app.use("/api/FrmPayHeadListMst", require("./modules/Master/FrmPayHeadListMst/FrmPayHeadListMst.routes"));
 app.use("/api/FrmDesgListMst", require("./modules/Master/FrmDesgListMst/FrmDesgListMst.routes"));
+app.use("/api/FrmEmployeeMstList",require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
+app.use("/api/CastMst", require("./modules/Master/FrmCastMst/FrmCastMstList.route"));
+app.use("/api/BankList",require("./modules/Master/FrmBankListMst/FrmBankList.route"));
+app.use("/api/Branchlist", require("./modules/Master/FrmBranchMst/FrmBranchMstList.route"));
+app.use("/api/LeaveMaster", require("./modules/Master/FrmLeaveMst/FrmLeaveListMst.route"));
+app.use("/api/LeaveApplication", require("./modules/Master/FrmLeaveApplication/FrmLeaveApplicationList.route"))
 app.use("/api/FrmRelegionListMst", require("./modules/Master/FrmRelegionListMst/FrmRelegionListMst.routes"));
 app.use("/api/FrmRelationListMst", require("./modules/Master/FrmRelationListMst/FrmRelationListMst.routes"));
 
