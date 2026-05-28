@@ -6,6 +6,10 @@ import Layout from '@/layout/main-layout';
 import { Label } from '@/components/ui/label';
 import Login from './pages/Login';
 
+import FrmCastListMst from './Masters/FrmCastListMst';
+import FrmCastMaster from './Masters/FrmCastMaster';
+import FrmDeptListMst from './Masters/FrmDeptListMst';
+import FrmDeptMst from './Masters/FrmDeptMst';
 
 const Home = () => {
   return (
@@ -35,6 +39,22 @@ export const router = createBrowserRouter([
         {
           index: true,
           element: <Home />,
+        },
+        {
+          path: "Masters/FrmCastListMst",
+          element: <FrmCastListMst />,
+        },
+        {
+          path: "Masters/FrmCastMaster",
+          element: <FrmCastMaster />,
+        },
+        {
+          path: "Masters/FrmDeptListMst",
+          element: <FrmDeptListMst />,
+        },
+        {
+          path: "Masters/FrmDeptMst",
+          element: <FrmDeptMst />,
         },
       ]
     }
