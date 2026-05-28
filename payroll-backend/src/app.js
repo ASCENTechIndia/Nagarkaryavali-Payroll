@@ -56,6 +56,10 @@ app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
 app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
 app.use("/api/FrmPayHeadListMst", require("./modules/Master/FrmPayHeadListMst/FrmPayHeadListMst.routes"));
 app.use("/api/FrmDesgListMst", require("./modules/Master/FrmDesgListMst/FrmDesgListMst.routes"));
+app.use("/api/FrmEmployeeMstList",require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
+app.use("/api/CastMst", require("./modules/Master/FrmCastMst/FrmCastMstList.route"));
+app.use("/api/BankList",require("./modules/Master/FrmBankListMst/FrmBankList.route"));
+app.use("/api/Branchlist", require("./modules/Master/FrmBranchMst/FrmBranchMstList.route"));
 
 app.use(errorMiddleware);
 
