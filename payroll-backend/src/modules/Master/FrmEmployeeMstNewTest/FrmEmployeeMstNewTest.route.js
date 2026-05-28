@@ -18,6 +18,9 @@ router.get( "/cast-category-list", auth(), controller.getCastCategoryList);
 router.post( "/bank-branch-list", auth(), controller.getBankBranchList);
 router.post( "/branch-master-list", auth(), controller.getBranchMasterList);
 router.post( "/employee-autofill",  controller.getEmployeeAutoFill);
+router.post( "/get-caste-list",  controller.getCasteList);
+router.post( "/get-subcaste-list",  controller.getSubCasteList);
+router.post( "/save-employee",  controller.saveEmployee);
 router.post( "/update-employee-images", 
   upload.fields([
     {name: "BLOBSign",maxCount: 1},
