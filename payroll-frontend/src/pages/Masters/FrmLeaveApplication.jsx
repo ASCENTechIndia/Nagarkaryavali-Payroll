@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import axios from "axios";
+
+import Swal from "sweetalert2";
 
 import { Formik, Form } from "formik";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Label } from "@/components/ui/label";
+
 import { Input } from "@/components/ui/input";
+
 import { Textarea } from "@/components/ui/textarea";
 
-import { DatePicker } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 import {
   Select,
@@ -18,35 +25,278 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { DatePicker } from "@/components/ui/calendar";
 
 const FrmLeaveApplication = () => {
+  const { token, user } = useAuth();
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+  const ulbId = user?.ulbId;
+
+  const userId = user?.userId;
+
   const [showDetails, setShowDetails] = useState(false);
+
+  const [employeeList, setEmployeeList] = useState([]);
+
+  const [departmentList, setDepartmentList] = useState([]);
+
+  const [designationList, setDesignationList] = useState([]);
+
+  const [leaveList, setLeaveList] = useState([]);
+  const [leaveSummary, setLeaveSummary] = useState([]);
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const today = new Date().toISOString().split("T")[0];
 
   const initialValues = {
     employee: "",
     department: "",
     designation: "",
+    departmentId: "",
+    designationId: "",
+    leaveId: "",
     leaveType: "",
     allottedLeaves: "",
     balancedLeaves: "",
-    fromDate: new Date(),
-    toDate: new Date(),
-    totalDays: "1",
-    halfDay: false,
+    fromDate: today,
+    toDate: today,
+    totalDays: 1,
     reason: "",
     contact: "",
+    halfDay: true,
   };
 
-  const handleSubmit = (values) => {
-    console.log(values);
+  /* -------------------------------------------------------------------------- */
+  /*                                 PAGE LOAD                                  */
+  /* -------------------------------------------------------------------------- */
+  const showLoader = (title = "Please Wait...") => {
+    Swal.fire({
+      title,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+  };
+
+  const hideLoader = () => {
+    Swal.close();
+  };
+  useEffect(() => {
+    if (!token || !ulbId) return;
+
+    const loadMasterData = async () => {
+      try {
+        showLoader("Loading...");
+
+        const [employeeRes, departmentRes, designationRes, leaveRes] =
+          await Promise.all([
+            axios.post(
+              `${baseUrl}/api/LeaveApplication/employeelist`,
+              { ulbId },
+              axiosConfig,
+            ),
+            axios.get(
+              `${baseUrl}/api/LeaveApplication/departmentlist`,
+              axiosConfig,
+            ),
+            axios.get(
+              `${baseUrl}/api/LeaveApplication/designationlist`,
+              axiosConfig,
+            ),
+            axios.post(
+              `${baseUrl}/api/LeaveApplication/leavelist`,
+              { ulbId },
+              axiosConfig,
+            ),
+          ]);
+
+        setEmployeeList(employeeRes?.data?.data?.data || []);
+        setDepartmentList(departmentRes?.data?.data?.data || []);
+        setDesignationList(designationRes?.data?.data?.data || []);
+        setLeaveList(leaveRes?.data?.data?.data || []);
+      } catch (error) {
+        console.log("Master API Error", error);
+      } finally {
+        hideLoader();
+      }
+    };
+
+    loadMasterData();
+  }, [token, ulbId]);
+
+  /* -------------------------------------------------------------------------- */
+  /*                            EMPLOYEE DETAILS API                            */
+  /* -------------------------------------------------------------------------- */
+
+  const getEmployeeDetails = async (employeeId, setFieldValue) => {
+    try {
+      showLoader("Loading Employee Details...");
+
+      const response = await axios.post(
+        `${baseUrl}/api/LeaveApplication/employeedetails`,
+        {
+          ulbId,
+          employeeId: Number(employeeId),
+        },
+        axiosConfig,
+      );
+
+      const employeeData = response?.data?.data?.data?.[0];
+
+      if (!employeeData) {
+        hideLoader();
+
+        Swal.fire({
+          icon: "error",
+          title: "Employee Details Not Found",
+        });
+
+        return;
+      }
+
+      const selectedDepartment = departmentList.find(
+        (item) => String(item.ID_VALUE) === String(employeeData.DEPTID),
+      );
+
+      const selectedDesignation = designationList.find(
+        (item) => String(item.ID_VALUE) === String(employeeData.DESIGID),
+      );
+
+      setFieldValue("department", selectedDepartment?.DISPLAY_TEXT || "");
+
+      setFieldValue("designation", selectedDesignation?.DISPLAY_TEXT || "");
+
+      setFieldValue("departmentId", employeeData?.DEPTID || "");
+
+      setFieldValue("designationId", employeeData?.DESIGID || "");
+
+      setShowDetails(true);
+    } catch (error) {
+      console.log("Employee Details Error", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load employee details",
+      });
+    } finally {
+      hideLoader();
+    }
+  };
+
+  /* -------------------------------------------------------------------------- */
+  /*                          EMPLOYEE LEAVE BALANCE                            */
+  /* -------------------------------------------------------------------------- */
+
+  const getEmployeeLeaveBalance = async (
+    employeeId,
+    leaveId,
+    setFieldValue,
+  ) => {
+    try {
+      const response = await axios.post(
+        `${baseUrl}/api/LeaveApplication/employeeleavebalance`,
+        {
+          ulbId,
+          employeeId: Number(employeeId),
+          leaveTypeId: leaveId,
+        },
+        axiosConfig,
+      );
+
+      const balanceData = response?.data?.data?.data?.[0];
+
+      setFieldValue("balancedLeaves", balanceData?.BALANCE_LEAVE || 0);
+
+      setFieldValue("allottedLeaves", balanceData?.TOTAL_LEAVE || 0);
+    } catch (error) {
+      console.log("Leave Balance Error", error);
+    }
+  };
+
+  /* -------------------------------------------------------------------------- */
+  /*                             CALCULATE TOTAL DAYS                           */
+  /* -------------------------------------------------------------------------- */
+
+  const calculateDays = (fromDate, toDate, setFieldValue) => {
+    if (!fromDate || !toDate) return;
+
+    const from = new Date(fromDate);
+
+    const to = new Date(toDate);
+
+    const diff = Math.floor((to - from) / (1000 * 60 * 60 * 24)) + 1;
+
+    setFieldValue("totalDays", diff > 0 ? diff : 0);
+  };
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  SAVE API                                  */
+  /* -------------------------------------------------------------------------- */
+
+  const handleSubmit = async (values, resetForm) => {
+    try {
+      const payload = {
+        userId,
+        leaveId: values.leaveId,
+        empId: values.employee,
+        leaveType: values.leaveType,
+        balanceLeave: values.balancedLeaves,
+        isHalfDayLeave: values.halfDay ? "Y" : "N",
+        fromDate: values.fromDate,
+        toDate: values.toDate,
+        leaveReason: values.reason,
+        leaveContact: values.contact,
+        leaveStatus: "P",
+        approveRemark: "",
+        ulbId,
+        mode: 1,
+      };
+
+      const response = await axios.post(
+        `${baseUrl}/api/LeaveApplication/saveemployeeleave`,
+        payload,
+        axiosConfig,
+      );
+
+      if (response?.data?.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: response?.data?.message,
+        });
+
+        resetForm();
+
+        setShowDetails(false);
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error?.response?.data?.message || "Something went wrong",
+      });
+    }
   };
 
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={(values, { resetForm }) => handleSubmit(values, resetForm)}
+    >
       {({ values, handleChange, setFieldValue }) => (
         <Form>
-          <Card >
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-xl font-bold">
                 Leave Application
@@ -55,219 +305,304 @@ const FrmLeaveApplication = () => {
 
             <CardContent className="space-y-6">
               {/* Search Section */}
+
               <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-end">
-                {/* Employee */}
+                {/* Employee Dropdown */}
+
                 <div className="space-y-2">
-                  <Label text="Employee Name" required className="min-w-[180px]" />
+                  <Label
+                    text="Employee Name"
+                    className="min-w-[180px]"
+                    required
+                  />
 
                   <Select
                     value={values.employee}
                     onValueChange={(value) => setFieldValue("employee", value)}
                   >
                     <SelectTrigger className="w-full h-10">
-                      <SelectValue placeholder="-- Select Option --" />
+                      <SelectValue placeholder="Select Employee" />
                     </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="1">
-                        2227 - मंगला ज्ञानदेव मडके
-                      </SelectItem>
-
-                      <SelectItem value="2">
-                        3126 - प्रद्युम्न प्रसाद जोशी
-                      </SelectItem>
+                    <SelectContent className="max-h-72 overflow-y-auto">
+                      {employeeList?.length > 0 ? (
+                        employeeList.map((item) => (
+                          <SelectItem
+                            key={item.NUM_EMPLOYEE_EMPID}
+                            value={String(item.NUM_EMPLOYEE_EMPID)}
+                          >
+                            {item.EMPNAME}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="p-3 text-sm">No Employees Found</div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Search Button */}
+                {/* Search */}
+
                 <div>
                   <Button
                     type="button"
-                    
-                    onClick={() => setShowDetails(true)}
+                    onClick={async () => {
+                      if (!values.employee) {
+                        Swal.fire({
+                          icon: "warning",
+                          title: "Please Select Employee",
+                        });
+
+                        return;
+                      }
+
+                      await getEmployeeDetails(values.employee, setFieldValue);
+                    }}
                   >
                     Search
                   </Button>
                 </div>
               </div>
 
-              {/* Show After Search */}
+              {/* After Search */}
+
               {showDetails && (
                 <div className="border rounded-md p-6 space-y-6">
-                  {/* Top Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Department + Designation */}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Department */}
+
                     <div className="space-y-2">
-                      <Label text="Department" required />
+                      <Label
+                        text="Department"
+                        className="min-w-[180px]"
+                        required
+                      />
 
                       <Select
-                        value={values.department}
-                        onValueChange={(value) =>
-                          setFieldValue("department", value)
-                        }
+                        value={String(values.departmentId || "")}
+                        disabled
                       >
                         <SelectTrigger className="w-full h-10">
-                          <SelectValue placeholder="Select Department" />
+                          <SelectValue placeholder="Department" />
                         </SelectTrigger>
 
-                        <SelectContent>
-                          <SelectItem value="1">
-                            महापालिका मध्यवर्ती भांडार कक्ष
-                          </SelectItem>
+                        <SelectContent className="max-h-[300px] overflow-y-auto">
+                          {departmentList?.map((item) => (
+                            <SelectItem
+                              key={item.ID_VALUE}
+                              value={String(item.ID_VALUE)}
+                            >
+                              {item.DISPLAY_TEXT}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Designation */}
                     <div className="space-y-2">
                       <Label text="Designation" required />
 
                       <Select
-                        value={values.designation}
-                        onValueChange={(value) =>
-                          setFieldValue("designation", value)
-                        }
+                        value={String(values.designationId || "")}
+                        disabled
                       >
                         <SelectTrigger className="w-full h-10">
-                          <SelectValue placeholder="Select Designation" />
+                          <SelectValue placeholder="Designation" />
                         </SelectTrigger>
 
-                        <SelectContent>
-                          <SelectItem value="1">अधीक्षक</SelectItem>
+                        <SelectContent className="max-h-[300px] overflow-y-auto">
+                          {designationList?.map((item) => (
+                            <SelectItem
+                              key={item.ID_VALUE}
+                              value={String(item.ID_VALUE)}
+                            >
+                              {item.DISPLAY_TEXT}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
                   {/* Leave Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {/* Leave Type */}
+
                     <div className="space-y-2">
-                      <Label text="Leave Type" required />
+                      <Label
+                        text="Leave Type"
+                        className="min-w-[180px]"
+                        required
+                      />
 
                       <Select
-                        value={values.leaveType}
-                        onValueChange={(value) =>
-                          setFieldValue("leaveType", value)
-                        }
+                        value={String(values.leaveId || "")}
+                        onValueChange={async (value) => {
+                          const selectedLeave = leaveList.find(
+                            (item) => String(item.LEAVEID) === String(value),
+                          );
+
+                          setFieldValue(
+                            "leaveId",
+                            selectedLeave?.LEAVEID || "",
+                          );
+
+                          setFieldValue(
+                            "leaveType",
+                            selectedLeave?.LEAVE_NAME || "",
+                          );
+
+                          await getEmployeeLeaveBalance(
+                            values.employee,
+                            value,
+                            setFieldValue,
+                          );
+                        }}
                       >
                         <SelectTrigger className="w-full h-10">
-                          <SelectValue placeholder="-- Select Option --" />
+                          <SelectValue placeholder="Select Leave Type" />
                         </SelectTrigger>
 
-                        <SelectContent>
-                          <SelectItem value="CL">Casual Leave</SelectItem>
-
-                          <SelectItem value="EL">अर्जित रजा</SelectItem>
+                        <SelectContent className="max-h-72 overflow-y-auto">
+                          {leaveList?.map((item) => (
+                            <SelectItem
+                              key={item.LEAVEID}
+                              value={String(item.LEAVEID)}
+                            >
+                              {item.LEAVE_NAME}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Allotted Leaves */}
-                    <div className="space-y-2">
-                      <Label text="Allotted Leaves" required className="min-w-[180px]" />
+                    {/* Allotted */}
 
-                      <Input
-                        name="allottedLeaves"
-                        value={values.allottedLeaves}
-                        onChange={handleChange}
-                        className="h-10"
-                      />
+                    <div className="space-y-2">
+                      <Label text="Allotted Leaves" required />
+                      <Input value={values.allottedLeaves} readOnly />
                     </div>
 
-                    {/* Balanced Leaves */}
-                    <div className="space-y-2">
-                      <Label text="Balanced Leaves" required className="min-w-[180px]" />
+                    {/* Balance */}
 
-                      <Input
-                        name="balancedLeaves"
-                        value={values.balancedLeaves}
-                        onChange={handleChange}
-                        className="h-10"
-                      />
+                    <div className="space-y-2">
+                      <Label text="Balanced Leaves" className="min-w-[180px]" />
+
+                      <Input value={values.balancedLeaves} readOnly />
                     </div>
 
                     {/* From Date */}
+
                     <div className="space-y-2">
                       <Label text="From Date" required />
 
                       <DatePicker
-                        value={values.fromDate}
-                        onChange={(date) => setFieldValue("fromDate", date)}
+                        value={
+                          values.fromDate
+                            ? new Date(values.fromDate)
+                            : undefined
+                        }
+                        onChange={(date) => {
+                          if (!date) return;
+
+                          const formatted = date.toISOString().split("T")[0];
+
+                          setFieldValue("fromDate", formatted);
+
+                          calculateDays(
+                            formatted,
+                            values.toDate,
+                            setFieldValue,
+                          );
+                        }}
                       />
                     </div>
 
                     {/* To Date */}
+
                     <div className="space-y-2">
                       <Label text="To Date" required />
-
                       <DatePicker
-                        value={values.toDate}
-                        onChange={(date) => setFieldValue("toDate", date)}
+                        value={
+                          values.toDate ? new Date(values.toDate) : undefined
+                        }
+                        onChange={(date) => {
+                          if (!date) return;
+
+                          const formatted = date.toISOString().split("T")[0];
+
+                          setFieldValue("toDate", formatted);
+
+                          calculateDays(
+                            values.fromDate,
+                            formatted,
+                            setFieldValue,
+                          );
+                        }}
                       />
                     </div>
 
+                    {/* Total Days */}
+
+                    <div className="space-y-2">
+                      <Label text="Total No. Days" />
+
+                      <Input value={values.totalDays} readOnly />
+                    </div>
+
                     {/* Half Day */}
+
                     <div className="space-y-2">
                       <Label text="Half Day" />
 
-                      <div className="flex items-center gap-3 h-10  px-4">
+                      <div className="flex items-center gap-3 h-10">
                         <Input
+                          id="halfDay"
                           type="checkbox"
                           checked={values.halfDay}
                           onChange={(e) =>
                             setFieldValue("halfDay", e.target.checked)
                           }
-                          className="h-4 w-4"
                         />
 
-                        <span className="text-sm font-medium">Half Day</span>
+                        <Label htmlFor="halfDay">Half Day Leave</Label>
                       </div>
                     </div>
 
-                    {/* Total Days */}
-                    <div className="space-y-2">
-                      <Label text="Total No. Days" required />
-
-                      <Input
-                        name="totalDays"
-                        value={values.totalDays}
-                        onChange={handleChange}
-                        className="h-10"
-                      />
-                    </div>
-
-                    {/* Reason */}
-                    <div className="space-y-2">
-                      <Label text="Reason" required />
-
-                      <Textarea
-                        name="reason"
-                        value={values.reason}
-                        onChange={handleChange}
-                        className=" min-h-[11px]"
-                      />
-                    </div>
-
                     {/* Contact */}
+
                     <div className="space-y-2">
-                      <Label text="Contact" required />
+                      <Label text="Contact" />
 
                       <Input
                         name="contact"
                         value={values.contact}
                         onChange={handleChange}
-                        className="h-10"
                       />
                     </div>
                   </div>
 
+                  {/* Reason */}
+
+                  <div className="space-y-2">
+                    <Label text="Reason" />
+
+                    <Textarea
+                      name="reason"
+                      value={values.reason}
+                      onChange={handleChange}
+                    />
+                  </div>
+
                   {/* Buttons */}
+
                   <div className="flex justify-center gap-4 pt-4">
                     <Button type="submit">Submit</Button>
 
-                    <Button type="button" variant="secondary" path="/Dashboard" >
+                    <Button type="button" variant="secondary">
                       Back
                     </Button>
                   </div>
