@@ -54,6 +54,7 @@ app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
 
 //MASTER
 app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
+app.use("/api/FrmEmployeeMstNewTest",require("./modules/Master/FrmEmployeeMstNewTest/FrmEmployeeMstNewTest.route"))
 app.use("/api/FrmPayHeadListMst", require("./modules/Master/FrmPayHeadListMst/FrmPayHeadListMst.routes"));
 app.use("/api/FrmDesgListMst", require("./modules/Master/FrmDesgListMst/FrmDesgListMst.routes"));
 app.use("/api/FrmEmployeeMstList",require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
