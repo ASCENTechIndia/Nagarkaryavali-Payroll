@@ -52,6 +52,10 @@ app.use("/api/admin", adminRoutes);
 
 app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
 
+
+//MASTER
+app.use("/api/FrmEmployeeMstList",require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"))
+
 app.use(errorMiddleware);
 
 module.exports = app;
