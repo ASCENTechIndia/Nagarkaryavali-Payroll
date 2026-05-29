@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 
 import {
   Select,
@@ -47,6 +46,7 @@ const FrmLeaveApplication = () => {
 
   const [leaveList, setLeaveList] = useState([]);
   const [visibleEmployees, setVisibleEmployees] = useState([]);
+  const [leaveSummary, setLeaveSummary] = useState([]);
 
   const axiosConfig = {
     headers: {
@@ -229,6 +229,23 @@ const FrmLeaveApplication = () => {
     }
   };
 
+  const getEmployeeLeaveSummary = async (employeeId) => {
+    try {
+      const response = await axios.post(
+        `${baseUrl}/api/LeaveApplication/employeeleavesummary`,
+        {
+          ulbId,
+          employeeId: Number(employeeId),
+        },
+        axiosConfig,
+      );
+
+      setLeaveSummary(response?.data?.data?.data || []);
+    } catch (error) {
+      console.log("Leave Summary Error", error);
+    }
+  };
+
   /* -------------------------------------------------------------------------- */
   /*                             CALCULATE TOTAL DAYS                           */
   /* -------------------------------------------------------------------------- */
@@ -302,7 +319,7 @@ const FrmLeaveApplication = () => {
       {({ values, handleChange, setFieldValue }) => (
         <Form>
           <Card>
-            <CardHeader className="pb-3">
+           <CardHeader className="pb-3 border-b">
               <CardTitle className="text-xl font-bold">
                 Leave Application
               </CardTitle>
@@ -323,6 +340,7 @@ const FrmLeaveApplication = () => {
 
                   <Select
                     value={values.employee}
+                    disabled={showDetails}
                     onValueChange={(value) => setFieldValue("employee", value)}
                   >
                     <SelectTrigger className="w-full h-10">
@@ -382,6 +400,8 @@ const FrmLeaveApplication = () => {
                       }
 
                       await getEmployeeDetails(values.employee, setFieldValue);
+
+                      await getEmployeeLeaveSummary(values.employee);
                     }}
                   >
                     Search
@@ -480,10 +500,18 @@ const FrmLeaveApplication = () => {
                             selectedLeave?.LEAVE_NAME || "",
                           );
 
-                          await getEmployeeLeaveBalance(
-                            values.employee,
-                            value,
-                            setFieldValue,
+                          const leaveData = leaveSummary.find(
+                            (item) => String(item.LEAVEID) === String(value),
+                          );
+
+                          setFieldValue(
+                            "allottedLeaves",
+                            leaveData?.ALLOTTED_LEAVE || 0,
+                          );
+
+                          setFieldValue(
+                            "balancedLeaves",
+                            leaveData?.BALANCE_LEAVE || 0,
                           );
                         }}
                       >
