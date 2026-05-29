@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import ShadCNTable from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import axios from "axios";
+import Swal from "sweetalert2";
 
 const container = {
   hidden: { opacity: 0, y: 20 },
@@ -24,12 +26,16 @@ const FrmPayScaleList = () => {
   const navigate = useNavigate();
 
   const [searchText, setSearchText] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
+  const [payScaleList, setPayScaleList] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const tableHeaders = ["Select", "Pay Scale"];
+
   const keyMapping = {
     Select: "select",
-    "Pay Scale": "serialNo",
+    "Pay Scale": "payScaleName",
   };
 
   const handleAddNew = () => {
@@ -38,24 +44,40 @@ const FrmPayScaleList = () => {
 
   const handleSelectItem = (item) => {
     navigate("/Masters/FrmPayScaleMst", {
-      state: { mode: 2, data: item },
+      state: {
+        mode: 2,
+        data: {
+          payScaleId: item.PAYSCALEID,
+        },
+      },
     });
   };
 
-  const rawData = [
-    { serialNo: 1, bankName: "A test bank,." },
-    { serialNo: 2, bankName: "AADHAR SAHAKARI PATPEDHI" },
-    { serialNo: 3, bankName: "AADHAR SAKARI PATPEDHI LTD." },
-    { serialNo: 4, bankName: "ABHINAV SAHAKARI BANK" },
-    { serialNo: 5, bankName: "ABHINAV SAHAKARI BANK (BADLAPUR)" },
-  ];
+  const fetchPayScaleList = async (name = "") => {
+    try {
+      setLoading(true);
 
-  const filteredData = rawData.filter((item) =>
-    item.bankName.toLowerCase().includes(appliedSearch.toLowerCase()),
-  );
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmPayScaleListMst/payscale-list`,
+        {
+          name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  const tableData = filteredData.map((item) => ({
-    ...item,
+      setPayScaleList(res.data || []);
+    } catch (err) {
+      console.error("Pay Scale List Error :", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tableData = payScaleList.map((item) => ({
     select: (
       <Button
         variant="link"
@@ -66,7 +88,13 @@ const FrmPayScaleList = () => {
         Select
       </Button>
     ),
+    payScaleName: item.PAYSCALENAME,
+    
   }));
+
+  useEffect(() => {
+    fetchPayScaleList();
+  }, []);
 
   return (
     <motion.div
@@ -101,7 +129,7 @@ const FrmPayScaleList = () => {
             <Button
               variant="default"
               className="bg-blue-900 hover:bg-blue-800 text-white w-full sm:w-auto"
-              onClick={() => setAppliedSearch(searchText)}
+              onClick={() => fetchPayScaleList(searchText)}
             >
               Search
             </Button>

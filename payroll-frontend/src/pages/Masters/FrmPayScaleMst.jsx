@@ -14,9 +14,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { useEffect, useState } from "react";
 
 const initialValues = {
-    payScale: "",
+  payScaleId: "",
+  payScale: "",
 };
 
 const FrmPayScaleMst = () => {
@@ -29,9 +33,134 @@ const FrmPayScaleMst = () => {
 
     const mode = location.state?.mode || 1;
 
+    const data = location.state?.data;
+
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+    const [formValues, setFormValues] = useState(initialValues);
+    const [loading, setLoading] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
+    const fetchPayScaleDetails = async (payScaleId) => {
+        try {
+            setLoading(true);
+
+            const res = await axios.post(
+            `${BASE_URL}/api/FrmPayScaleListMst/payscale-details`,
+            {
+                payscaleid: payScaleId,
+            },
+            {
+                headers: {
+                Authorization: `Bearer ${token}`,
+                },
+            }
+            );
+
+            const apiData = res?.data?.[0];
+
+            if (apiData) {
+            setFormValues({
+                payScaleId: apiData.NUM_PAYSCALEMST_PAYSCALEID,
+                payScale:
+                apiData.VAR_PAYSCALEMST_PAYSCALENAME || "",
+            });
+            }
+        } catch (err) {
+            console.error("Details Error :", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (mode === 2 && data?.payScaleId) {
+            fetchPayScaleDetails(data.payScaleId);
+        }
+    }, []);
+
+    const handleSubmit = async (values) => {
+        try {
+            const payload = {
+            userId: user?.userId,
+            payslid:
+                mode === 2
+                ? Number(values.payScaleId)
+                : 0,
+            payScale: values.payScale,
+            mode: mode === 2 ? 2 : 1,
+            };
+
+            const res = await axios.post(
+            `${BASE_URL}/api/FrmPayScaleListMst/save-payscale`,
+            payload,
+            {
+                headers: {
+                Authorization: `Bearer ${token}`,
+                },
+            }
+            );
+
+            if (res?.data?.success) {
+            Swal.fire({
+                text: res?.data?.errorMsg,
+                confirmButtonColor: "#1e3a8a",
+            });
+
+            navigate("/Masters/FrmPayScaleList");
+            }
+        } catch (err) {
+            console.error("Save Error :", err);
+            confirmButtonColor: "#1e3a8a",
+
+            Swal.fire({
+            text: "Something went wrong",
+            confirmButtonColor: "#1e3a8a",
+            });
+        }
+    };
+
+    const handleDelete = async (values) => {
+        try {
+            setDeleteLoading(true);
+
+            const payload = {
+            userId: user?.userId,
+            payslid: Number(values.payScaleId),
+            payScale: values.payScale,
+            mode: 3,
+            };
+
+            const res = await axios.post(
+            `${BASE_URL}/api/FrmPayScaleListMst/save-payscale`,
+            payload,
+            {
+                headers: {
+                Authorization: `Bearer ${token}`,
+                },
+            }
+            );
+
+            if (res?.data?.success) {
+            Swal.fire({
+                text: res?.data?.errorMsg,
+            });
+
+            navigate("/Masters/FrmPayScaleList");
+            }
+        } catch (err) {
+            console.error("Delete Error :", err);
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
 
     return (
-        <Formik initialValues={initialValues} onSubmit={() => { }}>
+        <Formik 
+            initialValues={formValues}
+            enableReinitialize
+            onSubmit={handleSubmit}
+        >
             {({ values, handleChange }) => (
                 <Form>
                     <motion.div
@@ -76,6 +205,8 @@ const FrmPayScaleMst = () => {
                                         <Button
                                             type="button"
                                             className="bg-red-600 hover:bg-red-500 text-white px-8"
+                                            onClick={() => handleDelete(values)}
+                                            disabled={deleteLoading}
                                         >
                                             Delete
                                         </Button>
