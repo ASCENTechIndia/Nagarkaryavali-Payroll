@@ -6,32 +6,31 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ShadCNTable from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const FrmDeptListMst = () => {
+const FrmCastList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [deptList, setDeptList] = useState([]);
-  const headers = ["Select", "Department ID", "Department Name (English)", "Department Name (Marathi)"];
+  const [castList, setCastList] = useState([]);
+  const headers = ["Select", "Cast ID", "Cast Name"];
 
   const keyMapping = {
     Select: "select",
-    "Department ID": "id",
-    "Department Name (English)": "name",
-    "Department Name (Marathi)": "name_mr",
+    "Cast ID": "id",
+    "Cast Name": "name",
   };
 
-  const fetchDepts = async () => {
+  const fetchCasts = async () => {
     try {
       Swal.fire({
-        title: "Loading Departments...",
+        title: "Loading Casts...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
 
       const res = await axios.get(
-        `${BASE_URL}/api/`,                         //ADD API ENDPOINT
+        `${BASE_URL}/api/CastMst/castlist`,    
         {
           headers: {
             Authorization: `Bearer ${user?.token}`,
@@ -40,42 +39,42 @@ const FrmDeptListMst = () => {
       );
 
       Swal.close();
-
-      if (res.data?.ok && res.data?.data?.list) {
-        setDeptList(res.data.data.list);
+      if (res.data?.ok && res.data?.data?.data) {
+        setCastList(res.data.data.data);
       } else {
-        setDeptList([]);
+        setCastList([]);
       }
     } catch (err) {
       Swal.close();
-      console.error("Department list error:", err);
-      Swal.fire("Error loading departments");
+      console.error("Cast list error:", err);
+      Swal.fire("Error loading casts");
     }
   };
 
   useEffect(() => {
-    if (user?.token) {
-      fetchDepts();
-    }
+      fetchCasts();
   }, [user]);
 
-  const tableData = deptList.map((row, index) => ({
-    id: row.DEPT_ID || index,
+  const tableData = castList.map((row, index) => ({
+    id: row.CASTID ?? index,
     select: (
       <Button
         variant="link"
         className="text-blue-700 px-0"
         onClick={() =>
-          navigate("/Masters/FrmDeptMst", {
-            state: { mode: 2, data: row },
+          navigate("/Masters/FrmCastMaster", {
+            state: { mode: 2, 
+                     data: {
+                          castid: row.CASTID,
+                          castName: row.CASTNAME
+                    }},
           })
         }
       >
         Select
       </Button>
     ),
-    name: row.DEPT_NAME_ENG?.trim() || "-",
-    name_mr: row.DEPT_NAME_MR?.trim() || "-",
+    name: row.CASTNAME?.trim() || "-",
   }));
 
   const finalData =
@@ -92,26 +91,14 @@ const FrmDeptListMst = () => {
   return (
     <>
        <Card className="shadow-sm border rounded-lg">
-        <CardHeader className="border-b flex justify-between items-center">
-          <CardTitle className="text-2xl font-semibold">Department List</CardTitle>
+        <CardHeader className="border-b flex justify-between items-center p-4">
+           <CardTitle className="text-2xl font-bold">Cast List</CardTitle>
         </CardHeader>
-
-        <CardHeader className="flex flex-col items-start gap-2 pl-8 py-2 ">
-          <div className="text-lg font-semibold ">
-            Department List
-          </div>
-
-          <Input
-            className="w-full sm:w-64 h-8 text-sm placeholder:text-gray-500 font-normal"
-            placeholder="Search here..."
-          />
-        </CardHeader>
-
-        <CardTitle className="border-b text-sm text-gray-500 pl-8 py-2">
-          <Button onClick={() => navigate("/Masters/FrmDeptMst")}>
+          <CardTitle className="border-b text-sm text-gray-500 p-4">
+          <Button onClick={() => navigate("/Masters/FrmCastMaster")}>
             Add New
           </Button>
-      </CardTitle>
+        </CardTitle>
         <CardContent className="p-6">
           <div className="border rounded-md overflow-hidden">
             <ShadCNTable
@@ -127,4 +114,4 @@ const FrmDeptListMst = () => {
   );
 };
 
-export default FrmDeptListMst;
+export default FrmCastList;

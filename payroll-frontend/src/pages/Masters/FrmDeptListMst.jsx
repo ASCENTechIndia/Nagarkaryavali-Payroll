@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ShadCNTable from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const FrmDeptListMst = () => {

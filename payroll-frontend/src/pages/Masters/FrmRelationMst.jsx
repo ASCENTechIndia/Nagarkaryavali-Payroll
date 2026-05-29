@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form } from "formik";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -10,21 +10,21 @@ import { useAuth } from "@/context/AuthContext";
 import Swal from "sweetalert2";
 
 const initialValues = {
-  deptId: "",
-  deptName: "",
-  deptNameMr: "",
+  relid: "",
+  relname: "",
 };
 
-const FrmDeptMst = () => {
+const FrmRelationMst = () => {
   const { user } = useAuth();
   const token = user?.token;
   const navigate = useNavigate();
   const location = useLocation();
   const { mode, data } = location.state || {};
+  const [formValues, setFormValues] = useState(initialValues);
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const fetchDeptById = async (id, setValues) => {
+  const fetchRelationById = async (id) => {
     try {
 
       Swal.fire({
@@ -36,9 +36,9 @@ const FrmDeptMst = () => {
       });
 
       const res = await axios.post(
-        `${BASE_URL}/api/`,                      //ADD API ENDPOINT
+        `${BASE_URL}/api/FrmRelationListMst/relation-details`,              
         {
-          deptId: id,
+          relid: id,
         },
         {
           headers: {
@@ -47,13 +47,12 @@ const FrmDeptMst = () => {
         }
       );
 
-      const apiData = res.data?.data?.data?.[0];
+      const apiData = res.data?.[0];
 
-      if (apiData) {                                  // Check the DB for headers
-        setValues({
-          deptId: apiData.DEPT_ID,
-          deptName: apiData.DEPT_NAME_ENG?.trim() || "",
-          deptNameMr: apiData.DEPT_NAME_MR?.trim() || "",
+      if (apiData) {
+        setFormValues({
+          relid: apiData.RELID,                         
+          relname: apiData.RELNAME?.trim() || "",
         });
       }
       Swal.close();
@@ -66,11 +65,11 @@ const FrmDeptMst = () => {
   const handleSubmit = async (values) => {
     try {
       const payload = {
-        mode: mode === 2 ? 2 : 1,
-        deptName: values.deptName,
-        deptNameMr: values.deptNameMr,
+        mode: mode === 2 ? 2 : 1, 
+        relid: values.relid || null,
+        relname: values.relname,
         userId: user?.userId,
-        deptId: values.deptId || null,
+        corpId: user?.ulbId,
       };
 
       Swal.fire({
@@ -83,7 +82,7 @@ const FrmDeptMst = () => {
       });
 
       const res = await axios.post(
-        `${BASE_URL}/api/`,                     //ADD API ENDPOINT
+        `${BASE_URL}/api/FrmRelationListMst/save-relation`,                     
         payload,
         {
           headers: {
@@ -94,52 +93,49 @@ const FrmDeptMst = () => {
 
       Swal.close();
 
-      if (res.data?.ok) {
+      if (res.data?.ok || res.data?.success) {
         Swal.fire({
-          text: res.data?.data?.message || "Success",
+          text: res.data?.data?.message || "Successfully saved",
           confirmButtonColor: "#1e3a8a",
         }).then(() => {
-          navigate("/Masters/FrmDeptListMst");
+          navigate("/Masters/FrmRelListMst");
         });
       }
     } catch (err) {
       console.error("Save Error:", err);
 
       Swal.fire({
-        text: "Something went wrong",
+        text: "Relation Name cannot be Deleted or Updated",
         confirmButtonColor: "#1e3a8a",
       });
     }
   };
-
-  return (
-    <Formik initialValues={initialValues} enableReinitialize onSubmit={handleSubmit}>
-      {({ values, handleChange, setValues }) => {
-        useEffect(() => {
-          if (mode === 2 && data?.id) {
-            fetchDeptById(data.id, setValues);
+  useEffect(() => {
+          if (mode === 2 && data?.relid) {
+            fetchRelationById(data.relid, setFormValues);
           }
         }, [mode, data]);
 
+  return (
+    <Formik initialValues={formValues} enableReinitialize onSubmit={(values) => handleSubmit(values)}>
+      {({ values, handleChange }) => {
         return (
           <Form>
             <>
               <Card className="border shadow-sm">
                 <CardHeader className="border-b">
-                  <CardTitle className="text-lg font-semibold">Department Master</CardTitle>
+                  <CardTitle className="text-2xl font-semibold">Relation Master</CardTitle>
                 </CardHeader>
 
                 <CardContent className="p-4 sm:p-6 space-y-6">
-                 
                     <div className="flex justify-center mt-10">
-
-                    <div className="grid grid-cols-3 gap-4 w-full">
-                      <Label className="font-bold whitespace-nowrap"><span className="text-red-500">*</span> Department ID :</Label>
-                      <Label className="font-bold whitespace-nowrap"><span className="text-red-500">*</span> Department Name (Marathi) :</Label>
-                      <Label className="font-bold whitespace-nowrap"><span className="text-red-500">*</span> Department Name :</Label>
+                    <div className="grid grid-cols-2 gap-4 w-[800px]">
+                      <Label className="font-bold whitespace-nowrap required"> Relation ID</Label>
+                      <Label className="font-bold whitespace-nowrap required"> Relation Name</Label>
+                   
                       <Input
-                        name="deptId"
-                        value={values.deptId}
+                        name="relid"
+                        value={values.relid}
                         onChange={handleChange}
                         disabled
                         style={{
@@ -149,16 +145,10 @@ const FrmDeptMst = () => {
                         }}
                         className="w-full sm:flex-1"
                       />
+
                       <Input
-                        name="deptNameMr"
-                        value={values.deptNameMr}
-                        onChange={handleChange}
-                        required
-                        className="w-full sm:flex-1"
-                      />
-                       <Input
-                        name="deptName"
-                        value={values.deptName}
+                        name="relname"
+                        value={values.relname}
                         onChange={handleChange}
                         required
                         className="w-full sm:flex-1"
@@ -168,13 +158,13 @@ const FrmDeptMst = () => {
 
                   <CardContent className="p-6">
                     <div className="flex justify-center gap-4">
-                  <Button className="bg-blue-600 text-white hover:bg-gray-300 hover:text-blue-600" type="submit">
-                  Save
-                  </Button>
-                  <Button className="bg-gray-200 text-black hover:bg-gray-200" 
-                  onClick={() => navigate("/Masters/FrmDeptListMst")}>
-                  Cancel
-                  </Button>
+                      <Button className="bg-blue-600 text-white hover:bg-gray-300 hover:text-blue-600" type="submit">
+                      Save
+                      </Button>
+                      <Button className="bg-gray-200 text-black hover:bg-gray-200" type="button"
+                      onClick={() => navigate("/Masters/FrmRelListMst")}>
+                      Cancel
+                      </Button>
                   </div>
                   </CardContent>
                  
@@ -188,4 +178,4 @@ const FrmDeptMst = () => {
   );
 };
 
-export default FrmDeptMst;
+export default FrmRelationMst;
