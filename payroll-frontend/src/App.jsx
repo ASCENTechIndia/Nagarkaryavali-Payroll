@@ -48,6 +48,7 @@ import FrmEmployeeMstList from './pages/Masters/FrmEmployeeMstList';
 import FrmEmployeeMstNewTest from './pages/Masters/FrmEmployeeMstNewTest';
 import FrmPayScaleList from './pages/Masters/FrmPayScaleList';
 import FrmPayScaleMst from './pages/Masters/FrmPayScaleMst';
+import FrmSalaryCalulation from './pages/Transactions/FrmSalaryCalulation';
 
 
 const Home = () => {
@@ -250,6 +251,10 @@ export const router = createBrowserRouter([
       {
         path: "Masters/FrmPayHeadConfigMst",
         element: <FrmPayHeadConfigMst />,
+      },
+      {
+        path: "Masters/FrmSalaryCalulation",
+        element: <FrmSalaryCalulation />,
       },
     ]
   }

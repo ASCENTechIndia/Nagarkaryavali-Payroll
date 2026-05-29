@@ -81,7 +81,8 @@ app.use("/api/LeaveConfig", require("./modules/ConfigurationP/FrmLeaveConfigurat
 app.use("/api/PayScaConfig", require("./modules/ConfigurationP/FrmPayScaleConfiguration/FrmPayScaleConfig.route"))
 
 
-
+// Transaction
+app.use("/api/FrmSalaryCalulation", require("./modules/Transactions/FrmSalaryCalulation/FrmSalaryCalulation.routes"))
 
 app.use(errorMiddleware);
 
