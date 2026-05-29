@@ -1,4 +1,4 @@
-"use client";
+
 
 import React from "react";
 
@@ -56,7 +56,7 @@ const FrmInsuranceMst = () => {
       }) => (
         <Form>
           <Card className="mt-5 shadow-sm border">
-            <CardHeader className="pb-3">
+           <CardHeader className="pb-3 border-b">
               <CardTitle className="text-xl font-bold">
                 Insurance Master
               </CardTitle>

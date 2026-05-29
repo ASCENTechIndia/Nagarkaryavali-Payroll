@@ -1,4 +1,4 @@
-"use client";
+
 
 import React, { useEffect } from "react";
 
@@ -33,7 +33,7 @@ const FrmDeptMaster = () => {
       {({ values, handleChange, resetForm }) => (
         <Form>
             <Card >
-                      <CardHeader className="pb-3">
+                     <CardHeader className="pb-3 border-b">
                         <CardTitle className="text-xl font-bold">Department Master</CardTitle>
             </CardHeader>
 

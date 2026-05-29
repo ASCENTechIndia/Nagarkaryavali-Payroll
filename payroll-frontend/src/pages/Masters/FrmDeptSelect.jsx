@@ -1,4 +1,3 @@
-"use client";
 
 import React, {
   useMemo,
@@ -108,7 +107,7 @@ const FrmDeptList = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+     <CardHeader className="pb-3 border-b">
         <CardTitle className="text-xl font-bold">
           Select Department
         </CardTitle>
