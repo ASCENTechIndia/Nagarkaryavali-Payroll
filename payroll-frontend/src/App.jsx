@@ -44,6 +44,10 @@ import FrmBankRecovery from "@/pages/Configuration/FrmBankRecovery";
 import FrmRecoveryUpload from "@/pages/Configuration/FrmRecoveryUpload";
 import FrmPayHeadConfigList from "@/pages/Configuration/FrmPayHeadConfigList";
 import FrmPayHeadConfigMst from "@/pages/Configuration/FrmPayHeadConfigMst";
+import FrmEmployeeMstList from './pages/Masters/FrmEmployeeMstList';
+import FrmEmployeeMstNewTest from './pages/Masters/FrmEmployeeMstNewTest';
+import FrmPayScaleList from './pages/Masters/FrmPayScaleList';
+import FrmPayScaleMst from './pages/Masters/FrmPayScaleMst';
 
 
 const Home = () => {
@@ -173,8 +177,23 @@ export const router = createBrowserRouter([
         path: "/Masters/FrmPayCommMst",
         element: <FrmPayCommMst />,
       },
-
-
+      {
+        path: "/Masters/FrmEmployeeMstList",
+        element: <FrmEmployeeMstList />,
+      },
+      {
+        path: "/Masters/FrmEmployeeMstNewTest",
+        element: <FrmEmployeeMstNewTest />,
+      },
+      {
+        path: "/Masters/FrmPayScaleList",
+        element: <FrmPayScaleList />,
+      },
+      {
+        path: "/Masters/FrmPayScaleMst",
+        element: <FrmPayScaleMst />,
+      },
+      
       {
         path: "Masters/FrmBankBranchConfig",
         element: <FrmBankBranchConfig />,
