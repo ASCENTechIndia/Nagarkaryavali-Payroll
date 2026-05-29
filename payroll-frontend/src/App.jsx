@@ -30,7 +30,7 @@ import FrmBankList from './Masters/FrmBankList';
 import FrmPayHeadMst from './Masters/FrmPayHeadMst';
 import FrmPayHeadListMst from './Masters/FrmPayHeadListMst';
 
-
+import FrmSalaryEditCalulation from './pages/Transaction/FrmSalaryEditCalulation';
 import FrmBankBranchConfig from "@/pages/Configuration/FrmBankBranchConfig";
 import FrmBankConfig from "@/pages/Configuration/FrmBankConfig";
 import FrmLeaveConfig from "@/pages/Configuration/FrmLeaveConfig";
@@ -48,7 +48,8 @@ import FrmEmployeeMstList from './pages/Masters/FrmEmployeeMstList';
 import FrmEmployeeMstNewTest from './pages/Masters/FrmEmployeeMstNewTest';
 import FrmPayScaleList from './pages/Masters/FrmPayScaleList';
 import FrmPayScaleMst from './pages/Masters/FrmPayScaleMst';
-import FrmSalaryCalulation from './pages/Transactions/FrmSalaryCalulation';
+import FrmMonthClose from './pages/Transaction/FrmMonthClose';
+import FrmSalaryCalculation from './pages/Transaction/FrmSalaryCalculation';
 
 
 const Home = () => {
@@ -194,7 +195,6 @@ export const router = createBrowserRouter([
         path: "/Masters/FrmPayScaleMst",
         element: <FrmPayScaleMst />,
       },
-      
       {
         path: "Masters/FrmBankBranchConfig",
         element: <FrmBankBranchConfig />,
@@ -252,10 +252,22 @@ export const router = createBrowserRouter([
         path: "Masters/FrmPayHeadConfigMst",
         element: <FrmPayHeadConfigMst />,
       },
-      {
+       {
         path: "Masters/FrmSalaryCalulation",
-        element: <FrmSalaryCalulation />,
+        element: <FrmSalaryEditCalulation />,
       },
+
+
+      
+      //TRANSACTION
+      {
+        path: "Transactions/FrmMonthClose",
+        element: <FrmMonthClose/>
+      },
+      {
+        path: "Transactions/FrmSalaryCalculation",
+        element: <FrmSalaryCalculation/>
+      }
     ]
   }
 ])

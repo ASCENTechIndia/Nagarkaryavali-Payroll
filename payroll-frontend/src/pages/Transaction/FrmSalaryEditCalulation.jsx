@@ -17,7 +17,7 @@ import Swal from "sweetalert2";
 import ShadCNTable from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
 
-const FrmSalaryCalulation = () => {
+const FrmSalaryEditCalulation = () => {
   const { authUser } = useAuth();
   const authToken = authUser?.token;
   const storedToken = localStorage.getItem("token");
@@ -1139,4 +1139,4 @@ const FrmSalaryCalulation = () => {
   );
 };
 
-export default FrmSalaryCalulation;
+export default FrmSalaryEditCalulation;
