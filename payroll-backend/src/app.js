@@ -68,6 +68,19 @@ app.use("/api/FrmRelationListMst", require("./modules/Master/FrmRelationListMst/
 app.use("/api/LeaveApproval", require("./modules/Master/FrmLeaveApproval/FrmLeaveApprovalList.route"))
 app.use("/api/EmpleaveList",require("./modules/Master/FrmEmpLeave/FrmEmpLeaveList.route"))
 
+
+
+
+
+// Configuration
+app.use("/api/Branchconfi", require("./modules/ConfigurationP/FrmBranchConfiguration/FrmBranchConfig.route"))
+app.use("/api/BankConfig", require("./modules/ConfigurationP/FrmBankConfiguration/FrmBankConfig.route"))
+app.use("/api/LeaveConfig", require("./modules/ConfigurationP/FrmLeaveConfiguration/FrmLeaveConfig.route"))
+app.use("/api/PayScaConfig", require("./modules/ConfigurationP/FrmPayScaleConfiguration/FrmPayScaleConfig.route"))
+
+
+
+
 app.use(errorMiddleware);
 
 module.exports = app;
