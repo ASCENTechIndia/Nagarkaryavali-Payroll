@@ -24,13 +24,10 @@ const FrmSalaryCalculation = () => {
     const [subDeptId, setSubDeptId] = useState("");
     const [billNo, setBillNo] = useState("");
     const [categoryId, setCategoryId] = useState("");
-    const [employeeId, setEmployeeId] = useState("");
     const [zoneOptions, setZoneOptions] = useState([]);
     const [departmentOptions, setDepartmentOptions] = useState([]);
     const [subDepartmentOptions, setSubDepartmentOptions] = useState([]);
     const [billOptions, setBillOptions] = useState([]);
-    const [categoryOptions, setCategoryOptions] = useState([]);
-    const [employeeOptions, setEmployeeOptions] = useState([]);
     const showSubDepartment = [590, 770, 1750, 930, 2, 1630].includes(Number(ulbId));
     const showBillNo = [770, 1750, 930].includes(Number(ulbId));
 
@@ -41,14 +38,20 @@ const FrmSalaryCalculation = () => {
         currentYear - 3,
     ];
 
+    const formatDate = (date) => date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    }).replace(/ /g, "-");
+
     useEffect(() => {
         fetchInitialData();
     }, []);
 
     useEffect(() => {
         if (deptId) {
-            if (showSubDepartment) {fetchSubDepartmentList()}
-            if (showBillNo) {fetchBillList()}
+            if (showSubDepartment) { fetchSubDepartmentList() }
+            if (showBillNo) { fetchBillList() }
         }
     }, [deptId]);
 
@@ -63,16 +66,22 @@ const FrmSalaryCalculation = () => {
             Swal.fire({
                 title: "Loading...",
                 allowOutsideClick: false,
+                allowEscapeKey: false,
                 showConfirmButton: false,
                 didOpen: () => Swal.showLoading(),
             });
 
-            await Promise.all([
+            const results = await Promise.allSettled([
                 fetchZoneList(),
                 fetchDepartmentList(),
                 fetchCategoryList(),
-                fetchEmployeeList(),
             ]);
+
+            results.forEach((result) => {
+                if (result.status === "rejected") {
+                    console.error(result.reason);
+                }
+            });
         } finally {
             Swal.close();
         }
@@ -81,7 +90,7 @@ const FrmSalaryCalculation = () => {
     const fetchZoneList = async () => {
         const res = await axios.post(`${BASE_URL}/api/FrmEmployeeMstList/zone-list`,
             { ulbid: Number(ulbId) },
-            {headers: { Authorization: `Bearer ${token}` }}
+            { headers: { Authorization: `Bearer ${token}` } }
         );
         const rows = res?.data?.data?.data || [];
         setZoneOptions(
@@ -95,7 +104,7 @@ const FrmSalaryCalculation = () => {
     const fetchDepartmentList = async () => {
         const res = await axios.post(`${BASE_URL}/api/FrmEmployeeMstList/department-list`,
             { ulbid: Number(ulbId) },
-            {headers: { Authorization: `Bearer ${token}` },}
+            { headers: { Authorization: `Bearer ${token}` }, }
         );
 
         const rows = res?.data?.data?.data || [];
@@ -110,42 +119,26 @@ const FrmSalaryCalculation = () => {
     const fetchCategoryList = async () => {
         const res = await axios.post(`${BASE_URL}/api/FrmEmployeeMstNewTest/employee-category-list`,
             { ulbid: Number(ulbId) },
-            {headers: { Authorization: `Bearer ${token}` },}
+            { headers: { Authorization: `Bearer ${token}` } }
         );
 
         const rows = res?.data?.data?.data || [];
-        setCategoryOptions(
-            rows.map((item) => ({
-                value: item.NUM_CATEGORY_ID.toString(),
-                label: item.VAR_CATEGORY_NAME,
-            }))
-        );
 
-        if (rows.length > 0) {
-            setCategoryId(rows[0].NUM_CATEGORY_ID.toString());
+        if (rows.length) {
+            setCategoryId(
+                rows[0].NUM_CATEGORY_ID.toString()
+            );
         }
     };
 
-    const fetchEmployeeList = async () => {
-        const res = await axios.get(`${BASE_URL}/api/FrmSalaryCalculation/employee-list`,
-            {headers: { Authorization: `Bearer ${token}` }}
-        );
 
-        const rows = res?.data?.data?.data || [];
-        setEmployeeOptions(
-            rows.map((item) => ({
-                value: item.NUM_EMPLOYEE_EMPID.toString(),
-                label: item.VAR_EMPLOYEE_ENGNAME,
-            }))
-        );
-    };
 
     const fetchSubDepartmentList =
         async () => {
             const res = await axios.post(
                 `${BASE_URL}/api/FrmEmployeeMstList/subdepartment-list`,
-                {ulbid: Number(ulbId), deptId: Number(deptId)},
-                {headers: { Authorization: `Bearer ${token}` }}
+                { ulbid: Number(ulbId), deptId: Number(deptId) },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             const rows = res?.data?.data?.data || [];
@@ -159,11 +152,11 @@ const FrmSalaryCalculation = () => {
 
     const fetchBillList =
         async () => {
-            const payload = {ulbid: Number(ulbId), deptid: Number(deptId)};
+            const payload = { ulbid: Number(ulbId), deptid: Number(deptId) };
 
             const res = await axios.post(`${BASE_URL}/api/FrmSalaryCalculation/bill-list`,
                 payload,
-                {headers: { Authorization: `Bearer ${token}`, },}
+                { headers: { Authorization: `Bearer ${token}`, }, }
             );
 
             const rows = res?.data?.data?.data || [];
@@ -174,13 +167,15 @@ const FrmSalaryCalculation = () => {
                 }))
             );
         };
-    const formatProcedureDate = () => {
-        const lastDate = new Date(Number(year),Number(month),0);
-        const day = lastDate.getDate();
-        const monthName = lastDate.toLocaleString("en-US", { month: "short" });
-        const yearValue = lastDate.getFullYear();
-        return `${day}-${monthName}-${yearValue}`;
-    };
+
+    const getSalaryDate = () =>
+        formatDate(
+            new Date(
+                Number(year),
+                Number(month),
+                0
+            )
+        );
 
     const validateForm = () => {
         if (!zoneId) {
@@ -209,18 +204,16 @@ const FrmSalaryCalculation = () => {
         return true;
     };
 
-    const getPayload = () => {
-        return {
-            userId,
-            date: formatProcedureDate(),
-            categoryId: Number(categoryId) || 0,
-            zone: Number(zoneId),
-            dept: Number(deptId),
-            ulbid: Number(ulbId),
-            subdepartment: showSubDepartment ? (Number(subDeptId) || null) : null,
-            billno: showBillNo ? (billNo || null) : null,
-        };
-    };
+    const getPayload = () => ({
+        userId,
+        date: getSalaryDate(),
+        categoryId: Number(categoryId) || 0,
+        zone: Number(zoneId),
+        dept: Number(deptId),
+        ulbid: Number(ulbId),
+        subdepartment: showSubDepartment ? Number(subDeptId) || null : null,
+        billno: showBillNo ? billNo || null : null,
+    });
 
     const handleProcess =
         async () => {
@@ -242,9 +235,9 @@ const FrmSalaryCalculation = () => {
                 const payload = getPayload();
 
                 const res = await axios.post(`${BASE_URL}/api/FrmSalaryCalculation/calculateSalary`,
-                        payload,
-                        {headers: { Authorization: `Bearer ${token}` }}
-                    );
+                    payload,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
 
                 Swal.close();
                 Swal.fire({
@@ -291,9 +284,9 @@ const FrmSalaryCalculation = () => {
 
                 const payload = getPayload();
                 const res = await axios.post(`${BASE_URL}/api/FrmSalaryCalculation/deleteSalary`,
-                        payload,
-                        {headers: { Authorization: `Bearer ${token}` }}
-                    );
+                    payload,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
 
                 Swal.close();
                 Swal.fire({
