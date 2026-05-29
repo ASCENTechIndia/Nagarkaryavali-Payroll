@@ -60,6 +60,8 @@ app.use("/api/BankList",require("./modules/Master/FrmBankListMst/FrmBankList.rou
 app.use("/api/Branchlist", require("./modules/Master/FrmBranchMst/FrmBranchMstList.route"));
 app.use("/api/LeaveMaster", require("./modules/Master/FrmLeaveMst/FrmLeaveListMst.route"));
 app.use("/api/LeaveApplication", require("./modules/Master/FrmLeaveApplication/FrmLeaveApplicationList.route"))
+app.use("/api/LeaveApproval", require("./modules/Master/FrmLeaveApproval/FrmLeaveApprovalList.route"))
+app.use("/api/EmpleaveList",require("./modules/Master/FrmEmpLeave/FrmEmpLeaveList.route"))
 
 app.use(errorMiddleware);
 
