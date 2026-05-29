@@ -207,6 +207,55 @@ exports.getEmployeeAutoFill = asyncHandler(async (req, res) => {
   );
 });
 
+exports.getCasteList = asyncHandler(async (req, res) => {
+  console.log("📥 Request Body:", req.body);
+  const { ulbid, religionid } = req.body;
+  if (!ulbid) {
+    throw new AppError("ulbid is required", 400);
+  }
+  if (!religionid) {
+    throw new AppError("religionid is required", 400);
+  }
+  const payload = {ulbid,religionid};
+
+  const data = await service.getCasteListService(payload);
+  return ok(
+    res,
+    data,
+    "Caste list fetched successfully"
+  );
+});
+
+exports.getSubCasteList = asyncHandler(async (req, res) => {
+  console.log("📥 Request Body:", req.body);
+  const { ulbid, casteid } = req.body;
+  if (!ulbid) {
+    throw new AppError("ulbid is required", 400);
+  }
+  if (!casteid) {
+    throw new AppError("casteid is required", 400);
+  }
+  const payload = { ulbid, casteid};
+
+  const data = await service.getSubCasteListService(payload);
+  return ok(
+    res,
+    data,
+    "Sub caste list fetched successfully"
+  );
+});
+
+exports.saveEmployee = asyncHandler(async (req, res) => {
+  console.log("📥 Request Body:", req.body);
+  const data = await service.saveEmployeeService(req.body);
+
+  return ok(
+    res,
+    data,
+    data.message || "Employee saved successfully"
+  );
+});
+
 exports.updateEmployeeImages = asyncHandler(async (req, res) => {
     console.log("📥 BODY =>", req.body);
     console.log("📥 FILES =>", req.files);
@@ -231,4 +280,21 @@ exports.updateEmployeeImages = asyncHandler(async (req, res) => {
         data,
         "Employee images updated successfully"
     );
+});
+
+exports.getEmployeeImages = asyncHandler(async (req, res) => {
+
+  const { empid, corpid } = req.body;
+
+  const data =
+    await service.getEmployeeImagesService({
+      empid,
+      corpid,
+    });
+
+  return ok(
+    res,
+    data,
+    "Employee images fetched successfully"
+  );
 });

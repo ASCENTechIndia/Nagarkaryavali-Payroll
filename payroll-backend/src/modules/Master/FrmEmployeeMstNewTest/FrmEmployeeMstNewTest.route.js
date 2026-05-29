@@ -17,7 +17,10 @@ router.post( "/selection-post-list", auth(), controller.getSelectionPostList);
 router.get( "/cast-category-list", auth(), controller.getCastCategoryList);
 router.post( "/bank-branch-list", auth(), controller.getBankBranchList);
 router.post( "/branch-master-list", auth(), controller.getBranchMasterList);
-router.post( "/employee-autofill",  controller.getEmployeeAutoFill);
+router.post( "/employee-autofill", auth(),  controller.getEmployeeAutoFill);
+router.post( "/get-caste-list", auth(),  controller.getCasteList);
+router.post( "/get-subcaste-list", auth(),  controller.getSubCasteList);
+router.post( "/save-employee", auth(),  controller.saveEmployee);
 router.post( "/update-employee-images", 
   upload.fields([
     {name: "BLOBSign",maxCount: 1},
@@ -26,6 +29,12 @@ router.post( "/update-employee-images",
   ]),
   auth(),
   controller.updateEmployeeImages
+);
+
+router.post(
+  "/employee-images",
+  auth(),
+  controller.getEmployeeImages
 );
 
 module.exports = router;
