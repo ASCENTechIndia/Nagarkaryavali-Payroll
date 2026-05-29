@@ -281,3 +281,20 @@ exports.updateEmployeeImages = asyncHandler(async (req, res) => {
         "Employee images updated successfully"
     );
 });
+
+exports.getEmployeeImages = asyncHandler(async (req, res) => {
+
+  const { empid, corpid } = req.body;
+
+  const data =
+    await service.getEmployeeImagesService({
+      empid,
+      corpid,
+    });
+
+  return ok(
+    res,
+    data,
+    "Employee images fetched successfully"
+  );
+});

@@ -1,6 +1,7 @@
 const oracledb = require("oracledb");
 const { executeQuery } = require("../../../db/queryExecutor");
 const { executeProcedure } = require("../../../db/procedureExecutor");
+const getConnection = require("../../../config/db");
 
 
 async function getEmployeeBankRepo({ empid, ulbid }) {
@@ -411,6 +412,15 @@ async function getSubCasteListRepo({ ulbid, casteid }) {
 
 //Procedure Not working and procedure for ULB = 1750 ( NOT in DB)
 async function saveEmployeeRepo(payload) {
+
+  const parseDate = (dateString) => {
+    if (!dateString) return null;
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+    return null;
+  };
     const result = await executeProcedure({
         sql: `
         BEGIN
@@ -511,7 +521,7 @@ async function saveEmployeeRepo(payload) {
             in_EmpId: payload.empId || 0,
             in_EmpNameE: payload.empNameE,
             in_EmpNameM: payload.empNameM,
-            in_DOB: payload.dob ? new Date(payload.dob) : null,
+            in_DOB: payload.dob ? parseDate(payload.dob) : null,
             in_Gender: payload.gender,
             in_MobileNo: payload.mobileNo,
             in_TempAddress: payload.tempAddress,
@@ -522,9 +532,9 @@ async function saveEmployeeRepo(payload) {
             in_PanNo: payload.panNo,
             in_AadharNo: payload.aadharNo,
             in_EmpStatus: payload.empStatus,
-            in_JoinDate: payload.joinDate ? new Date(payload.joinDate) : null,
-            in_ConfirmDate: payload.confirmDate ? new Date(payload.confirmDate) : null,
-            in_RetireDate: payload.retireDate ? new Date(payload.retireDate) : null,
+            in_JoinDate: payload.joinDate ? parseDate(payload.joinDate) : null,
+            in_ConfirmDate: payload.confirmDate ? parseDate(payload.confirmDate) : null,
+            in_RetireDate: payload.retireDate ? parseDate(payload.retireDate) : null,
             in_BankId: payload.bankId,
             in_BranchId: payload.branchId,
             in_AccNo: payload.accNo,
@@ -556,11 +566,11 @@ async function saveEmployeeRepo(payload) {
             in_managementlevel: payload.managementlevel,
             in_DCPSRate: payload.dcpsRate,
             in_UlbID: payload.ulbId,
-            in_TransferDate: payload.transferDate ? new Date(payload.transferDate) : null,
+            in_TransferDate: payload.transferDate ? parseDate(payload.transferDate) : null,
             in_pranNo: payload.pranNo,
             in_education: payload.education,
             in_SevaNivrutiFlag: payload.sevaNivrutiFlag,
-            in_SevaNivrutiDate: payload.sevaNivrutiDate ? new Date(payload.sevaNivrutiDate) : null,
+            in_SevaNivrutiDate: payload.sevaNivrutiDate ? parseDate(payload.sevaNivrutiDate) : null,
             in_Cast: payload.cast,
             in_subcast: payload.subcast,
             in_FestivalAdvanceID: payload.festivalAdvanceId,
@@ -630,6 +640,80 @@ async function updateEmployeeImagesRepo(payload) {
     };
 }
 
+async function getEmployeeImagesRepo({ empid, corpid }) {
+  let connection;
+  try {
+    connection = await getConnection();
+    
+    const sql = `
+      SELECT
+        blob_empdoc_signimage,
+        blob_empdoc_photoimage,
+        blob_empdoc_thumbimage
+      FROM aopr_empdoc_def
+      WHERE num_empdoc_corpid = :corpid
+        AND num_empdoc_empid = :empid
+    `;
+    
+    const result = await connection.execute(sql, { corpid, empid }, {
+      outFormat: oracledb.OUT_FORMAT_OBJECT
+    });
+    
+    if (!result.rows || result.rows.length === 0) {
+      return [];
+    }
+    
+    const row = result.rows[0];
+  
+    const readLob = async (lob) => {
+      if (!lob) return null;
+      
+      if (Buffer.isBuffer(lob)) return lob;
+      
+      // If it's an Oracle Lob object
+      if (lob && typeof lob === 'object' && lob.on) {
+        return new Promise((resolve, reject) => {
+          const chunks = [];
+          lob.on('data', (chunk) => chunks.push(chunk));
+          lob.on('error', reject);
+          lob.on('end', () => resolve(Buffer.concat(chunks)));
+        });
+      }
+      
+      return null;
+    };
+    
+    const [signBuffer, photoBuffer, thumbBuffer] = await Promise.all([
+      readLob(row.BLOB_EMPDOC_SIGNIMAGE),
+      readLob(row.BLOB_EMPDOC_PHOTOIMAGE),
+      readLob(row.BLOB_EMPDOC_THUMBIMAGE)
+    ]);
+
+    console.log("result: ", result);
+    console.log("signBuffer", signBuffer)
+    console.log("photoBuffer", photoBuffer)
+    console.log("thumbBuffer", thumbBuffer)
+    
+    return [{
+      BLOB_EMPDOC_SIGNIMAGE: signBuffer ? signBuffer.toString('base64') : null,
+      BLOB_EMPDOC_PHOTOIMAGE: photoBuffer ? photoBuffer.toString('base64') : null,
+      BLOB_EMPDOC_THUMBIMAGE: thumbBuffer ? thumbBuffer.toString('base64') : null,
+    }];
+    
+  } catch (error) {
+    console.error("Error in getEmployeeImagesRepo:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
 module.exports = {
     getEmployeeBankRepo,
     getSalaryEarningRepo,
@@ -649,4 +733,5 @@ module.exports = {
     getSubCasteListRepo,
     saveEmployeeRepo,
     updateEmployeeImagesRepo,
+    getEmployeeImagesRepo
 };

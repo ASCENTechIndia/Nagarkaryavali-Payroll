@@ -185,6 +185,16 @@ async function updateEmployeeImagesService(payload) {
   };
 }
 
+async function getEmployeeImagesService(payload) {
+  const data =
+    await repo.getEmployeeImagesRepo(payload);
+
+  return {
+    success: true,
+    data,
+  };
+}
+
 module.exports = {
   getEmployeeBankService,
   getSalaryEarningService,
@@ -203,5 +213,6 @@ module.exports = {
   getCasteListService,
   getSubCasteListService,
   saveEmployeeService,
-  updateEmployeeImagesService
+  updateEmployeeImagesService,
+  getEmployeeImagesService
 };
