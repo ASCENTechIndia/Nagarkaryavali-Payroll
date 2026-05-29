@@ -21,6 +21,15 @@ import FrmLeaveList from '@/pages/Masters/FrmLeaveList';
 import FrmLeaveMaster from '@/pages/Masters/FrmLeaveMst';
 import FrmBankBranchList from './pages/Masters/FrmBankBranchList';
 import FrmBankBranchMst from './pages/Masters/FrmBankBranchMst';
+import FrmPayCommMst from './Masters/FrmPayCommMst';
+import FrmPayCommList from './Masters/FrmPayCommList';
+import FrmDesgMst from './Masters/FrmDesgMst';
+import FrmDesgListMst from './Masters/FrmDesgListMst';
+import FrmBankMst from './Masters/FrmBankMst';
+import FrmBankList from './Masters/FrmBankList';
+import FrmPayHeadMst from './Masters/FrmPayHeadMst';
+import FrmPayHeadListMst from './Masters/FrmPayHeadListMst';
+
 
 const Home = () => {
   return (
@@ -116,7 +125,39 @@ export const router = createBrowserRouter([
         {
           path:"Masters/FrmBankBranchMst",
           element : <FrmBankBranchMst/>
-        }
+        },
+        {
+          path: "/Masters/FrmPayHeadListMst",
+          element: <FrmPayHeadListMst />,
+        },
+        {
+          path: "/Masters/FrmPayHeadMst",
+          element: <FrmPayHeadMst />,
+        },
+        {
+          path: "/Masters/FrmBankList",
+          element: <FrmBankList />,
+        },
+        {
+          path: "/Masters/FrmBankMst",
+          element: <FrmBankMst />,
+        },
+        {
+          path: "/Masters/FrmDesgListMst",
+          element: <FrmDesgListMst />,
+        },
+        {
+          path: "/Masters/FrmDesgMst",
+          element: <FrmDesgMst />,
+        },
+        {
+          path: "/Masters/FrmPayCommList",
+          element: <FrmPayCommList />,
+        },
+        {
+          path: "/Masters/FrmPayCommMst",
+          element: <FrmPayCommMst />,
+        },
       ]
     }
 ])
