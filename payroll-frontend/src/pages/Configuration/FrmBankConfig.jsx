@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+
+import axios from "axios";
 import { Formik, Form } from "formik";
 import Swal from "sweetalert2";
 
+import { useAuth } from "@/context/AuthContext";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Label } from "@/components/ui/label";
+
 import {
   Select,
   SelectContent,
@@ -11,11 +17,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
+
 import ShadCNTable from "@/components/ui/table";
 
 const FrmBankConfig = () => {
+  const { token, user } = useAuth();
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+  const userId = user?.userId;
+
   const [tableData, setTableData] = useState([]);
+
+  const [corporationList, setCorporationList] = useState([]);
+
+  const [mode, setMode] = useState(1);
+
+  const axiosConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token],
+  );
 
   const initialValues = {
     corporation: "",
@@ -28,116 +55,264 @@ const FrmBankConfig = () => {
     "Bank Name": "bankName",
   };
 
-  const handleSearch = async () => {
+  /* ------------------------------------------------------------ */
+  /* CORPORATION LIST                                              */
+  /* ------------------------------------------------------------ */
+
+  const getCorporationList = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/Branchconfi/corporationlist`,
+        axiosConfig,
+      );
+
+      setCorporationList(response?.data?.data?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    getCorporationList();
+  }, [token]);
+
+  /* ------------------------------------------------------------ */
+  /* SEARCH                                                        */
+  /* ------------------------------------------------------------ */
+
+  const handleSearch = async (corporationId) => {
+    if (!corporationId) {
+      Swal.fire({
+        icon: "warning",
+        text: "Please Select Corporation",
+      });
+
+      return;
+    }
+
     Swal.fire({
       title: "Please Wait...",
       text: "Loading Banks",
       allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
 
     try {
-      // API CALL HERE
+      const [configuredRes, bankRes] = await Promise.all([
+        axios.post(
+          `${baseUrl}/api/BankConfig/configuredbanklist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig,
+        ),
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setTableData([
-        {
-          checked: true,
-          bankName: "KALAS UTKARSHA SAH.PATPEDHI LTD. VASHI",
-        },
-        {
-          checked: false,
-          bankName: "JUDICIAL MAGISTRATE FIRST CLASS",
-        },
-        {
-          checked: false,
-          bankName: "JYOTIRLINGA CO-OP CREDIT SOCIETY LTD MUMBAI",
-        },
-        {
-          checked: false,
-          bankName: "JYOTIRLINGA NAGARI SAHAKARI PATSANSTHA",
-        },
-        {
-          checked: false,
-          bankName: "K.A. ICHALKARANJI JANTA SAH.BANK",
-        },
-        {
-          checked: false,
-          bankName: "KALWA BALAPUR SA.BANK.(VASHI-NEW BOMBAY)",
-        },
-        {
-          checked: false,
-          bankName: "KALYAN JANTA SAHAKARI BANK",
-        },
-        {
-          checked: false,
-          bankName: "KALYAN JANTA SAHAKARI BANK (ULHASNAGAR)",
-        },
-        {
-          checked: false,
-          bankName: "KAMGAR EKATA NAGRI SAH.PATPEDHI LTD.",
-        },
-        {
-          checked: false,
-          bankName: "KANCHANGAURI MAHILA SAHAKARI PETHPEDHI LTD.",
-        },
+        axios.post(
+          `${baseUrl}/api/BankConfig/banklist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig,
+        ),
       ]);
+
+      const configuredBanks = configuredRes?.data?.data?.data || [];
+
+      const allBanks = bankRes?.data?.data?.data || [];
+
+    const rows = allBanks.map((bank) => {
+  const isConfigured = configuredBanks.some(
+    (x) =>
+      Number(x.CONFIBANK_ID) ===
+      Number(bank.NUM_BANKMST_BANKID)
+  );
+
+  return {
+    bankId: bank.NUM_BANKMST_BANKID,
+    bankName: bank.VAR_BANKMST_BANKNAME,
+
+    checked: isConfigured,
+
+    originallyConfigured: isConfigured,
+  };
+});
+
+      setMode(configuredBanks.length > 0 ? 2 : 1);
+
+      setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text: "Failed to load data",
+        text: error?.response?.data?.message || "Failed to load banks",
       });
     } finally {
       Swal.close();
     }
   };
 
-  const handleSelectAll = (checked) => {
-    setTableData((prev) =>
-      prev.map((item) => ({
-        ...item,
-        checked,
-      }))
-    );
-  };
+  /* ------------------------------------------------------------ */
+  /* CHECKBOX                                                      */
+  /* ------------------------------------------------------------ */
+
+const handleSelectAll = (checked) => {
+  setTableData((prev) =>
+    prev.map((item) => ({
+      ...item,
+      checked: checked === true,
+    }))
+  );
+};
 
   const handleRowCheck = (row, checked) => {
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.bankName === row.bankName
-          ? {
-              ...item,
-              checked,
-            }
-          : item
-      )
-    );
-  };
+  setTableData((prev) =>
+    prev.map((item) =>
+      item.bankId === row.bankId
+        ? {
+            ...item,
+            checked: checked === true,
+          }
+        : item
+    )
+  );
+};
 
-  const handleSubmit = async (values) => {
-    const selectedBanks = tableData.filter((x) => x.checked);
+  /* ------------------------------------------------------------ */
+  /* SAVE                                                          */
+  /* ------------------------------------------------------------ */
+const handleSubmit = async (values) => {
+  try {
+    if (!values.corporation) {
+      Swal.fire({
+        icon: "warning",
+        text: "Please Select Corporation",
+      });
+      return;
+    }
 
-    console.log({
-      ...values,
-      selectedBanks,
+    let bankStr = "";
+    let hasSelection = false;
+
+    tableData.forEach((item) => {
+      const oldValue =
+        item.originallyConfigured;
+
+      const newValue =
+        item.checked;
+
+      if (mode === 1) {
+        if (newValue) {
+          bankStr +=
+            `${item.bankId}#N#Y$`;
+
+          hasSelection = true;
+        } else {
+          bankStr +=
+            `${item.bankId}#N#N$`;
+        }
+      } else {
+        if (newValue && oldValue) {
+          bankStr +=
+            `${item.bankId}#Y#Y$`;
+
+          hasSelection = true;
+        }
+
+        else if (
+          newValue &&
+          !oldValue
+        ) {
+          bankStr +=
+            `${item.bankId}#N#Y$`;
+
+          hasSelection = true;
+        }
+
+        else if (
+          !newValue &&
+          oldValue
+        ) {
+          bankStr +=
+            `${item.bankId}#Y#N$`;
+
+          hasSelection = true;
+        }
+
+        else {
+          bankStr +=
+            `${item.bankId}#N#N$`;
+        }
+      }
     });
+
+    if (!hasSelection) {
+      Swal.fire({
+        icon: "warning",
+        text:
+          "Select Atleast One CheckBox!",
+      });
+      return;
+    }
+
+    bankStr = bankStr.slice(0, -1);
 
     Swal.fire({
-      icon: "success",
-      text: "Configuration Saved Successfully",
+      title: "Saving...",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
-  };
+
+    const response =
+      await axios.post(
+        `${baseUrl}/api/BankConfig/savebankconfiguration`,
+        {
+          userId,
+          ulbId: Number(
+            values.corporation
+          ),
+          bankStr,
+          mode,
+        },
+        axiosConfig
+      );
+
+    Swal.close();
+
+    await Swal.fire({
+      icon: "success",
+      text:
+        response?.data?.message ||
+        "Configuration Saved Successfully",
+    });
+
+    await handleSearch(
+      values.corporation
+    );
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      text:
+        error?.response?.data
+          ?.message ||
+        "Save Failed",
+    });
+  }
+};
 
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({ values, setFieldValue }) => (
         <Form>
           <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">
-                Bank Config
-              </CardTitle>
+             <CardHeader className="pb-3 border-b">
+              <CardTitle className="text-xl font-bold">Bank Config</CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -151,22 +326,25 @@ const FrmBankConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={(value) =>
-                      setFieldValue("corporation", value)
-                    }
+                    onValueChange={async (value) => {
+                      setFieldValue("corporation", value);
+
+                      await handleSearch(value);
+                    }}
                   >
                     <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="-- Select Option --" />
                     </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="870">
-                        KULGAON BADLAPUR NAGARPARISHAD BADLAPUR
-                      </SelectItem>
-
-                      <SelectItem value="871">
-                        SANGLI MIRAJ KUPWAD CORPORATION
-                      </SelectItem>
+                    <SelectContent className="max-h-72 overflow-y-auto">
+                      {corporationList.map((item) => (
+                        <SelectItem
+                          key={item.ID_VALUE}
+                          value={String(item.ID_VALUE)}
+                        >
+                          {item.DISPLAY_TEXT}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -178,30 +356,16 @@ const FrmBankConfig = () => {
                   data={tableData}
                   keyMapping={keyMapping}
                   pagination
-                  rowsPerPage={10}
+                  rowsPerPage={6}
                   onSelectAllChange={handleSelectAll}
                   onRowCheckChange={handleRowCheck}
                 />
               )}
 
               <div className="flex justify-center gap-3">
-                <Button
-                  type="button"
-                  onClick={handleSearch}
-                >
-                  Search
-                </Button>
+                <Button type="submit">Save</Button>
 
-                {tableData.length > 0 && (
-                  <Button type="submit">
-                    Save
-                  </Button>
-                )}
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                >
+                <Button type="button" variant="secondary">
                   Close
                 </Button>
               </div>

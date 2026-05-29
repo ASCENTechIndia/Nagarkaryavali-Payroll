@@ -319,7 +319,7 @@ const FrmLeaveApplication = () => {
       {({ values, handleChange, setFieldValue }) => (
         <Form>
           <Card>
-           <CardHeader className="pb-3 border-b">
+            <CardHeader className="pb-3">
               <CardTitle className="text-xl font-bold">
                 Leave Application
               </CardTitle>

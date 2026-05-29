@@ -43,7 +43,7 @@ const FrmBankRecovery = () => {
       {({ values, handleChange, setFieldValue, resetForm }) => (
         <Form>
           <Card >
-           <CardHeader className="pb-3 border-b">
+            <CardHeader className="pb-3">
               <CardTitle className="text-xl font-bold">
                 Employee Policy Form
               </CardTitle>

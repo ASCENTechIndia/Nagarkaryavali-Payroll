@@ -49,7 +49,7 @@ const FrmInsuranceMstList = () => {
       }) => (
         <Form>
           <Card >
-           <CardHeader className="pb-3 border-b">
+            <CardHeader className="pb-3">
               <CardTitle className="text-xl font-bold">
                 Insurance Master
               </CardTitle>

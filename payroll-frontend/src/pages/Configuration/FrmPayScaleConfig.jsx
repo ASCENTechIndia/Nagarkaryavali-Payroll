@@ -1,11 +1,16 @@
-
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import axios from "axios";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
 
+import { useAuth } from "@/context/AuthContext";
+import GetIPAddress from "@/utils/ipHelper";
+import config from "@/utils/config";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Label } from "@/components/ui/label";
+
 import {
   Select,
   SelectContent,
@@ -18,7 +23,25 @@ import { Button } from "@/components/ui/button";
 import ShadCNTable from "@/components/ui/table";
 
 const FrmPayConfig = () => {
+  const { token, user } = useAuth();
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const userId = user?.userId;
+
+  const [corporationList, setCorporationList] = useState([]);
+
   const [tableData, setTableData] = useState([]);
+
+  const [mode, setMode] = useState(1);
+
+  const axiosConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token],
+  );
 
   const initialValues = {
     corporation: "",
@@ -31,75 +54,223 @@ const FrmPayConfig = () => {
     "Pay Scale": "payScale",
   };
 
-  const handleSearch = async () => {
+  // ==========================
+  // Get Corporation List
+  // ==========================
+  const getCorporationList = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/Branchconfi/corporationlist`,
+        axiosConfig,
+      );
+
+      setCorporationList(response?.data?.data?.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    getCorporationList();
+  }, [token]);
+
+  // ==========================
+  // Search Pay Scale Data
+  // ==========================
+  const handleSearch = async (corporationId) => {
+    if (!corporationId) return;
+
     Swal.fire({
       title: "Please Wait...",
       text: "Loading Pay Scales",
       allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
 
     try {
-      // API CALL HERE
+      const [configuredRes, payScaleRes] = await Promise.all([
+        axios.post(
+          `${baseUrl}/api/PayScaConfig/configuredpayscalelist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig,
+        ),
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setTableData([
-        { checked: true, payScale: "9300-34800" },
-        { checked: true, payScale: "S3-16600-52400" },
-        { checked: true, payScale: "750-12-870-14-940" },
-        { checked: true, payScale: "S2-(15300-48700)" },
-        { checked: true, payScale: "9500-34800" },
-        { checked: true, payScale: "test 1234" },
-        { checked: true, payScale: "S2-15300-48700" },
-        { checked: true, payScale: "NA" },
-        { checked: true, payScale: "S23-67700-208700" },
-        { checked: true, payScale: "S13-35400-112400" },
+        axios.post(
+          `${baseUrl}/api/PayScaConfig/payscalelist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig,
+        ),
       ]);
+
+      const configuredPayScales = configuredRes?.data?.data?.data || [];
+
+      const allPayScales = payScaleRes?.data?.data?.data || [];
+
+      const rows = allPayScales.map((payScale) => {
+        const isConfigured = configuredPayScales.some(
+          (item) =>
+            Number(item.CONFIPAYSCALE_ID) ===
+            Number(payScale.NUM_PAYSCALEMST_PAYSCALEID),
+        );
+
+        return {
+          payScaleId: payScale.NUM_PAYSCALEMST_PAYSCALEID,
+
+          payScale: payScale.VAR_PAYSCALEMST_PAYSCALENAME,
+
+          checked: isConfigured,
+
+          originallyConfigured: isConfigured,
+        };
+      });
+
+      setMode(configuredPayScales.length > 0 ? 2 : 1);
+
+      setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text: "Failed to load Pay Scales",
+        text: error?.response?.data?.message || "Failed to load Pay Scales",
       });
     } finally {
       Swal.close();
     }
   };
 
+  // ==========================
+  // Select All
+  // ==========================
   const handleSelectAll = (checked) => {
     setTableData((prev) =>
-      prev.map((item) => ({
-        ...item,
-        checked,
-      }))
+      prev.map((row) => ({
+        ...row,
+        checked: checked === true,
+      })),
     );
   };
 
+  // ==========================
+  // Row Check
+  // ==========================
   const handleRowCheck = (row, checked) => {
     setTableData((prev) =>
       prev.map((item) =>
-        item.payScale === row.payScale
+        item.payScaleId === row.payScaleId
           ? {
               ...item,
-              checked,
+              checked: checked === true,
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
+  // ==========================
+  // Save Configuration
+  // ==========================
   const handleSubmit = async (values) => {
-    const selectedPayScales = tableData.filter((x) => x.checked);
+    try {
+      if (!values.corporation) {
+        Swal.fire({
+          icon: "warning",
+          text: "Please Select Corporation",
+        });
+        return;
+      }
 
-    console.log({
-      ...values,
-      selectedPayScales,
-    });
+      let payScaleStr = "";
+      let hasSelection = false;
 
-    Swal.fire({
-      icon: "success",
-      text: "Pay Configuration Saved Successfully",
-    });
+      tableData.forEach((item) => {
+        const oldValue = item.originallyConfigured;
+
+        const newValue = item.checked;
+
+        if (mode === 1) {
+          if (newValue) {
+            payScaleStr += `${item.payScaleId}#N#Y$`;
+
+            hasSelection = true;
+          } else {
+            payScaleStr += `${item.payScaleId}#N#N$`;
+          }
+        } else {
+          if (newValue && oldValue) {
+            payScaleStr += `${item.payScaleId}#Y#Y$`;
+
+            hasSelection = true;
+          } else if (newValue && !oldValue) {
+            payScaleStr += `${item.payScaleId}#N#Y$`;
+
+            hasSelection = true;
+          } else if (!newValue && oldValue) {
+            payScaleStr += `${item.payScaleId}#Y#N$`;
+
+            hasSelection = true;
+          } else {
+            payScaleStr += `${item.payScaleId}#N#N$`;
+          }
+        }
+      });
+
+      if (!hasSelection) {
+        Swal.fire({
+          icon: "warning",
+          text: "Select Atleast One CheckBox!",
+        });
+        return;
+      }
+
+      payScaleStr = payScaleStr.slice(0, -1);
+
+      console.log({
+        userId,
+        orgId: Number(values.corporation),
+        payScaleStr,
+        mode,
+        ipAddress: GetIPAddress(),
+        source: config.source,
+      });
+
+      Swal.fire({
+        title: "Saving...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      const ipAddress = await GetIPAddress();
+      const response = await axios.post(
+        `${baseUrl}/api/PayScaConfig/savepayscaleconfiguration`,
+        {
+          userId,
+          orgId: Number(values.corporation),
+          payScaleStr,
+          mode,
+          ipAddress,
+          source: config.source,
+        },
+        axiosConfig,
+      );
+
+      Swal.close();
+
+      await Swal.fire({
+        icon: "success",
+        text: response?.data?.message || "Payscale Saved Successfully!",
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        text: error?.response?.data?.message || "Save Failed",
+      });
+    }
   };
 
   return (
@@ -107,9 +278,9 @@ const FrmPayConfig = () => {
       {({ values, setFieldValue }) => (
         <Form>
           <Card>
-           <CardHeader className="pb-3 border-b">
+            <CardHeader className="pb-3 border-b">
               <CardTitle className="text-xl font-bold">
-                Pay Config
+                Pay Scale Config
               </CardTitle>
             </CardHeader>
 
@@ -126,28 +297,31 @@ const FrmPayConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={(value) =>
-                      setFieldValue("corporation", value)
-                    }
+                    onValueChange={async (value) => {
+                      setFieldValue("corporation", value);
+
+                      await handleSearch(value);
+                    }}
                   >
                     <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="-- Select Option --" />
                     </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="870">
-                        KULGAON BADLAPUR NAGARPARISHAD BADLAPUR
-                      </SelectItem>
-
-                      <SelectItem value="871">
-                        SANGLI MIRAJ KUPWAD CORPORATION
-                      </SelectItem>
+                    <SelectContent className="max-h-72 overflow-y-auto">
+                      {corporationList.map((item) => (
+                        <SelectItem
+                          key={item.ID_VALUE}
+                          value={String(item.ID_VALUE)}
+                        >
+                          {item.DISPLAY_TEXT}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {/* Pay Scale Table */}
+              {/* Table */}
 
               {tableData.length > 0 && (
                 <ShadCNTable
@@ -164,22 +338,14 @@ const FrmPayConfig = () => {
               {/* Buttons */}
 
               <div className="flex justify-center gap-3">
-                <Button
-                  type="button"
-                  onClick={handleSearch}
-                >
-                  Search
-                </Button>
-
-                {tableData.length > 0 && (
-                  <Button type="submit">
-                    Save
-                  </Button>
-                )}
+                <Button type="submit">Save</Button>
 
                 <Button
                   type="button"
                   variant="secondary"
+                  onClick={() => {
+                    setTableData([]);
+                  }}
                 >
                   Close
                 </Button>

@@ -119,7 +119,7 @@ const FrmLeaveList = () => {
 
   return (
     <Card>
-     <CardHeader className="pb-3 border-b">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-bold">Leave List</CardTitle>
 
