@@ -65,6 +65,8 @@ app.use("/api/LeaveMaster", require("./modules/Master/FrmLeaveMst/FrmLeaveListMs
 app.use("/api/LeaveApplication", require("./modules/Master/FrmLeaveApplication/FrmLeaveApplicationList.route"))
 app.use("/api/FrmRelegionListMst", require("./modules/Master/FrmRelegionListMst/FrmRelegionListMst.routes"));
 app.use("/api/FrmRelationListMst", require("./modules/Master/FrmRelationListMst/FrmRelationListMst.routes"));
+app.use("/api/LeaveApproval", require("./modules/Master/FrmLeaveApproval/FrmLeaveApprovalList.route"))
+app.use("/api/EmpleaveList",require("./modules/Master/FrmEmpLeave/FrmEmpLeaveList.route"))
 
 app.use(errorMiddleware);
 
