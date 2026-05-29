@@ -215,7 +215,7 @@ async function searchEmployeeRepo(payload) {
       NVL( TO_NUMBER( REGEXP_SUBSTR( VAR_EMPLOYEE_OLDEMPNO, '-([0-9]+)$', 1, 1, NULL, 1)),0)
     `;
   } else {
-    sql += ` ORDER BY employeename`;
+    sql += ` ORDER BY EM.num_employee_empid`;
   }
   console.log("sql for searchEmployeeRepo:",sql)
   const result = await executeQuery(sql, binds);
