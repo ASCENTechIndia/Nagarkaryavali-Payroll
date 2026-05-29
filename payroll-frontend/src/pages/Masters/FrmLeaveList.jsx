@@ -1,8 +1,8 @@
-"use client";
-
-import React from "react";
-
+import React, { useEffect, useState, useMemo } from "react";
+import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -13,69 +13,102 @@ import ShadCNTable from "@/components/ui/table";
 const FrmLeaveList = () => {
   const navigate = useNavigate();
 
-  // ✅ Table Headers
+  const { token, user } = useAuth();
+
+  const [leaveList, setLeaveList] = useState([]);
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+  const corpId = user?.ulbId;
+
+  const axiosConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token],
+  );
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   TABLE                                    */
+  /* -------------------------------------------------------------------------- */
+
   const headers = ["Action", "Leave Name"];
 
-  // ✅ Key Mapping
   const keyMapping = {
     Action: "action",
     "Leave Name": "leaveName",
   };
 
-  // ✅ Leave List
-  const leaveList = [
-    {
-      id: 1,
-      leaveName: "किरकोळ रजा",
-    },
+  /* -------------------------------------------------------------------------- */
+  /*                                API CALL                                    */
+  /* -------------------------------------------------------------------------- */
 
-    {
-      id: 2,
-      leaveName: "अर्जित रजा",
-    },
+  const getLeaveList = async () => {
+    try {
+      Swal.fire({
+        title: "Loading...",
+        text: "Fetching Leave List",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
 
-    {
-      id: 3,
-      leaveName: "वैद्यकीय रजा",
-    },
+      const response = await axios.post(
+        `${baseUrl}/api/LeaveMaster/leavelist`,
+        {
+          corpId,
+        },
+        axiosConfig,
+      );
 
-    {
-      id: 4,
-      leaveName: "प्रसूती रजा",
-    },
+      setLeaveList(response?.data?.data?.data || []);
+    } catch (error) {
+      console.error("Leave List Error", error);
 
-    {
-      id: 5,
-      leaveName: "गर्भपात रजा",
-    },
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error?.response?.data?.message || "Failed to load leave list",
+      });
+    } finally {
+      Swal.close();
+    }
+  };
 
-    {
-      id: 6,
-      leaveName: "विशेष रजा",
-    },
+  /* -------------------------------------------------------------------------- */
+  /*                               PAGE LOAD                                    */
+  /* -------------------------------------------------------------------------- */
 
-    {
-      id: 7,
-      leaveName: "पर्यायी रजा",
-    },
+  useEffect(() => {
+    if (!token || !corpId) return;
 
-    {
-      id: 8,
-      leaveName: "अध्ययन रजा",
-    },
-  ];
+    const loadData = async () => {
+      await getLeaveList();
+    };
 
-  // ✅ Table Data
+    loadData();
+  }, [token, corpId]);
+
+  /* -------------------------------------------------------------------------- */
+  /*                               TABLE DATA                                   */
+  /* -------------------------------------------------------------------------- */
+
   const tableData = leaveList.map((item) => ({
-    leaveName: item.leaveName,
+    leaveName: item.VAR_LEAVE_NAME,
 
     action: (
       <Button
         size="sm"
         variant="outline"
         onClick={() =>
-          navigate("/Masters/FrmLeaveMaster", {
-            state: item,
+          navigate("/Masters/FrmLeaveMst", {
+            state: {
+              leaveId: item.NUM_LEAVE_LEAVEID,
+            },
           })
         }
       >
@@ -86,11 +119,13 @@ const FrmLeaveList = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+     <CardHeader className="pb-3 border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-bold">Leave List</CardTitle>
 
-          <Button path="/Masters/FrmLeaveMst">Add New</Button>
+          <Button onClick={() => navigate("/Masters/FrmLeaveMst")}>
+            Add New
+          </Button>
         </div>
       </CardHeader>
 

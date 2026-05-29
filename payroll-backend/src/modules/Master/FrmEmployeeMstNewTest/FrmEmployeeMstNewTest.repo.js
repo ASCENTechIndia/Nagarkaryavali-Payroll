@@ -1,4 +1,8 @@
+const oracledb = require("oracledb");
 const { executeQuery } = require("../../../db/queryExecutor");
+const { executeProcedure } = require("../../../db/procedureExecutor");
+const getConnection = require("../../../config/db");
+
 
 async function getEmployeeBankRepo({ empid, ulbid }) {
     console.log("📤 Repo: Fetch Employee Bank Details", { empid, ulbid, });
@@ -337,9 +341,9 @@ async function getBranchMasterListRepo({ bankid }) {
 }
 
 async function getEmployeeAutoFillRepo({ empid, ulbid }) {
-  console.log("📤 Repo: Employee AutoFill", { empid, ulbid });
+    console.log("📤 Repo: Employee AutoFill", { empid, ulbid });
 
-  const sql = `
+    const sql = `
     SELECT *
     FROM aopr_employee_def
     LEFT JOIN aopr_deptslip_mas
@@ -352,8 +356,31 @@ async function getEmployeeAutoFillRepo({ empid, ulbid }) {
     ORDER BY num_employee_empid
   `;
 
-  const binds = { empid, ulbid };
-  const result = await executeQuery( sql, binds );
+    const binds = { empid, ulbid };
+    const result = await executeQuery(sql, binds);
+
+    if (!result.success) {
+        throw new Error(result.error);
+    }
+    return result.rows;
+}
+
+async function getCasteListRepo({ ulbid, religionid }) {
+  console.log("📤 Repo: Fetch Caste List", { ulbid, religionid});
+
+  const sql = `
+    SELECT
+      castenamem,
+      casteid,
+      religionid
+    FROM vw_caste
+    WHERE ulbid = :ulbid
+      AND religionid = :religionid
+    ORDER BY castenamem
+  `;
+
+  const binds = { ulbid, religionid};
+  const result = await executeQuery(sql, binds);
 
   if (!result.success) {
     throw new Error(result.error);
@@ -361,10 +388,238 @@ async function getEmployeeAutoFillRepo({ empid, ulbid }) {
   return result.rows;
 }
 
-async function updateEmployeeImagesRepo(payload) {
-  const { empid, corpid, BLOBSign, BLOBPhoto, BLOBThumb } = payload;
+async function getSubCasteListRepo({ ulbid, casteid }) {
+  console.log("📤 Repo: Fetch Sub Caste List", { ulbid, casteid });
 
   const sql = `
+    SELECT
+      SUBCASTEMNAME,
+      SUBCASTEID
+    FROM vw_subcaste
+    WHERE ulbid = :ulbid
+      AND CASTEID = :casteid
+    ORDER BY SUBCASTEMNAME
+  `;
+
+  const binds = { ulbid, casteid };
+  const result = await executeQuery(sql, binds);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+  return result.rows;
+}
+
+//Procedure Not working and procedure for ULB = 1750 ( NOT in DB)
+async function saveEmployeeRepo(payload) {
+
+  const parseDate = (dateString) => {
+    if (!dateString) return null;
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+    return null;
+  };
+    const result = await executeProcedure({
+        sql: `
+        BEGIN
+        aopr_employee_ins(
+            :in_UserId,
+            :in_EmpId,
+            :in_EmpNameE,
+            :in_EmpNameM,
+            :in_DOB,
+            :in_Gender,
+            :in_MobileNo,
+            :in_TempAddress,
+            :in_PermAddress,
+            :in_machiAtten,
+            :in_EmailId,
+            :in_Handicap,
+            :in_PanNo,
+            :in_AadharNo,
+            :in_EmpStatus,
+            :in_JoinDate,
+            :in_ConfirmDate,
+            :in_RetireDate,
+            :in_BankId,
+            :in_BranchId,
+            :in_AccNo,
+            :in_GradeId,
+            :in_DeptId,
+            :in_DesigId,
+            :in_PayscaleId,
+            :in_PFNo,
+            :in_BasicSal,
+            :in_GradePay,
+            :in_VehicleOccup,
+            :in_SocMem,
+            :in_HomeOccup,
+            :in_pfpercent,
+            :in_pffixamt,
+            :in_defpfpercent,
+            :in_defpffixamt,
+            :in_CorpId,
+            :in_paysheettype,
+            :in_zone,
+            :in_Mode,
+            :in_SocietyAmt,
+            :in_EmpEarDudStr,
+            :in_currbasic,
+            :in_currgradepay,
+            :in_IC,
+            :in_MOP,
+            :in_BKMicr,
+            :in_managementlevel,
+            :in_DCPSRate,
+            :in_UlbID,
+            :in_TransferDate,
+            :in_pranNo,
+            :in_education,
+            :in_SevaNivrutiFlag,
+            :in_SevaNivrutiDate,
+            :in_Cast,
+            :in_subcast,
+            :in_FestivalAdvanceID,
+            :in_str,
+            :in_subdeptId,
+            :in_deductionType,
+            :in_billno,
+            :in_emptype,
+            :in_jobchart,
+            :in_jobtableno,
+            :in_oldempno,
+            :in_hsg_rent,
+            :in_bank_rec,
+            :in_karyavibhag,
+            :in_empappno,
+            :in_washallow,
+            :in_bankstr,
+            :in_disabldesc,
+            :in_disablperc,
+            :in_altmobno,
+            :in_marstatus,
+            :in_rectype,
+            :in_ifsc,
+            :in_voterid,
+            :in_assemcondet,
+            :in_partno,
+            :in_religion,
+            :in_castcat,
+            :in_karyazone,
+            :in_bankstramc,
+
+            :out_EmpId,
+            :out_ErrorCode,
+            :out_ErrorMsg
+        );
+        END;
+`,
+        binds: {
+            in_UserId: payload.userId,
+            in_EmpId: payload.empId || 0,
+            in_EmpNameE: payload.empNameE,
+            in_EmpNameM: payload.empNameM,
+            in_DOB: payload.dob ? parseDate(payload.dob) : null,
+            in_Gender: payload.gender,
+            in_MobileNo: payload.mobileNo,
+            in_TempAddress: payload.tempAddress,
+            in_PermAddress: payload.permAddress,
+            in_machiAtten: payload.machiAtten,
+            in_EmailId: payload.emailId,
+            in_Handicap: payload.handicap,
+            in_PanNo: payload.panNo,
+            in_AadharNo: payload.aadharNo,
+            in_EmpStatus: payload.empStatus,
+            in_JoinDate: payload.joinDate ? parseDate(payload.joinDate) : null,
+            in_ConfirmDate: payload.confirmDate ? parseDate(payload.confirmDate) : null,
+            in_RetireDate: payload.retireDate ? parseDate(payload.retireDate) : null,
+            in_BankId: payload.bankId,
+            in_BranchId: payload.branchId,
+            in_AccNo: payload.accNo,
+            in_GradeId: payload.gradeId,
+            in_DeptId: payload.deptId,
+            in_DesigId: payload.desigId,
+            in_PayscaleId: payload.payscaleId,
+            in_PFNo: payload.pfNo,
+            in_BasicSal: payload.basicSal,
+            in_GradePay: payload.gradePay,
+            in_VehicleOccup: payload.vehicleOccup,
+            in_SocMem: payload.socMem,
+            in_HomeOccup: payload.homeOccup,
+            in_pfpercent: payload.pfpercent,
+            in_pffixamt: payload.pffixamt,
+            in_defpfpercent: payload.defpfpercent,
+            in_defpffixamt: payload.defpffixamt,
+            in_CorpId: payload.corpId,
+            in_paysheettype: payload.paysheettype,
+            in_zone: payload.zone,
+            in_Mode: payload.mode,
+            in_SocietyAmt: payload.societyAmt,
+            in_EmpEarDudStr: payload.empEarDudStr,
+            in_currbasic: payload.currbasic,
+            in_currgradepay: payload.currgradepay,
+            in_IC: payload.ic,
+            in_MOP: payload.mop,
+            in_BKMicr: payload.bkMicr,
+            in_managementlevel: payload.managementlevel,
+            in_DCPSRate: payload.dcpsRate,
+            in_UlbID: payload.ulbId,
+            in_TransferDate: payload.transferDate ? parseDate(payload.transferDate) : null,
+            in_pranNo: payload.pranNo,
+            in_education: payload.education,
+            in_SevaNivrutiFlag: payload.sevaNivrutiFlag,
+            in_SevaNivrutiDate: payload.sevaNivrutiDate ? parseDate(payload.sevaNivrutiDate) : null,
+            in_Cast: payload.cast,
+            in_subcast: payload.subcast,
+            in_FestivalAdvanceID: payload.festivalAdvanceId,
+            in_str: payload.str,
+            in_subdeptId: payload.subdeptId,
+            in_deductionType: payload.deductionType,
+            in_billno: payload.billno,
+            in_emptype: payload.emptype,
+            in_jobchart: payload.jobchart,
+            in_jobtableno: payload.jobtableno,
+            in_oldempno: payload.oldempno,
+            in_hsg_rent: payload.hsgRent,
+            in_bank_rec: payload.bankRec,
+            in_karyavibhag: payload.karyavibhag,
+            in_empappno: payload.empappno,
+            in_washallow: payload.washallow,
+            in_bankstr: payload.bankstr,
+            in_disabldesc: payload.disabldesc,
+            in_disablperc: payload.disablperc,
+            in_altmobno: payload.altmobno,
+            in_marstatus: payload.marstatus,
+            in_rectype: payload.rectype,
+            in_ifsc: payload.ifsc,
+            in_voterid: payload.voterid,
+            in_assemcondet: payload.assemcondet,
+            in_partno: payload.partno,
+            in_religion: payload.religion,
+            in_castcat: payload.castcat,
+            in_karyazone: payload.karyazone,
+            in_bankstramc: payload.bankstramc,
+            out_EmpId: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+            out_ErrorCode: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+            out_ErrorMsg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+        },
+    });
+
+    console.log("Procedure Result =>", result);
+
+    if (!result.success) {
+        throw new Error(result.error);
+    }
+
+    return result.outBinds;
+}
+
+async function updateEmployeeImagesRepo(payload) {
+    const { empid, corpid, BLOBSign, BLOBPhoto, BLOBThumb } = payload;
+
+    const sql = `
     UPDATE aopr_empdoc_def
     SET
       blob_empdoc_signimage  = :BLOBSign,
@@ -374,15 +629,89 @@ async function updateEmployeeImagesRepo(payload) {
       AND num_empdoc_corpid = :corpid
   `;
 
-  const binds = { BLOBSign, BLOBPhoto, BLOBThumb, empid, corpid };
-  const result = await executeQuery(sql, binds, { autoCommit: true });
+    const binds = { BLOBSign, BLOBPhoto, BLOBThumb, empid, corpid };
+    const result = await executeQuery(sql, binds, { autoCommit: true });
 
-  if (!result.success) {
-    throw new Error(result.error);
+    if (!result.success) {
+        throw new Error(result.error);
+    }
+    return {
+        success: true,
+    };
+}
+
+async function getEmployeeImagesRepo({ empid, corpid }) {
+  let connection;
+  try {
+    connection = await getConnection();
+    
+    const sql = `
+      SELECT
+        blob_empdoc_signimage,
+        blob_empdoc_photoimage,
+        blob_empdoc_thumbimage
+      FROM aopr_empdoc_def
+      WHERE num_empdoc_corpid = :corpid
+        AND num_empdoc_empid = :empid
+    `;
+    
+    const result = await connection.execute(sql, { corpid, empid }, {
+      outFormat: oracledb.OUT_FORMAT_OBJECT
+    });
+    
+    if (!result.rows || result.rows.length === 0) {
+      return [];
+    }
+    
+    const row = result.rows[0];
+  
+    const readLob = async (lob) => {
+      if (!lob) return null;
+      
+      if (Buffer.isBuffer(lob)) return lob;
+      
+      // If it's an Oracle Lob object
+      if (lob && typeof lob === 'object' && lob.on) {
+        return new Promise((resolve, reject) => {
+          const chunks = [];
+          lob.on('data', (chunk) => chunks.push(chunk));
+          lob.on('error', reject);
+          lob.on('end', () => resolve(Buffer.concat(chunks)));
+        });
+      }
+      
+      return null;
+    };
+    
+    const [signBuffer, photoBuffer, thumbBuffer] = await Promise.all([
+      readLob(row.BLOB_EMPDOC_SIGNIMAGE),
+      readLob(row.BLOB_EMPDOC_PHOTOIMAGE),
+      readLob(row.BLOB_EMPDOC_THUMBIMAGE)
+    ]);
+
+    console.log("result: ", result);
+    console.log("signBuffer", signBuffer)
+    console.log("photoBuffer", photoBuffer)
+    console.log("thumbBuffer", thumbBuffer)
+    
+    return [{
+      BLOB_EMPDOC_SIGNIMAGE: signBuffer ? signBuffer.toString('base64') : null,
+      BLOB_EMPDOC_PHOTOIMAGE: photoBuffer ? photoBuffer.toString('base64') : null,
+      BLOB_EMPDOC_THUMBIMAGE: thumbBuffer ? thumbBuffer.toString('base64') : null,
+    }];
+    
+  } catch (error) {
+    console.error("Error in getEmployeeImagesRepo:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
   }
-  return {
-    success: true,
-  };
 }
 
 module.exports = {
@@ -400,5 +729,9 @@ module.exports = {
     getBankBranchListRepo,
     getBranchMasterListRepo,
     getEmployeeAutoFillRepo,
+    getCasteListRepo,
+    getSubCasteListRepo,
+    saveEmployeeRepo,
     updateEmployeeImagesRepo,
+    getEmployeeImagesRepo
 };

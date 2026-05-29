@@ -54,17 +54,35 @@ app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
 
 //MASTER
 app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
-app.use("/api/FrmEmployeeMstNewTest",require("./modules/Master/FrmEmployeeMstNewTest/FrmEmployeeMstNewTest.route"))
+app.use("/api/FrmEmployeeMstNewTest", require("./modules/Master/FrmEmployeeMstNewTest/FrmEmployeeMstNewTest.route"));
 app.use("/api/FrmPayHeadListMst", require("./modules/Master/FrmPayHeadListMst/FrmPayHeadListMst.routes"));
 app.use("/api/FrmDesgListMst", require("./modules/Master/FrmDesgListMst/FrmDesgListMst.routes"));
-app.use("/api/FrmEmployeeMstList",require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
+app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
 app.use("/api/CastMst", require("./modules/Master/FrmCastMst/FrmCastMstList.route"));
-app.use("/api/BankList",require("./modules/Master/FrmBankListMst/FrmBankList.route"));
+app.use("/api/BankList", require("./modules/Master/FrmBankListMst/FrmBankList.route"));
 app.use("/api/Branchlist", require("./modules/Master/FrmBranchMst/FrmBranchMstList.route"));
 app.use("/api/LeaveMaster", require("./modules/Master/FrmLeaveMst/FrmLeaveListMst.route"));
-app.use("/api/LeaveApplication", require("./modules/Master/FrmLeaveApplication/FrmLeaveApplicationList.route"))
+app.use("/api/LeaveApplication", require("./modules/Master/FrmLeaveApplication/FrmLeaveApplicationList.route"));
 app.use("/api/FrmRelegionListMst", require("./modules/Master/FrmRelegionListMst/FrmRelegionListMst.routes"));
 app.use("/api/FrmRelationListMst", require("./modules/Master/FrmRelationListMst/FrmRelationListMst.routes"));
+app.use("/api/LeaveApproval", require("./modules/Master/FrmLeaveApproval/FrmLeaveApprovalList.route"));
+app.use("/api/EmpleaveList", require("./modules/Master/FrmEmpLeave/FrmEmpLeaveList.route"));
+app.use("/api/FrmPayCommissionListMst", require("./modules/Master/FrmPayCommissionListMst/FrmPayCommissionListMst.routes"));
+app.use("/api/FrmPayScaleListMst", require("./modules/Master/FrmPayScaleListMst/FrmPayScaleListMst.routes"));
+app.use("/api/FrmDeptListMst", require("./modules/Master/FrmDeptListMst/FrmDeptListMst.route"));
+
+
+
+
+
+// Configuration
+app.use("/api/Branchconfi", require("./modules/ConfigurationP/FrmBranchConfiguration/FrmBranchConfig.route"))
+app.use("/api/BankConfig", require("./modules/ConfigurationP/FrmBankConfiguration/FrmBankConfig.route"))
+app.use("/api/LeaveConfig", require("./modules/ConfigurationP/FrmLeaveConfiguration/FrmLeaveConfig.route"))
+app.use("/api/PayScaConfig", require("./modules/ConfigurationP/FrmPayScaleConfiguration/FrmPayScaleConfig.route"))
+
+
+
 
 app.use(errorMiddleware);
 

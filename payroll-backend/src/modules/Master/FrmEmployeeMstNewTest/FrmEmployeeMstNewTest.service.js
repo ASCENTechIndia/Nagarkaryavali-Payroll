@@ -143,9 +143,52 @@ async function getEmployeeAutoFillService(payload) {
   };
 }
 
+async function getCasteListService(payload) {
+  console.log("📥 Service: Fetch Caste List", payload);
+  const data = await repo.getCasteListRepo(payload);
+  return {
+    success: true,
+    count: data.length,
+    data,
+  };
+}
+
+async function getSubCasteListService(payload) {
+  console.log("📥 Service: Fetch Sub Caste List", payload);
+  const data = await repo.getSubCasteListRepo(payload);
+  return {
+    success: true,
+    count: data.length,
+    data,
+  };
+}
+
+async function saveEmployeeService(payload) {
+  console.log("📥 Service: Save Employee", payload);
+
+  const result = await repo.saveEmployeeRepo(payload);
+  console.log("reult",result)
+  return {
+    success: result?.out_ErrorCode === -100,
+    errorCode: result?.out_ErrorCode,
+    message: result?.out_ErrorMsg,
+    empId: result?.out_EmpId,
+  };
+}
+
 async function updateEmployeeImagesService(payload) {
   console.log("📥 Service: Update Employee Images", payload);
   const data = await repo.updateEmployeeImagesRepo(payload);
+  return {
+    success: true,
+    data,
+  };
+}
+
+async function getEmployeeImagesService(payload) {
+  const data =
+    await repo.getEmployeeImagesRepo(payload);
+
   return {
     success: true,
     data,
@@ -167,5 +210,9 @@ module.exports = {
   getBankBranchListService,
   getBranchMasterListService,
   getEmployeeAutoFillService,
+  getCasteListService,
+  getSubCasteListService,
+  saveEmployeeService,
   updateEmployeeImagesService,
+  getEmployeeImagesService
 };
