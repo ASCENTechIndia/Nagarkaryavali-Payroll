@@ -69,6 +69,7 @@ app.use("/api/LeaveApproval", require("./modules/Master/FrmLeaveApproval/FrmLeav
 app.use("/api/EmpleaveList", require("./modules/Master/FrmEmpLeave/FrmEmpLeaveList.route"));
 app.use("/api/FrmPayCommissionListMst", require("./modules/Master/FrmPayCommissionListMst/FrmPayCommissionListMst.routes"));
 app.use("/api/FrmPayScaleListMst", require("./modules/Master/FrmPayScaleListMst/FrmPayScaleListMst.routes"));
+app.use("/api/FrmDeptListMst", require("./modules/Master/FrmDeptListMst/FrmDeptListMst.route"));
 
 app.use(errorMiddleware);
 
