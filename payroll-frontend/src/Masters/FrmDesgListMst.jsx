@@ -122,8 +122,6 @@ const FrmDesgListMst = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log("Search response:", res.data);
-
             const apiData = res.data?.rows || res.data?.data?.rows || res.data?.data || [];
             const formattedData = apiData.map((item) => ({
                 desigId: item.DESGID,

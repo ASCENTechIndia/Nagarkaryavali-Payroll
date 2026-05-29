@@ -178,12 +178,10 @@ const FrmBankMst = () => {
                             className="p-4 md:p-5 min-h-screen"
                         >
                             <Card className="border-0 shadow-none rounded-none bg-transparent">
-                                {/* Header */}
                                 <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
                                     <CardTitle className="text-xl font-bold">Bank Master</CardTitle>
                                 </CardHeader>
 
-                                {/* Form */}
                                 <CardContent className="p-4 sm:p-6 space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
