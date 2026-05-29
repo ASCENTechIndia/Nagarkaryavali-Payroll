@@ -107,7 +107,7 @@ const FrmDeptList = () => {
 
   return (
     <Card>
-     <CardHeader className="pb-3 border-b">
+      <CardHeader className="pb-3">
         <CardTitle className="text-xl font-bold">
           Select Department
         </CardTitle>

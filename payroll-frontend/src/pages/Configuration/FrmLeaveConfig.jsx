@@ -1,11 +1,19 @@
-
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import axios from "axios";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { Label } from "@/components/ui/label";
+
 import {
   Select,
   SelectContent,
@@ -18,7 +26,24 @@ import { Button } from "@/components/ui/button";
 import ShadCNTable from "@/components/ui/table";
 
 const FrmLeaveConfig = () => {
+  const { token, user } = useAuth();
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+  const userId = user?.userId;
+
   const [tableData, setTableData] = useState([]);
+  const [corporationList, setCorporationList] = useState([]);
+  const [mode, setMode] = useState(1);
+
+  const axiosConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token]
+  );
 
   const initialValues = {
     corporation: "",
@@ -31,7 +56,27 @@ const FrmLeaveConfig = () => {
     "Leave Name": "leaveName",
   };
 
-  const handleSearch = async () => {
+  const getCorporationList = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/Branchconfi/corporationlist`,
+        axiosConfig
+      );
+
+      setCorporationList(response?.data?.data?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+    getCorporationList();
+  }, [token]);
+
+  const loadLeaves = async (corporationId) => {
+    if (!corporationId) return;
+
     Swal.fire({
       title: "Please Wait...",
       text: "Loading Leaves",
@@ -40,26 +85,59 @@ const FrmLeaveConfig = () => {
     });
 
     try {
-      // API Call Here
+      const [configuredRes, leaveRes] = await Promise.all([
+        axios.post(
+          `${baseUrl}/api/LeaveConfig/configuredleavelist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig
+        ),
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setTableData([
-        { checked: false, leaveName: "Medical Leave" },
-        { checked: false, leaveName: "विशेष रजा" },
-        { checked: false, leaveName: "किरकोळ रजा" },
-        { checked: false, leaveName: "अर्धपगारी वैद्यकीय रजा" },
-        { checked: false, leaveName: "असाधारण रजा" },
-        { checked: false, leaveName: "अभ्यास रजा" },
-        { checked: false, leaveName: "Earned Leave" },
-        { checked: false, leaveName: "गर्भपात रजा" },
-        { checked: false, leaveName: "अर्जित रजा" },
-        { checked: false, leaveName: "विशेष असाधारण रजा" },
+        axios.post(
+          `${baseUrl}/api/LeaveConfig/leavelist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig
+        ),
       ]);
+
+      const configuredLeaves =
+        configuredRes?.data?.data?.data || [];
+
+      const allLeaves =
+        leaveRes?.data?.data?.data || [];
+
+      const rows = allLeaves.map((leave) => {
+        const isConfigured = configuredLeaves.some(
+          (x) =>
+            Number(x.LEAVECONFIG) ===
+            Number(leave.NUM_LEAVE_LEAVEID)
+        );
+
+        return {
+          leaveId: leave.NUM_LEAVE_LEAVEID,
+          leaveName: leave.VAR_LEAVE_NAME,
+
+          checked: isConfigured,
+
+          // IMPORTANT FOR UPDATE MODE
+          originallyConfigured: isConfigured,
+        };
+      });
+
+      setMode(
+        configuredLeaves.length > 0 ? 2 : 1
+      );
+
+      setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text: "Failed to load leave data",
+        text:
+          error?.response?.data?.message ||
+          "Failed to load leave data",
       });
     } finally {
       Swal.close();
@@ -70,7 +148,7 @@ const FrmLeaveConfig = () => {
     setTableData((prev) =>
       prev.map((item) => ({
         ...item,
-        checked,
+        checked: checked === true,
       }))
     );
   };
@@ -78,10 +156,10 @@ const FrmLeaveConfig = () => {
   const handleRowCheck = (row, checked) => {
     setTableData((prev) =>
       prev.map((item) =>
-        item.leaveName === row.leaveName
+        item.leaveId === row.leaveId
           ? {
               ...item,
-              checked,
+              checked: checked === true,
             }
           : item
       )
@@ -89,33 +167,136 @@ const FrmLeaveConfig = () => {
   };
 
   const handleSubmit = async (values) => {
-    const selectedLeaves = tableData.filter((x) => x.checked);
+    try {
+      if (!values.corporation) {
+        Swal.fire({
+          icon: "warning",
+          text: "Please Select Corporation",
+        });
+        return;
+      }
 
-    console.log({
-      ...values,
-      selectedLeaves,
-    });
+      let leaveStr = "";
+      let hasSelection = false;
 
-    Swal.fire({
-      icon: "success",
-      text: "Leave Configuration Saved Successfully",
-    });
+      tableData.forEach((item) => {
+        const oldValue =
+          item.originallyConfigured;
+
+        const newValue =
+          item.checked;
+
+        if (mode === 1) {
+          if (newValue) {
+            leaveStr +=
+              `${item.leaveId}#N#Y$`;
+            hasSelection = true;
+          } else {
+            leaveStr +=
+              `${item.leaveId}#N#N$`;
+          }
+        } else {
+          if (newValue && oldValue) {
+            leaveStr +=
+              `${item.leaveId}#Y#Y$`;
+            hasSelection = true;
+          }
+
+          else if (
+            newValue &&
+            !oldValue
+          ) {
+            leaveStr +=
+              `${item.leaveId}#N#Y$`;
+            hasSelection = true;
+          }
+
+          else if (
+            !newValue &&
+            oldValue
+          ) {
+            leaveStr +=
+              `${item.leaveId}#Y#N$`;
+            hasSelection = true;
+          }
+
+          else {
+            leaveStr +=
+              `${item.leaveId}#N#N$`;
+          }
+        }
+      });
+
+      if (!hasSelection) {
+        Swal.fire({
+          icon: "warning",
+          text:
+            "Select Atleast One CheckBox!",
+        });
+        return;
+      }
+
+      leaveStr = leaveStr.slice(0, -1);
+
+      Swal.fire({
+        title: "Saving...",
+        allowOutsideClick: false,
+        didOpen: () =>
+          Swal.showLoading(),
+      });
+
+      const response =
+        await axios.post(
+          `${baseUrl}/api/LeaveConfig/saveleaveconfiguration`,
+          {
+            userId,
+            ulbId: Number(
+              values.corporation
+            ),
+            leaveStr,
+            mode,
+          },
+          axiosConfig
+        );
+
+      Swal.close();
+
+      await Swal.fire({
+        icon: "success",
+        text:
+          response?.data?.message ||
+          "Leave Configuration Saved Successfully",
+      });
+
+      await loadLeaves(
+        values.corporation
+      );
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        text:
+          error?.response?.data
+            ?.message ||
+          "Save Failed",
+      });
+    }
   };
 
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={handleSubmit}
+    >
       {({ values, setFieldValue }) => (
         <Form>
           <Card>
-           <CardHeader className="pb-3 border-b">
+            <CardHeader className="pb-3 border-b">
               <CardTitle className="text-xl font-bold">
                 Leave Config
               </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {/* Corporation */}
-
               <div className="flex justify-center">
                 <div className="w-full max-w-md space-y-2">
                   <Label
@@ -126,28 +307,44 @@ const FrmLeaveConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={(value) =>
-                      setFieldValue("corporation", value)
-                    }
+                    onValueChange={async (
+                      value
+                    ) => {
+                      setFieldValue(
+                        "corporation",
+                        value
+                      );
+
+                      await loadLeaves(
+                        value
+                      );
+                    }}
                   >
                     <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="-- Select Option --" />
                     </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="870">
-                        KULGAON BADLAPUR NAGARPARISHAD BADLAPUR
-                      </SelectItem>
-
-                      <SelectItem value="871">
-                        SANGLI MIRAJ KUPWAD CORPORATION
-                      </SelectItem>
+                    <SelectContent className="max-h-72 overflow-y-auto">
+                      {corporationList.map(
+                        (item) => (
+                          <SelectItem
+                            key={
+                              item.ID_VALUE
+                            }
+                            value={String(
+                              item.ID_VALUE
+                            )}
+                          >
+                            {
+                              item.DISPLAY_TEXT
+                            }
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-
-              {/* Leave Table */}
 
               {tableData.length > 0 && (
                 <ShadCNTable
@@ -155,27 +352,20 @@ const FrmLeaveConfig = () => {
                   data={tableData}
                   keyMapping={keyMapping}
                   pagination
-                  rowsPerPage={10}
-                  onSelectAllChange={handleSelectAll}
-                  onRowCheckChange={handleRowCheck}
+                  rowsPerPage={6}
+                  onSelectAllChange={
+                    handleSelectAll
+                  }
+                  onRowCheckChange={
+                    handleRowCheck
+                  }
                 />
               )}
 
-              {/* Buttons */}
-
               <div className="flex justify-center gap-3">
-                <Button
-                  type="button"
-                  onClick={handleSearch}
-                >
-                  Search
+                <Button type="submit">
+                  Save
                 </Button>
-
-                {tableData.length > 0 && (
-                  <Button type="submit">
-                    Save
-                  </Button>
-                )}
 
                 <Button
                   type="button"

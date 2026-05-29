@@ -259,6 +259,7 @@ const ShadCNTable = ({
       {pagination && totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 py-3">
           <button
+          type="button"
             className="border border-indigo-300 rounded px-3 py-1"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
@@ -269,6 +270,7 @@ const ShadCNTable = ({
             Page {currentPage} of {totalPages}
           </span>
           <button
+          type="button"
             className="border border-indigo-300 rounded px-3 py-1"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
