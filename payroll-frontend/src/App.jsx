@@ -50,6 +50,8 @@ import FrmPayScaleList from './pages/Masters/FrmPayScaleList';
 import FrmPayScaleMst from './pages/Masters/FrmPayScaleMst';
 import FrmMonthClose from './pages/Transaction/FrmMonthClose';
 import FrmSalaryCalculation from './pages/Transaction/FrmSalaryCalculation';
+import FrmSalaryConsolidationBanks from './pages/Reports/FrmSalaryConsolidationBanks';
+import FrmEmpSalPayheadsReport from './pages/Reports/FrmEmpSalPayheadsReport';
 
 
 const Home = () => {
@@ -267,7 +269,17 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmSalaryCalculation",
         element: <FrmSalaryCalculation/>
-      }
+      },
+
+      //REPORTS
+      {
+        path: "ReportsForm/FrmSalaryConsolidationBanks",
+        element: <FrmSalaryConsolidationBanks/>
+      },
+      {
+        path: "ReportsForm/FrmEmpSalPayheadsReport",
+        element: <FrmEmpSalPayheadsReport/>
+      },
     ]
   }
 ])
