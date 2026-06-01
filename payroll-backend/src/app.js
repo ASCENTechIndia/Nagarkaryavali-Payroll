@@ -81,6 +81,7 @@ app.use("/api/BankConfig", require("./modules/ConfigurationP/FrmBankConfiguratio
 app.use("/api/LeaveConfig", require("./modules/ConfigurationP/FrmLeaveConfiguration/FrmLeaveConfig.route"))
 app.use("/api/PayScaConfig", require("./modules/ConfigurationP/FrmPayScaleConfiguration/FrmPayScaleConfig.route"))
 app.use("/api/FrmPayHeadConfigList", require("./modules/ConfigurationP/FrmPayHeadConfigList/FrmPayHeadConfigList.routes"))
+app.use("/api/FrmBankRecovery", require("./modules/ConfigurationP/FrmBankRecovery/FrmBankRecovery.routes"));
 
 //Transaction
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
