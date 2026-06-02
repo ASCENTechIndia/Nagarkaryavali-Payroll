@@ -107,7 +107,6 @@ const FrmEmpSalPayheadsReport = () => {
 
     const loadInitialData = async () => {
         try {
-            debugger;
             Swal.fire({
                 title: "Loading...",
                 allowOutsideClick: false,

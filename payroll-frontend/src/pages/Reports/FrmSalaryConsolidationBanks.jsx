@@ -14,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -51,8 +52,8 @@ const FrmSalaryConsolidationBanks = () => {
             });
 
             const res = await axios.post(`${BASE_URL}/api/FrmEmployeeMstList/department-list`,
-                {ulbid: Number(ulbid)},
-                {headers: {Authorization: `Bearer ${token}`}}
+                { ulbid: Number(ulbid) },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             const rows = res?.data?.data?.data || res?.data?.data?.rows || [];
@@ -62,9 +63,9 @@ const FrmSalaryConsolidationBanks = () => {
             Swal.close();
             console.error(error);
             Swal.fire({
-                text: error?.response?.data?.message ||  error?.response?.data?.error || "Something went wrong",
+                text: error?.response?.data?.message || error?.response?.data?.error || "Something went wrong",
             });
-        } 
+        }
     };
 
     const exportToExcel = (data) => {
@@ -102,8 +103,8 @@ const FrmSalaryConsolidationBanks = () => {
                 return;
             }
 
-            const fromDate = new Date(Number(year),Number(month) - 1, 1);
-            const toDate = new Date(Number(year),Number(month), 0);
+            const fromDate = new Date(Number(year), Number(month) - 1, 1);
+            const toDate = new Date(Number(year), Number(month), 0);
             const payload = {
                 ulbid: Number(ulbid),
                 fromDate: fromDate.toISOString().split("T")[0],
@@ -122,7 +123,7 @@ const FrmSalaryConsolidationBanks = () => {
                 },
             });
 
-            const res = await axios.post(`${BASE_URL}/api/FrmSalaryConsolidationBanks/salary-consolidation-bank-report`,payload, 
+            const res = await axios.post(`${BASE_URL}/api/FrmSalaryConsolidationBanks/salary-consolidation-bank-report`, payload,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             Swal.close();
@@ -145,7 +146,7 @@ const FrmSalaryConsolidationBanks = () => {
             Swal.close();
             Swal.fire({
                 // icon: "error",
-                text:error?.response?.data?.message || error?.response?.data?.error || "Failed To Generate Report",
+                text: error?.response?.data?.message || error?.response?.data?.error || "Failed To Generate Report",
             });
         }
     };
@@ -162,7 +163,7 @@ const FrmSalaryConsolidationBanks = () => {
                     </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-8">
+                <CardContent className="space-y-4">
                     <div className="grid max-sm:grid-cols-1 max-xl:grid-cols-2 xl:grid-cols-3 gap-8">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                             <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
@@ -246,24 +247,24 @@ const FrmSalaryConsolidationBanks = () => {
                                 <span>:</span>
                             </div>
 
-                            <div className="flex gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        checked={reportType === "D"}
-                                        onChange={() => setReportType("D")}
-                                    />
-                                    Department Wise
-                                </label>
+                            <div className="flex gap-2">
+                               <div className="flex items-center gap-2">
+                                 <Input
+                                    type="radio"
+                                    checked={reportType === "D"}
+                                    onChange={() => setReportType("D")}
+                                />
+                                <Label text="Department" />
+                               </div>
 
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        checked={reportType === "E"}
-                                        onChange={() => setReportType("E")}
-                                    />
-                                    Employee Wise
-                                </label>
+                                <div className="flex items-center gap-2">
+                                <Input
+                                    type="radio"
+                                    checked={reportType === "E"}
+                                    onChange={() => setReportType("E")}
+                                />
+                                <Label text="Employee" />
+                                 </div>           
                             </div>
                         </div>
                     </div>

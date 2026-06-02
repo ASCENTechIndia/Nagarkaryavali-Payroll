@@ -52,15 +52,14 @@ import FrmMonthClose from './pages/Transaction/FrmMonthClose';
 import FrmSalaryCalculation from './pages/Transaction/FrmSalaryCalculation';
 import FrmSalaryConsolidationBanks from './pages/Reports/FrmSalaryConsolidationBanks';
 import FrmEmpSalPayheadsReport from './pages/Reports/FrmEmpSalPayheadsReport';
+import FrmOTherEarnEntryRpt from './pages/Reports/FrmOTherEarnEntryRpt';
 
 
 const Home = () => {
   return (
     <>
       <section id="center" >
-        <Label text="HELLO" />
-        <Button path="/home">CLICK HERE</Button>
-        <Input />
+        <Label text="Welcome" />
       </section>
     </>
   );
@@ -279,6 +278,10 @@ export const router = createBrowserRouter([
       {
         path: "ReportsForm/FrmEmpSalPayheadsReport",
         element: <FrmEmpSalPayheadsReport/>
+      },
+      {
+        path: "ReportsForm/FrmOTherEarnEntryRpt",
+        element: <FrmOTherEarnEntryRpt/>
       },
     ]
   }

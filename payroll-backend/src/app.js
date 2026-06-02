@@ -93,6 +93,7 @@ app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalu
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
 app.use("/api/FrmEmpSalPayheadsReport", require("./modules/Reports/FrmEmpSalPayheadsReport/FrmEmpSalPayheadsReport.route"))
+app.use("/api/FrmOTherEarnEntryRpt", require("./modules/Reports/FrmOTherEarnEntryRpt/FrmOTherEarnEntryRpt.route"))
 
 app.use(errorMiddleware);
 

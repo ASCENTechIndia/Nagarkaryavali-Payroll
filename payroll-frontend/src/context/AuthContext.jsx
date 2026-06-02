@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const tokenCheckIntervalRef = useRef(null);
   const tokenExpiryTimeoutRef = useRef(null);
 
-  const logout = async ( reason = "Your login session has expired. Please login again.") => {
+  const logout = async ( reason = "Your login session has expired. Please login again.", showPopup = false) => {
     console.warn("🚪 Logging out user...");
 
     // Clear inactivity timer
@@ -43,14 +43,15 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
 
     // Swal popup
+    if (showPopup) {
     await Swal.fire({
       icon: "warning",
-      // title: "Session Expired",
       text: reason,
       confirmButtonText: "Login Again",
       allowOutsideClick: false,
       allowEscapeKey: false,
     });
+  }
 
     window.location.replace("/login");
   };
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
       if (!currentToken || isTokenExpired(currentToken)) {
         console.warn(" Token expired during interval check");
-        logout("Your login session has expired.");
+        logout("Your login session has expired.", true);
       } else {
         console.log(" Token still valid");
       }
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwtDecode(token);
 
       if (!decoded.exp) {
-        logout("Your login session has expired.");
+        logout("Your login session has expired.", true);
         return;
       }
 
@@ -102,7 +103,7 @@ export const AuthProvider = ({ children }) => {
 
       if (remainingTime <= 0) {
         console.warn("⛔ Token already expired");
-        logout("Your login session has expired.");
+        logout("Your login session has expired.", true);
         return;
       }
 
@@ -113,17 +114,17 @@ export const AuthProvider = ({ children }) => {
 
       tokenExpiryTimeoutRef.current = setTimeout(() => {
         console.warn("⏰ Token expired exactly at expiry time");
-        logout("Your login session has expired.");
+        logout("Your login session has expired.", true);
       }, remainingTime);
 
-      // console.log(
-      //   `⏳ Auto logout scheduled in ${Math.round(
-      //     remainingTime / 1000
-      //   )} seconds`
-      // );
+      console.log(
+        `⏳ Auto logout scheduled in ${Math.round(
+          remainingTime / 1000
+        )} seconds`
+      );
     } catch (err) {
       console.error("❌ Failed to schedule token expiry logout:", err);
-      logout("Your login session has expired.");
+      logout("Your login session has expired.", true);
     }
   };
 
@@ -135,7 +136,7 @@ export const AuthProvider = ({ children }) => {
 
     inactivityTimer = setTimeout(() => {
       // alert("Session expired due to inactivity.");
-      logout("Your login session has expired.");
+      logout("Your login session has expired.", true);
     }, 15 * 60 * 1000); // 15 minutes
   };
 
@@ -182,7 +183,7 @@ export const AuthProvider = ({ children }) => {
     try {
       if (isTokenExpired(token)) {
         console.warn("⛔ Stored token expired");
-        logout("Your login session has expired.");
+        logout("Your login session has expired.", true);
         return;
       }
 
@@ -210,7 +211,7 @@ export const AuthProvider = ({ children }) => {
       scheduleTokenExpiryLogout(token);
     } catch (err) {
       console.error("❌ Error restoring auth:", err);
-      logout("Your login session has expired.");
+      logout("Your login session has expired.", true);
       return;
     }
 
@@ -284,7 +285,7 @@ export const AuthProvider = ({ children }) => {
       scheduleTokenExpiryLogout(token);
     } catch (error) {
       console.error("❌ Error decoding token during login:", error);
-      logout("Your login session has expired.");
+      logout("Your login session has expired.", true);
     }
   };
 
