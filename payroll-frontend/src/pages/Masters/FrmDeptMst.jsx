@@ -115,19 +115,6 @@ const FrmDeptMst = () => {
   };
 
   return (
-    <Formik
-      enableReinitialize
-      initialValues={initialValues}
-      onSubmit={(values) => {
-        console.log(values);
-      }}
-    >
-      {({ values, handleChange, resetForm }) => (
-        <Form>
-            <Card >
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-xl font-bold">Department Master</CardTitle>
-            </CardHeader>
     <Formik initialValues={initialValues} enableReinitialize onSubmit={handleSubmit}>
       {({ values, handleChange, setValues }) => {
         useEffect(() => {
