@@ -3,18 +3,15 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-
 const { NODE_ENV } = require("./config/env");
 const errorMiddleware = require("./middlewares/error.middleware");
 const { rateLimitMiddleware } = require("./middlewares/rateLimit.middleware");
 const requestLogger = require("./middlewares/requestLogger.middleware");
-
 const authRoutes = require("./modules/auth/auth.routes");
 const tasksRoutes = require("./modules/tasks/tasks.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
 const healthRoutes = require("./routes/health.routes");
 const path = require("path");
-
 const app = express();
 
 // trust proxy (important for rate-limit & IP)
@@ -45,11 +42,9 @@ app.use(rateLimitMiddleware());
 app.get("/", (req, res) => res.send("API Running ✅"));
 
 // routes
-
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", tasksRoutes);
 app.use("/api/admin", adminRoutes);
-
 app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
 
 //MASTER
@@ -71,10 +66,6 @@ app.use("/api/FrmPayCommissionListMst", require("./modules/Master/FrmPayCommissi
 app.use("/api/FrmPayScaleListMst", require("./modules/Master/FrmPayScaleListMst/FrmPayScaleListMst.routes"));
 app.use("/api/FrmDeptListMst", require("./modules/Master/FrmDeptListMst/FrmDeptListMst.route"));
 
-
-
-
-
 // Configuration
 app.use("/api/Branchconfi", require("./modules/ConfigurationP/FrmBranchConfiguration/FrmBranchConfig.route"))
 app.use("/api/BankConfig", require("./modules/ConfigurationP/FrmBankConfiguration/FrmBankConfig.route"))
@@ -82,13 +73,14 @@ app.use("/api/LeaveConfig", require("./modules/ConfigurationP/FrmLeaveConfigurat
 app.use("/api/PayScaConfig", require("./modules/ConfigurationP/FrmPayScaleConfiguration/FrmPayScaleConfig.route"))
 app.use("/api/FrmPayHeadConfigList", require("./modules/ConfigurationP/FrmPayHeadConfigList/FrmPayHeadConfigList.routes"))
 app.use("/api/FrmBankRecovery", require("./modules/ConfigurationP/FrmBankRecovery/FrmBankRecovery.routes"));
+app.use("/api/PayCommConf", require("./modules/ConfigurationP/FrmPayCommissionConfiguration/FrmPayCommissionConfig.route"))
+app.use("/api/RelaCongif", require("./modules/ConfigurationP/FrmRelationConfiguration/FrmRelationConfig.route"))
+app.use("/api/ReligConfig", require("./modules/ConfigurationP/FrmReligionConfiguration/FrmReligionConfig.route"))
 
 //Transaction
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
 app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalulation/FrmSalaryCalulation.routes"))
-
-
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
