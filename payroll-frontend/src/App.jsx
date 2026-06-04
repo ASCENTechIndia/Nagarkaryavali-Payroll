@@ -53,7 +53,9 @@ import FrmSalaryCalculation from './pages/Transaction/FrmSalaryCalculation';
 import FrmSalaryConsolidationBanks from './pages/Reports/FrmSalaryConsolidationBanks';
 import FrmEmpSalPayheadsReport from './pages/Reports/FrmEmpSalPayheadsReport';
 import FrmOTherEarnEntryRpt from './pages/Reports/FrmOTherEarnEntryRpt';
-
+import FrmYearlyPayeadRpt from "./pages/Reports/FrmYearlyPayeadRpt";
+import FrmRecoveryDeductionReport from "./pages/Reports/FrmRecoveryDeduRpt";
+import FrmEmployeeListReport from "./pages/Reports/FrmEmpLstRpt";
 
 const Home = () => {
   return (
@@ -282,6 +284,18 @@ export const router = createBrowserRouter([
       {
         path: "ReportsForm/FrmOTherEarnEntryRpt",
         element: <FrmOTherEarnEntryRpt/>
+      },
+      {
+        path: "ReportsForm/FrmYearlyPayeadRpt",
+        element: <FrmYearlyPayeadRpt />,
+      },
+      {
+        path: "ReportsForm/FrmRecoveryDeduRpt",
+        element: <FrmRecoveryDeductionReport />,
+      },
+      {
+        path: "ReportsForm/FrmEmpLstRpt",
+        element: <FrmEmployeeListReport />,
       },
     ]
   }
