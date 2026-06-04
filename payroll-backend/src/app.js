@@ -86,6 +86,8 @@ app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalu
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
 app.use("/api/FrmEmpSalPayheadsReport", require("./modules/Reports/FrmEmpSalPayheadsReport/FrmEmpSalPayheadsReport.route"))
 app.use("/api/FrmOTherEarnEntryRpt", require("./modules/Reports/FrmOTherEarnEntryRpt/FrmOTherEarnEntryRpt.route"))
+app.use("/api/RptLeaveStatus", require("./modules/Reports/RptLeaveStatus/RptLeaveStatus.route"))
+app.use("/api/RptIncPromotion", require("./modules/Reports/RptIncPromotion/RptIncPromotion.route"))
 
 app.use(errorMiddleware);
 
