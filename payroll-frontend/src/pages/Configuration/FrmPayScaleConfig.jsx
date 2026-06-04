@@ -54,9 +54,6 @@ const FrmPayConfig = () => {
     "Pay Scale": "payScale",
   };
 
-  // ==========================
-  // Get Corporation List
-  // ==========================
   const getCorporationList = async () => {
     try {
       const response = await axios.get(
@@ -76,9 +73,6 @@ const FrmPayConfig = () => {
     getCorporationList();
   }, [token]);
 
-  // ==========================
-  // Search Pay Scale Data
-  // ==========================
   const handleSearch = async (corporationId) => {
     if (!corporationId) return;
 
@@ -100,6 +94,7 @@ const FrmPayConfig = () => {
           },
           axiosConfig,
         ),
+        
 
         axios.post(
           `${baseUrl}/api/PayScaConfig/payscalelist`,
@@ -111,6 +106,7 @@ const FrmPayConfig = () => {
       ]);
 
       const configuredPayScales = configuredRes?.data?.data?.data || [];
+      console.log("Configured Pay Scales", configuredPayScales);
 
       const allPayScales = payScaleRes?.data?.data?.data || [];
 
@@ -145,9 +141,6 @@ const FrmPayConfig = () => {
     }
   };
 
-  // ==========================
-  // Select All
-  // ==========================
   const handleSelectAll = (checked) => {
     setTableData((prev) =>
       prev.map((row) => ({
@@ -157,9 +150,6 @@ const FrmPayConfig = () => {
     );
   };
 
-  // ==========================
-  // Row Check
-  // ==========================
   const handleRowCheck = (row, checked) => {
     setTableData((prev) =>
       prev.map((item) =>
@@ -173,105 +163,129 @@ const FrmPayConfig = () => {
     );
   };
 
-  // ==========================
-  // Save Configuration
-  // ==========================
-  const handleSubmit = async (values) => {
-    try {
-      if (!values.corporation) {
-        Swal.fire({
-          icon: "warning",
-          text: "Please Select Corporation",
-        });
-        return;
-      }
-
-      let payScaleStr = "";
-      let hasSelection = false;
-
-      tableData.forEach((item) => {
-        const oldValue = item.originallyConfigured;
-
-        const newValue = item.checked;
-
-        if (mode === 1) {
-          if (newValue) {
-            payScaleStr += `${item.payScaleId}#N#Y$`;
-
-            hasSelection = true;
-          } else {
-            payScaleStr += `${item.payScaleId}#N#N$`;
-          }
-        } else {
-          if (newValue && oldValue) {
-            payScaleStr += `${item.payScaleId}#Y#Y$`;
-
-            hasSelection = true;
-          } else if (newValue && !oldValue) {
-            payScaleStr += `${item.payScaleId}#N#Y$`;
-
-            hasSelection = true;
-          } else if (!newValue && oldValue) {
-            payScaleStr += `${item.payScaleId}#Y#N$`;
-
-            hasSelection = true;
-          } else {
-            payScaleStr += `${item.payScaleId}#N#N$`;
-          }
-        }
+const handleSubmit = async (values) => {
+  try {
+    if (!values.corporation) {
+      Swal.fire({
+        icon: "warning",
+        text: "Please Select Corporation",
       });
+      return;
+    }
 
-      if (!hasSelection) {
-        Swal.fire({
-          icon: "warning",
-          text: "Select Atleast One CheckBox!",
-        });
-        return;
+    let payScaleStr = "";
+    let hasSelection = false;
+
+    tableData.forEach((item) => {
+      const oldValue = item.originallyConfigured;
+      const newValue = item.checked;
+
+      if (mode === 1) {
+        if (newValue) {
+          payScaleStr += `${item.payScaleId}#N#Y$`;
+          hasSelection = true;
+        } else {
+          payScaleStr += `${item.payScaleId}#N#N$`;
+        }
+      } else {
+        if (newValue && oldValue) {
+          payScaleStr += `${item.payScaleId}#Y#Y$`;
+          hasSelection = true;
+        } else if (newValue && !oldValue) {
+          payScaleStr += `${item.payScaleId}#N#Y$`;
+          hasSelection = true;
+        } else if (!newValue && oldValue) {
+          payScaleStr += `${item.payScaleId}#Y#N$`;
+          hasSelection = true;
+        } else {
+          payScaleStr += `${item.payScaleId}#N#N$`;
+        }
       }
+    });
 
-      payScaleStr = payScaleStr.slice(0, -1);
+    if (!hasSelection) {
+      Swal.fire({
+        icon: "warning",
+        text: "Select Atleast One CheckBox!",
+      });
+      return;
+    }
 
-      console.log({
+    payScaleStr = payScaleStr.slice(0, -1);
+
+    const ipAddress = await GetIPAddress();
+
+    Swal.fire({
+      title: "Saving...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    const response = await axios.post(
+      `${baseUrl}/api/PayScaConfig/savepayscaleconfiguration`,
+      {
         userId,
         orgId: Number(values.corporation),
         payScaleStr,
         mode,
-        ipAddress: GetIPAddress(),
+        ipAddress,
         source: config.source,
-      });
+      },
+      axiosConfig
+    );
 
+    Swal.close();
+
+    const result =
+      response?.data?.data ||
+      response?.data?.result ||
+      response?.data;
+
+    const errorCode =
+      result?.Out_errorCode ??
+      result?.errorCode ??
+      result?.ERRORCODE;
+
+    const errorMsg =
+      result?.Out_ErrorMsg ??
+      result?.errorMsg ??
+      result?.ERRORMSG ??
+      response?.data?.message;
+
+    if (
+      errorCode &&
+      Number(errorCode) !== 9999 &&
+      Number(errorCode) !== -100
+    ) {
       Swal.fire({
-        title: "Saving...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
+        icon: "warning",
+        text: errorMsg || "Save Failed",
       });
-      const ipAddress = await GetIPAddress();
-      const response = await axios.post(
-        `${baseUrl}/api/PayScaConfig/savepayscaleconfiguration`,
-        {
-          userId,
-          orgId: Number(values.corporation),
-          payScaleStr,
-          mode,
-          ipAddress,
-          source: config.source,
-        },
-        axiosConfig,
-      );
-
-      Swal.close();
-
-      await Swal.fire({
-        icon: "success",
-        text: response?.data?.message || "Payscale Saved Successfully!",
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        text: error?.response?.data?.message || "Save Failed",
-      });
+      return;
     }
-  };
+
+    await Swal.fire({
+      icon: "success",
+      text: errorMsg || "Pay Scale Saved Successfully",
+    });
+
+    // Reload latest data from DB
+    await handleSearch(values.corporation);
+
+  } catch (error) {
+    Swal.close();
+
+    console.error(error);
+
+    Swal.fire({
+      icon: "error",
+      text:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Save Failed",
+    });
+  }
+};
 
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
