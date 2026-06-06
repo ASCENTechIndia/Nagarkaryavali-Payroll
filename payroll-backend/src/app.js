@@ -87,6 +87,14 @@ app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMo
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
 app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalulation/FrmSalaryCalulation.routes"))
 
+
+app.use("/api/FrmEmpPayHeadListRpt", require("./modules/Reports/FrmEmpPayHeadListRpt/FrmEmpPayHeadListRpt.routes"))
+app.use("/api/FrmPayrollDashbordMst", require("./modules/Reports/FrmPayrollDashbordMst/FrmPayrollDashbordMst.routes"))
+app.use("/api/FrmPayHeadList", require("./modules/Reports/FrmPayHeadList/FrmPayHeadList.routes"))
+app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"))
+app.use("/api/FrmLoansAndAdvancesReceived", require("./modules/Reports/FrmLoansAndAdvancesReceived/FrmLoansAndAdvancesReceived.route"))
+
+
 app.use(errorMiddleware);
 
 module.exports = app;
