@@ -123,3 +123,50 @@ export const validateDateComparison = (data) => {
   }
   return { isValid: true };
 };
+
+export const FrmDepSalBillValidationSchema = z.object({
+    month: z.number().min(1, "Month is required").refine((val) => val !== "-1", {
+      message: "Please select a month",
+    }),
+    year: z.string().min(1, "Year is required").refine((val) => val !== "-1", {
+      message: "Please select a year",
+    }),
+    category: z.string().min(1, "Category is required").refine((val) => val !== "-1", {
+      message: "Please select a category",
+    }),
+    department: z.string().optional(),
+    subDepartment: z.string().optional(),
+    billNo: z.string().optional(),
+    employeeCode: z.string().optional(),
+    employeeName: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      const year = parseInt(data.year);
+      const month = parseInt(data.month);
+      if (isNaN(year) || isNaN(month)) return false;
+      if (year < 1900 || year > 2100) return false;
+      if (month < 1 || month > 12) return false;
+      return true;
+    },
+    {
+      message: "Invalid date selection",
+      path: ["month"],
+    }
+  );
+
+export const FrmEmpPayHeadListValidationSchema = z.object({
+    category: z.string()
+        .min(1, "Category is required")
+        .refine((val) => val !== undefined && val !== null && val !== "", {
+            message: "Please select a category",
+        }),
+    zone: z.string().optional(),
+    department: z.string().optional(),
+    employeeCode: z.string().optional(),
+    payHead: z.string()
+        .min(1, "PayHead is required")
+        .refine((val) => val !== undefined && val !== null && val !== "", {
+            message: "Please select a PayHead",
+        }),
+});
