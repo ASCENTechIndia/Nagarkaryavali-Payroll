@@ -88,6 +88,10 @@ app.use("/api/FrmEmpSalPayheadsReport", require("./modules/Reports/FrmEmpSalPayh
 app.use("/api/FrmOTherEarnEntryRpt", require("./modules/Reports/FrmOTherEarnEntryRpt/FrmOTherEarnEntryRpt.route"))
 app.use("/api/RptLeaveStatus", require("./modules/Reports/RptLeaveStatus/RptLeaveStatus.route"))
 app.use("/api/RptIncPromotion", require("./modules/Reports/RptIncPromotion/RptIncPromotion.route"))
+app.use("/api/FrmEmpPayHeadListRpt", require("./modules/Reports/FrmEmpPayHeadListRpt/FrmEmpPayHeadListRpt.routes"))
+app.use("/api/FrmPayrollDashbordMst", require("./modules/Reports/FrmPayrollDashbordMst/FrmPayrollDashbordMst.routes"))
+app.use("/api/FrmPayHeadList", require("./modules/Reports/FrmPayHeadList/FrmPayHeadList.routes"))
+app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"))
 
 app.use(errorMiddleware);
 

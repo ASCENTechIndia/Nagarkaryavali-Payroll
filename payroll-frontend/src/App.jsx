@@ -55,6 +55,10 @@ import FrmRecoveryDeductionReport from "@/pages/Reports/FrmRecoveryDeduRpt";
 import FrmEmployeeListReport from "@/pages/Reports/FrmEmpLstRpt";
 import RptIncPromotion from '@/pages/Reports/RptIncPromotion';
 import RptLeaveStatus from './pages/Reports/RptLeaveStatus';
+import FrmDepSalBill from './pages/Reports/FrmDepSalBill';
+import FrmEmpPayHeadListRpt from './pages/Reports/FrmEmpPayHeadListRpt';
+import FrmPayrollDashbordMst from './pages/Reports/FrmPayrollDashbordMst';
+
 
 const Home = () => {
   return (
@@ -302,6 +306,18 @@ export const router = createBrowserRouter([
         path: "ReportsForm/RptLeaveStatus",
         element: <RptLeaveStatus/>,
       },
+      {
+        path: "ReportsForm/FrmDepSalBill",
+        element: <FrmDepSalBill />
+      },
+      {
+        path: "ReportsForm/FrmEmpPayHeadListRpt",
+        element: <FrmEmpPayHeadListRpt />
+      },
+      {
+        path: "ReportsForm/FrmPayrollDashbordMst",
+        element: <FrmPayrollDashbordMst />
+      }
     ]
   }
 ])
