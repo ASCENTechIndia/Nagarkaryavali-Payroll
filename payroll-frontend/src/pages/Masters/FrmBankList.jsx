@@ -144,7 +144,7 @@ const FrmBankList = () => {
             </Button>
           </div>
 
-          <div className="rounded-xl bg-white overflow-hidden">
+          <div className="rounded-xl bg-white">
             <ShadCNTable
               headers={tableHeaders}
               data={tableData}

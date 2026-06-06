@@ -313,6 +313,39 @@ const FrmPayHeadList = () => {
                                             </Select>
                                         </div>
 
+                                           {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                                                <Label
+                                                    text="Sub Department"
+                                                    className="text-[15px] font-semibold text-black "
+                                                    required
+                                                />
+                                                <span>:</span>
+                                            </div>
+
+                                            <Select
+                                                value={values.subDepartment}
+                                                onValueChange={(value) =>
+                                                    setFieldValue("subDepartment", value)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-full h-9">
+                                                    <SelectValue placeholder="-- Select Option --" />
+                                                </SelectTrigger>
+
+                                                <SelectContent> */}
+                    {/* {subDepartmentOptions?.map((item) => (
+                                                        <SelectItem
+                                                            key={item.id}
+                                                            value={item.id.toString()}
+                                                        >
+                                                            {item.name}
+                                                        </SelectItem>
+                                                    ))} */}
+                    {/* </SelectContent>
+                                            </Select>
+                                        </div> */}
+
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                             <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                                                 <Label
@@ -376,6 +409,32 @@ const FrmPayHeadList = () => {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+
+                                        {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                                                <Label
+                                                    text="Employee Type"
+                                                    required
+                                                    className="text-[15px] font-semibold text-black"
+                                                />
+                                                <span>:</span>
+                                            </div>
+
+                                            <Select
+                                                value={values.empType}
+                                                onValueChange={(value) => setFieldValue("empType", value)}
+                                            >
+                                                <SelectTrigger className="w-full h-9">
+                                                    <SelectValue placeholder="-- Select Option --" />
+                                                </SelectTrigger>
+
+                                                <SelectContent>
+                                                    <SelectItem value="ALL">ALL</SelectItem>
+                                                    <SelectItem value="OLD">OLD</SelectItem>
+                                                    <SelectItem value="NEW">NEW</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div> */}
 
 
 
