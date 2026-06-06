@@ -159,9 +159,8 @@ const FrmPayCommMst = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-52 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black text-nowrap">
-                                                <span className="text-red-500">*</span> Pay Commission
-                                                Name
+                                            <Label className="text-[15px] font-semibold text-black text-nowrap" required>
+                                                 Pay Commission Name
                                             </Label>
 
                                             <span>:</span>
@@ -178,8 +177,8 @@ const FrmPayCommMst = () => {
 
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black text-nowrap">
-                                                <span className="text-red-500">*</span> Pay Type Code
+                                            <Label className="text-[15px] font-semibold text-black text-nowrap" required>
+                                                 Pay Type Code
                                             </Label>
                                             <span>:</span>
                                         </div>
@@ -194,8 +193,8 @@ const FrmPayCommMst = () => {
 
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black">
-                                                <span className="text-red-500">*</span> Status
+                                            <Label className="text-[15px] font-semibold text-black" required>
+                                                 Status
                                             </Label>
 
                                             <span>:</span>

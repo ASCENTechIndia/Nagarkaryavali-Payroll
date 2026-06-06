@@ -186,8 +186,8 @@ const FrmBankMst = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                             <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label className="text-[15px] font-semibold text-black">
-                                                    <span className="text-red-500">*</span> Bank Name
+                                                <Label className="text-[15px] font-semibold text-black" required>
+                                                    Bank Name
                                                 </Label>
                                                 <span>:</span>
                                             </div>

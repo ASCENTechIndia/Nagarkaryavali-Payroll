@@ -171,8 +171,8 @@ const FrmDesgMst = () => {
 
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black text-nowrap">
-                                                <span className="text-red-500">*</span> Designation ID
+                                            <Label className="text-[15px] font-semibold text-black text-nowrap" required>
+                                                 Designation ID
                                             </Label>
                                             <span>:</span>
                                         </div>
@@ -187,8 +187,8 @@ const FrmDesgMst = () => {
                                     </div>
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black text-nowrap">
-                                                <span className="text-red-500">*</span> Designation Name
+                                            <Label className="text-[15px] font-semibold text-black text-nowrap" required>
+                                                Designation Name
                                             </Label>
                                             <span>:</span>
                                         </div>
@@ -202,8 +202,8 @@ const FrmDesgMst = () => {
                                     </div>
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black text-nowrap">
-                                                <span className="text-red-500">*</span> Wash Allowance
+                                            <Label className="text-[15px] font-semibold text-black text-nowrap" required>
+                                                Wash Allowance
                                             </Label>
                                             <span>:</span>
                                         </div>
@@ -217,8 +217,8 @@ const FrmDesgMst = () => {
                                     </div>
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                            <Label className="text-[15px] font-semibold text-black text-nowrap">
-                                                <span className="text-red-500">*</span> Clean Allowance
+                                            <Label className="text-[15px] font-semibold text-black text-nowrap" required>
+                                                Clean Allowance
                                             </Label>
                                             <span>:</span>
                                         </div>
