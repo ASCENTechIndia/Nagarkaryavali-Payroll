@@ -67,6 +67,7 @@ import FrmLoansAndAdvancesReceived from '@/pages/Reports/FrmLoansAndAdvancesRece
 import FrmDeductionPayheadsDtls from '@/pages/Reports/FrmDeductionPayheadsDtls';
 import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
 import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
+import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 
 const Home = () => {
   return (
@@ -362,6 +363,10 @@ export const router = createBrowserRouter([
           path: "ReportsForm/FrmRetiredEmpRpt",
           element: <FrmRetiredEmpRpt />,
          },
+        {
+          path: "Transactions/FrmAttendanceEntry",
+          element: <FrmAttendanceEntry />
+        },
 
     ]
   }
