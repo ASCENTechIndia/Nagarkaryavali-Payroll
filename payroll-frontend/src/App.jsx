@@ -61,7 +61,12 @@ import FrmPayrollDashbordMst from './pages/Reports/FrmPayrollDashbordMst';
 import FrmPaySlip from './pages/Reports/FrmPaySlip';
 import FrmPayHeadList from './pages/Reports/FrmPayHeadList';
 import FrmPayrollReport from './pages/Reports/FrmPayrollReport';
-
+import FrmEsevaReport from '@/pages/Reports/FrmEsevaReport';
+import FrmLoansAndAdvancesRpt from '@/pages/Reports/FrmLoansAndAdvancesRpt';
+import FrmLoansAndAdvancesReceived from '@/pages/Reports/FrmLoansAndAdvancesReceived';
+import FrmDeductionPayheadsDtls from '@/pages/Reports/FrmDeductionPayheadsDtls';
+import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
+import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 
 const Home = () => {
   return (
@@ -333,6 +338,31 @@ export const router = createBrowserRouter([
         path: "ReportsForm/FrmPayrollReport",
         element: <FrmPayrollReport />,
       },
+      {
+          path: "ReportsForm/FrmEsevaReport",
+          element: <FrmEsevaReport />,
+        },
+        {
+          path: "ReportsForm/FrmLoansAndAdvancesRpt",
+          element: <FrmLoansAndAdvancesRpt />,
+        },
+        {
+          path: "ReportsForm/FrmLoansAndAdvancesReceived",
+          element: <FrmLoansAndAdvancesReceived />,
+        },
+        {
+          path: "ReportsForm/FrmDeductionPayheadsDtls",
+          element: <FrmDeductionPayheadsDtls />,
+        },
+        {
+          path: "ReportsForm/FrmNetPayRpt",
+          element: <FrmNetPayRpt />,
+        },
+        {
+          path: "ReportsForm/FrmRetiredEmpRpt",
+          element: <FrmRetiredEmpRpt />,
+         },
+
     ]
   }
 ])
