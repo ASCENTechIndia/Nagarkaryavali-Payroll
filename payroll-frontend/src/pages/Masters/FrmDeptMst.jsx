@@ -1,6 +1,4 @@
-
-
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import { Formik, Form } from "formik";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -13,8 +11,8 @@ import Swal from "sweetalert2";
 
 const initialValues = {
   deptId: "",
-  deptName: "",
-  deptNameMr: "",
+  deptnameE: "",
+  deptnameM: "",
 };
 
 const FrmDeptMst = () => {
@@ -23,10 +21,11 @@ const FrmDeptMst = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { mode, data } = location.state || {};
+  const [formValues, setFormValues] = useState(initialValues);
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const fetchDeptById = async (id, setValues) => {
+  const fetchDeptById = async (id) => {
     try {
 
       Swal.fire({
@@ -38,7 +37,7 @@ const FrmDeptMst = () => {
       });
 
       const res = await axios.post(
-        `${BASE_URL}/api/`,                      //ADD API ENDPOINT
+        `${BASE_URL}/api/FrmDeptListMst/department-details`,                      
         {
           deptId: id,
         },
@@ -48,14 +47,14 @@ const FrmDeptMst = () => {
           },
         }
       );
-
-      const apiData = res.data?.data?.data?.[0];
-
-      if (apiData) {                                  // Check the DB for headers
-        setValues({
-          deptId: apiData.DEPT_ID,
-          deptName: apiData.DEPT_NAME_ENG?.trim() || "",
-          deptNameMr: apiData.DEPT_NAME_MR?.trim() || "",
+       
+      const apiData = res.data?.rows?.[0];
+         
+      if (apiData) {                                
+        setFormValues({
+          deptId: apiData.DEPTID,
+          deptnameE: apiData.DEPTNAMEE?.trim() || "",
+          deptnameM: apiData.DEPTNAMEM?.trim() || "",
         });
       }
       Swal.close();
@@ -64,13 +63,17 @@ const FrmDeptMst = () => {
       Swal.close();
     }
   };
+ 
+
+  useEffect(() => {
+  }, [formValues]);
 
   const handleSubmit = async (values) => {
     try {
       const payload = {
         mode: mode === 2 ? 2 : 1,
-        deptName: values.deptName,
-        deptNameMr: values.deptNameMr,
+        deptnameE: values.deptnameE,
+        deptnameM: values.deptnameM,
         userId: user?.userId,
         deptId: values.deptId || null,
       };
@@ -85,7 +88,7 @@ const FrmDeptMst = () => {
       });
 
       const res = await axios.post(
-        `${BASE_URL}/api/`,                     //ADD API ENDPOINT
+        `${BASE_URL}/api/FrmDeptListMst/save-department`,                    
         payload,
         {
           headers: {
@@ -98,7 +101,7 @@ const FrmDeptMst = () => {
 
       if (res.data?.ok) {
         Swal.fire({
-          text: res.data?.data?.message || "Success",
+          text: res.data?.data?.message || "Successfully saved",
           confirmButtonColor: "#1e3a8a",
         }).then(() => {
           navigate("/Masters/FrmDeptListMst");
@@ -108,21 +111,22 @@ const FrmDeptMst = () => {
       console.error("Save Error:", err);
 
       Swal.fire({
-        text: "Something went wrong",
+        text: "Saving error. Please try again",
         confirmButtonColor: "#1e3a8a",
       });
     }
   };
 
-  return (
-    <Formik initialValues={initialValues} enableReinitialize onSubmit={handleSubmit}>
-      {({ values, handleChange, setValues }) => {
-        useEffect(() => {
-          if (mode === 2 && data?.id) {
-            fetchDeptById(data.id, setValues);
+  useEffect(() => {
+          if (mode === 2 && data?.deptId) {
+            fetchDeptById(data.deptId, setFormValues);
           }
         }, [mode, data]);
 
+
+  return (
+    <Formik initialValues={formValues} enableReinitialize onSubmit={(values) => handleSubmit(values)}>
+      {({ values, handleChange }) => {
         return (
           <Form>
             <>
@@ -136,9 +140,9 @@ const FrmDeptMst = () => {
                     <div className="flex justify-center mt-10">
 
                     <div className="grid grid-cols-3 gap-4 w-full">
-                      <Label className="font-bold whitespace-nowrap"><span className="text-red-500">*</span> Department ID :</Label>
-                      <Label className="font-bold whitespace-nowrap"><span className="text-red-500">*</span> Department Name (Marathi) :</Label>
-                      <Label className="font-bold whitespace-nowrap"><span className="text-red-500">*</span> Department Name :</Label>
+                      <Label className="font-bold whitespace-nowrap required"> Department ID :</Label>
+                      <Label className="font-bold whitespace-nowrap required"> Department Name (Marathi) :</Label>
+                      <Label className="font-bold whitespace-nowrap required"> Department Name :</Label>
                       <Input
                         name="deptId"
                         value={values.deptId}
@@ -152,15 +156,15 @@ const FrmDeptMst = () => {
                         className="w-full sm:flex-1"
                       />
                       <Input
-                        name="deptNameMr"
-                        value={values.deptNameMr}
+                        name="deptnameM"
+                        value={values.deptnameM}
                         onChange={handleChange}
                         required
                         className="w-full sm:flex-1"
                       />
                        <Input
-                        name="deptName"
-                        value={values.deptName}
+                        name="deptnameE"
+                        value={values.deptnameE}
                         onChange={handleChange}
                         required
                         className="w-full sm:flex-1"
@@ -173,7 +177,7 @@ const FrmDeptMst = () => {
                   <Button className="bg-blue-600 text-white hover:bg-gray-300 hover:text-blue-600" type="submit">
                   Save
                   </Button>
-                  <Button className="bg-gray-200 text-black hover:bg-gray-200" 
+                  <Button className="bg-gray-200 text-black hover:bg-gray-200" type="button"
                   onClick={() => navigate("/Masters/FrmDeptListMst")}>
                   Cancel
                   </Button>

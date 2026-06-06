@@ -14,14 +14,54 @@ const FrmDeptListMst = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [deptList, setDeptList] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const headers = ["Select", "Department ID", "Department Name (English)", "Department Name (Marathi)"];
 
   const keyMapping = {
     Select: "select",
     "Department ID": "id",
-    "Department Name (English)": "name",
+    "Department Name (English)": "name_eng",
     "Department Name (Marathi)": "name_mr",
   };
+
+  const searchDepts = async (text) => {
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/api/FrmDeptListMst/department-search`,
+      {
+        searchText: text,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      }
+    );
+
+    if (res.data.rows) {
+      setDeptList(res.data.rows);
+    } else {
+      setDeptList([]);
+    }
+    } catch (err) {
+      console.error("Search error:", err);
+      setDeptList([]);
+    }
+  };
+
+  useEffect(() => {
+  if (!user || !searchText.trim()) {
+    fetchDepts();
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    searchDepts(searchText);
+  }, 500);
+
+  return () => clearTimeout(timer);
+  }, [searchText]);
+
 
   const fetchDepts = async () => {
     try {
@@ -32,7 +72,7 @@ const FrmDeptListMst = () => {
       });
 
       const res = await axios.get(
-        `${BASE_URL}/api/`,                         //ADD API ENDPOINT
+        `${BASE_URL}/api/FrmDeptListMst/department-list`,                        
         {
           headers: {
             Authorization: `Bearer ${user?.token}`,
@@ -42,8 +82,8 @@ const FrmDeptListMst = () => {
 
       Swal.close();
 
-      if (res.data?.ok && res.data?.data?.list) {
-        setDeptList(res.data.data.list);
+      if (res.data?.ok || res.data?.success) {
+        setDeptList(res.data.rows);
       } else {
         setDeptList([]);
       }
@@ -55,28 +95,31 @@ const FrmDeptListMst = () => {
   };
 
   useEffect(() => {
-    if (user?.token) {
       fetchDepts();
-    }
   }, [user]);
 
   const tableData = deptList.map((row, index) => ({
-    id: row.DEPT_ID || index,
+    id: row.DEPTID || index,
     select: (
       <Button
         variant="link"
         className="text-blue-700 px-0"
         onClick={() =>
           navigate("/Masters/FrmDeptMst", {
-            state: { mode: 2, data: row },
+            state: { mode: 2,
+                     data: {
+                          deptId: row.DEPTID,
+                          deptnameE: row.DEPTNAMEE,
+                          deptnameM: row.DEPTNAMEM
+                        }},
           })
         }
       >
         Select
       </Button>
     ),
-    name: row.DEPT_NAME_ENG?.trim() || "-",
-    name_mr: row.DEPT_NAME_MR?.trim() || "-",
+    name_eng: row.DEPTNAMEE?.trim() || "-",
+    name_mr: row.DEPTNAMEM?.trim() || "-",
   }));
 
   const finalData =
@@ -86,7 +129,8 @@ const FrmDeptListMst = () => {
           {
             id: 0,
             select: "",
-            name: "Data not found",
+            name_eng: "Data not found",
+            name_mr: "Data not found",
           },
         ];
 
@@ -105,6 +149,8 @@ const FrmDeptListMst = () => {
           <Input
             className="w-full sm:w-64 h-8 text-sm placeholder:text-gray-500 font-normal"
             placeholder="Search here..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
         </CardHeader>
 

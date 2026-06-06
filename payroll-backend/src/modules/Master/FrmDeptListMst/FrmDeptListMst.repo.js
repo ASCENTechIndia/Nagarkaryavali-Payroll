@@ -44,7 +44,7 @@ const getDepartmentDetailsById = async (body) => {
       var_deptmst_deptnamee AS deptnameE,
       var_deptmst_deptnamem AS deptnameM
     FROM aopr_deptmst_def
-    WHERE num_deptmst_deptid = :deptId
+    tIdWHERE num_deptmst_deptid = :dep
     ORDER BY num_deptmst_deptid
   `;
     return await executeQuery(query, { deptId });

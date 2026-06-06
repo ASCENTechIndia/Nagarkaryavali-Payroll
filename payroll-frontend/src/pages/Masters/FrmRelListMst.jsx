@@ -39,7 +39,6 @@ const FrmRelListMst = () => {
       );
 
       Swal.close();
-      //console.log("res",res.data);
       if (Array.isArray(res.data)) {
         setRelList(res.data);
     } else {
