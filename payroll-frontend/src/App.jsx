@@ -48,6 +48,11 @@ import FrmEmployeeMstList from './pages/Masters/FrmEmployeeMstList';
 import FrmEmployeeMstNewTest from './pages/Masters/FrmEmployeeMstNewTest';
 import FrmPayScaleList from './pages/Masters/FrmPayScaleList';
 import FrmPayScaleMst from './pages/Masters/FrmPayScaleMst';
+import RptLeaveStatus from './pages/Reports/RptLeaveStatus';
+import RptIncPromotion from './pages/Reports/RptIncPromotion';
+import FrmPayrollReport from './pages/Reports/FrmPayrollReport';
+import FrmPayHeadList from './pages/Reports/FrmPayHeadList';
+import FrmPaySlip from './pages/Reports/FrmPaySlip';
 
 
 const Home = () => {
@@ -250,6 +255,28 @@ export const router = createBrowserRouter([
       {
         path: "Masters/FrmPayHeadConfigMst",
         element: <FrmPayHeadConfigMst />,
+      },
+
+      // Reports
+      {
+        path: "ReportsForm/FrmPaySlip",
+        element: <FrmPaySlip />,
+      },
+      {
+        path: "ReportsForm/FrmPayHeadList",
+        element: <FrmPayHeadList />,
+      },
+      {
+        path: "ReportsForm/FrmPayrollReport",
+        element: <FrmPayrollReport />,
+      },
+      {
+        path: "ReportsForm/RptLeaveStatus",
+        element: <RptLeaveStatus />,
+      },
+      {
+        path: "ReportsForm/RptIncPromotion",
+        element: <RptIncPromotion />,
       },
     ]
   }
