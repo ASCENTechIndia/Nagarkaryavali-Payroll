@@ -83,6 +83,7 @@ app.use("/api/ReligConfig", require("./modules/ConfigurationP/FrmReligionConfigu
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
 app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalulation/FrmSalaryCalulation.routes"))
+app.use("/api/FrmAttendanceEntry", require("./modules/Transaction/FrmAttendanceEntry/FrmAttendanceEntry.routes"))
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
@@ -94,6 +95,7 @@ app.use("/api/FrmEmpPayHeadListRpt", require("./modules/Reports/FrmEmpPayHeadLis
 app.use("/api/FrmPayrollDashbordMst", require("./modules/Reports/FrmPayrollDashbordMst/FrmPayrollDashbordMst.routes"))
 app.use("/api/FrmPayHeadList", require("./modules/Reports/FrmPayHeadList/FrmPayHeadList.routes"))
 app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"))
+
 
 app.use(errorMiddleware);
 

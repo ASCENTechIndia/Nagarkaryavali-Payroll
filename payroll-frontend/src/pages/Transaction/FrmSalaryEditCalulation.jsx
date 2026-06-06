@@ -1039,8 +1039,7 @@ const FrmSalaryEditCalulation = () => {
                   {showBillNo && (
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                        <Label text="Bill No." />
-                        <span className="text-red-500">*</span>
+                        <Label text="Bill No." required />
                         <span>:</span>
                       </div>
                       <Select
