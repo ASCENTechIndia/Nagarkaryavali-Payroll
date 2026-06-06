@@ -154,7 +154,7 @@ const FrmPayCommList = () => {
 
                 <CardContent className="px-4 pt-3 sm:pt-8 space-y-6">
 
-                    <div className="rounded-xl bg-white overflow-hidden">
+                    <div className="rounded-xl bg-white">
                         <ShadCNTable
                             headers={tableHeaders}
                             data={payCommList}

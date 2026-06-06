@@ -154,7 +154,7 @@ const FrmPayHeadListMst = () => {
 
                 {/* Table */}
                 <CardContent className="px-4 pt-5 sm:pt-8">
-                    <div className="rounded-xl bg-white overflow-hidden">
+                    <div className="rounded-xl bg-white">
                         <ShadCNTable
                             headers={tableHeaders}
                             data={tableData}
