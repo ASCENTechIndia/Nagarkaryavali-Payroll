@@ -5,10 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from '@/layout/main-layout';
 import { Label } from '@/components/ui/label';
 import Login from './pages/Login';
-import FrmCastListMst from './Masters/FrmCastListMst';
-import FrmCastMaster from './Masters/FrmCastMaster';
-import FrmDeptListMst from './Masters/FrmDeptListMst';
-import FrmDeptMst from './Masters/FrmDeptMst';
+
 import FrmInsuranceMstList from "@/pages/Masters/FrmInsuranceMstList"
 import FrmInsuranceMst from '@/pages/Masters/FrmInsuranceMst';
 import FrmDeptList from '@/pages/Masters/FrmDeptSelect';
@@ -30,6 +27,21 @@ import FrmBankList from './Masters/FrmBankList';
 import FrmPayHeadMst from './Masters/FrmPayHeadMst';
 import FrmPayHeadListMst from './Masters/FrmPayHeadListMst';
 
+import FrmRelegionList from '@/pages/Masters/FrmRelegionList';
+import FrmRelegionMst from '@/pages/Masters/FrmRelegionMst';
+import FrmRelListMst from '@/pages/Masters/FrmRelListMst';
+import FrmRelationMst from '@/pages/Masters/FrmRelationMst';
+import FrmCastListMst from '@/pages/Masters/FrmCastListMst';
+import FrmCastMaster from '@/pages/Masters/FrmCastMaster';
+import FrmDeptListMst from '@/pages/Masters/FrmDeptListMst';
+import FrmDeptMst from '@/pages/Masters/FrmDeptMst';
+
+import FrmEsevaReport from '@/pages/Reports/FrmEsevaReport';
+import FrmLoansAndAdvancesRpt from '@/pages/Reports/FrmLoansAndAdvancesRpt';
+import FrmLoansAndAdvancesReceived from '@/pages/Reports/FrmLoansAndAdvancesReceived';
+import FrmDeductionPayheadsDtls from '@/pages/Reports/FrmDeductionPayheadsDtls';
+import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
+import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 
 import FrmBankBranchConfig from "@/pages/Configuration/FrmBankBranchConfig";
 import FrmBankConfig from "@/pages/Configuration/FrmBankConfig";
@@ -251,6 +263,55 @@ export const router = createBrowserRouter([
         path: "Masters/FrmPayHeadConfigMst",
         element: <FrmPayHeadConfigMst />,
       },
+      {
+          path:"Masters/FrmLeaveList",
+          element : <FrmLeaveList/>
+        },
+        {
+          path:"Masters/FrmLeaveMst",
+          element : <FrmLeaveMaster/>
+        },
+         {
+          path: "Masters/FrmRelegionList",
+          element: <FrmRelegionList />,
+        },
+        {
+          path: "Masters/FrmRelegionMst",
+          element: <FrmRelegionMst />,
+        },
+        {
+          path: "Masters/FrmRelListMst",
+          element: <FrmRelListMst />,
+        },
+        {
+          path: "Masters/FrmRelationMst",
+          element: <FrmRelationMst />,
+        },
+        {
+          path: "ReportsForm/FrmEsevaReport",
+          element: <FrmEsevaReport />,
+        },
+        {
+          path: "ReportsForm/FrmLoansAndAdvancesRpt",
+          element: <FrmLoansAndAdvancesRpt />,
+        },
+        {
+          path: "ReportsForm/FrmLoansAndAdvancesReceived",
+          element: <FrmLoansAndAdvancesReceived />,
+        },
+        {
+          path: "ReportsForm/FrmDeductionPayheadsDtls",
+          element: <FrmDeductionPayheadsDtls />,
+        },
+        {
+          path: "ReportsForm/FrmNetPayRpt",
+          element: <FrmNetPayRpt />,
+        },
+        {
+          path: "ReportsForm/FrmRetiredEmpRpt",
+          element: <FrmRetiredEmpRpt />,
+         },
+
     ]
   }
 ])

@@ -78,7 +78,7 @@ const FrmCastMaster = () => {
         didOpen: () => {
           Swal.showLoading();
         },
-      });
+      }); 
 
       const res = await axios.post(
         `${BASE_URL}/api/CastMst/savecast`,             
@@ -128,7 +128,7 @@ const FrmCastMaster = () => {
                 </CardHeader>
 
                 <CardContent className="p-4 sm:p-6 space-y-6">
-                    <div className="flex justify-center mt-10">
+                  <div className="flex justify-center mt-10">
                     <div className="grid grid-cols-2 gap-4 w-[800px]">
                       <Label className="font-bold whitespace-nowrap required"> Cast ID :</Label>
                       <Label className="font-bold whitespace-nowrap required"> Cast Name :</Label>

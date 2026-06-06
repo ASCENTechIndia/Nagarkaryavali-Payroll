@@ -48,8 +48,6 @@ const FrmRelegionMst = () => {
       );
 
       const apiData = res.data?.rows?.[0];
-      //console.log("apidata", apiData);
-      //console.log("res data", res.data?.rows);
       if (apiData) {
         setFormValues({
           relName: apiData.RELNAME?.trim() || "",
@@ -86,7 +84,7 @@ const FrmRelegionMst = () => {
         payload,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, 
           },
         }
       );

@@ -80,7 +80,7 @@ const FrmRelegionList = () => {
       ? tableData
       : [
           {
-            //id: "Not Found",
+            //id: "0",
             select: "",
             name: "Data not found",
           },
