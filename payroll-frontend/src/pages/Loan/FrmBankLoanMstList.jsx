@@ -183,6 +183,7 @@ const FrmBankLoanMstList = () => {
             state: {
                 mode: 2,
                 bankLoanId: row.NUM_BANKLOAN_ID,
+                bankLoanEmpId: row.NUM_BANKLOAN_EMPID,
                 data: row,
             },
         });
@@ -220,6 +221,7 @@ const FrmBankLoanMstList = () => {
 
             const formattedRows = rows.map((row) => ({
                 ...row,
+                STATUS: row.VAR_BANKLOAN_ACTIVE === "Y" ? "Active" : "Close",
                 SELECT: (
                     <Button
                         variant="link"
@@ -247,10 +249,12 @@ const FrmBankLoanMstList = () => {
     const tableHeaders = [
         "Select",
         "Employee Name",
+        "Account No.",
         "Pay Head",
         "Loan Amount",
         "Installment Amount",
         "Balance Amount",
+        "Loan Status",
         "Zone",
         "Department",
     ];
@@ -258,10 +262,12 @@ const FrmBankLoanMstList = () => {
     const keyMapping = {
         Select: "SELECT",
         "Employee Name": "VAR_EMPLOYEE_ENGNAME",
+        "Account No.":"NUM_BANKLOAN_BANKACCNO",
         "Pay Head": "VAR_PAYHEADS_ENAME",
         "Loan Amount": "NUM_BANKLOAN_LOANAMT",
         "Installment Amount": "NUM_BANKLOAN_INSTALLAMT",
         "Balance Amount": "NUM_BANKLOAN_BALANCE",
+        "Loan Status": "STATUS",
         Zone: "ZONENAME",
         Department: "DEPTNAME",
     };
