@@ -308,6 +308,15 @@ export const router = createBrowserRouter([
         element: <FrmBillGeneration />,
       },
 
+      {
+        path:"Transactions/FrmAttendanceEntry",
+        element:<FrmAttendanceEntry />
+      },
+      {
+        path:"Transactions/FrmOtherEarningEnrty",
+        element:<FrmOtherEarningEnrty />
+      },
+
       //REPORTS
       {
         path: "ReportsForm/FrmSalaryConsolidationBanks",

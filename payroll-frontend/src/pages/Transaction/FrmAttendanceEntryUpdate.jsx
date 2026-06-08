@@ -76,7 +76,7 @@ const FrmAttendanceEntry = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Category */}
             <div className="space-y-2">
-              <Label required>Category</Label>
+              <Label text="Category" required />
 
               <Select>
                 <SelectTrigger className="w-full h-10">
@@ -92,7 +92,7 @@ const FrmAttendanceEntry = () => {
 
             {/* Zone */}
             <div className="space-y-2">
-              <Label required>Zone</Label>
+              <Label text="Zone" required />
 
               <Select>
                 <SelectTrigger className="w-full h-10">
@@ -109,7 +109,7 @@ const FrmAttendanceEntry = () => {
 
             {/* Department */}
             <div className="space-y-2">
-              <Label required>Department</Label>
+              <Label text="Department" required />
 
               <Select>
                 <SelectTrigger className="w-full h-10">
@@ -126,6 +126,7 @@ const FrmAttendanceEntry = () => {
             {/* Year */}
             <div className="space-y-2">
               <Label required>Year</Label>
+              <Label text="Year" required />
 
               <Select>
                 <SelectTrigger className="w-full h-10">
@@ -141,8 +142,7 @@ const FrmAttendanceEntry = () => {
 
             {/* Month */}
             <div className="space-y-2">
-              <Label required>Month</Label>
-
+              <Label text="Month" required />
               <Select>
                 <SelectTrigger className="w-full h-10">
                   <SelectValue placeholder="Select Month" />
@@ -157,7 +157,7 @@ const FrmAttendanceEntry = () => {
 
             {/* Employee Code */}
             <div className="space-y-2">
-              <Label>Employee ID</Label>
+              <Label text="Employee ID" />
 
               <Input placeholder="Enter Employee Code" />
             </div>

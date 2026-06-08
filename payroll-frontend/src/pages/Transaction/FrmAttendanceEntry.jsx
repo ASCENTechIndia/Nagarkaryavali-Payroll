@@ -13,6 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ShadCNTable from "@/components/ui/table";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 const FrmAttendanceEntry = () => {
   const [showTable, setShowTable] = useState(false);
 
@@ -48,22 +56,7 @@ const FrmAttendanceEntry = () => {
     Remark: "remark",
   };
 
-  const columnStyles = {
-    "Sr No.": { width: "80px" },
-    "Emp ID": { width: "90px" },
-    Name: { width: "330px" },
-    Select: { width: "50px" },
-    "Bio-Metric": { width: "120px" },
-    Attendance: { width: "120px" },
-    "Medical Leave": { width: "140px" },
-    "Earned Leave": { width: "140px" },
-    HP: { width: "120px" },
-    LWP: { width: "120px" },
-    Present: { width: "120px" },
-    Remark: { width: "220px" },
-  };
-
-  const handleSearch = async () => {
+  const handleSearch = () => {
     const data = [
       {
         srNo: 1,
@@ -73,6 +66,7 @@ const FrmAttendanceEntry = () => {
 
         biometric: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -80,6 +74,7 @@ const FrmAttendanceEntry = () => {
 
         attendance: (
           <Input
+            type="number"
             defaultValue="31"
             className="h-8 min-w-[80px]"
           />
@@ -87,6 +82,7 @@ const FrmAttendanceEntry = () => {
 
         medicalLeave: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -94,6 +90,7 @@ const FrmAttendanceEntry = () => {
 
         earnedLeave: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -101,6 +98,7 @@ const FrmAttendanceEntry = () => {
 
         hp: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -108,6 +106,7 @@ const FrmAttendanceEntry = () => {
 
         lwp: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -115,14 +114,13 @@ const FrmAttendanceEntry = () => {
 
         present: (
           <Input
+            type="number"
             defaultValue="31"
             className="h-8 min-w-[80px]"
           />
         ),
 
-        remark: (
-          <Input className="h-8 min-w-[180px]" />
-        ),
+        remark: <Input className="h-8 min-w-[180px]" />,
       },
 
       {
@@ -133,6 +131,7 @@ const FrmAttendanceEntry = () => {
 
         biometric: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -140,6 +139,7 @@ const FrmAttendanceEntry = () => {
 
         attendance: (
           <Input
+            type="number"
             defaultValue="31"
             className="h-8 min-w-[80px]"
           />
@@ -147,6 +147,7 @@ const FrmAttendanceEntry = () => {
 
         medicalLeave: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -154,6 +155,7 @@ const FrmAttendanceEntry = () => {
 
         earnedLeave: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -161,6 +163,7 @@ const FrmAttendanceEntry = () => {
 
         hp: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -168,6 +171,7 @@ const FrmAttendanceEntry = () => {
 
         lwp: (
           <Input
+            type="number"
             defaultValue="0"
             className="h-8 min-w-[80px]"
           />
@@ -175,14 +179,13 @@ const FrmAttendanceEntry = () => {
 
         present: (
           <Input
+            type="number"
             defaultValue="31"
             className="h-8 min-w-[80px]"
           />
         ),
 
-        remark: (
-          <Input className="h-8 min-w-[180px]" />
-        ),
+        remark: <Input className="h-8 min-w-[180px]" />,
       },
     ];
 
@@ -198,7 +201,6 @@ const FrmAttendanceEntry = () => {
     >
       <Card className="shadow-sm">
         {/* Header */}
-
         <CardHeader className="border-b">
           <CardTitle className="text-2xl font-bold">
             Attendance Entry
@@ -207,77 +209,91 @@ const FrmAttendanceEntry = () => {
 
         <CardContent className="space-y-8 pt-8">
           {/* Filters */}
-
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <div>
-              <Label required>Category</Label>
-
-              <select className="w-full h-9 border border-gray-400 rounded-md px-3">
-                <option>Regular</option>
-              </select>
+            <div className="space-y-2">
+              <Label text="Category" required />
+              <Select defaultValue="regular">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="regular">Regular</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label required>Zone</Label>
-
-              <select className="w-full h-9 border border-gray-400 rounded-md px-3">
-                <option>Head Office</option>
-              </select>
+            <div className="space-y-2">
+              <Label text="Zone" required />
+              <Select defaultValue="headoffice">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="headoffice">
+                    Head Office
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label required>Department</Label>
-
-              <select className="w-full h-9 border border-gray-400 rounded-md px-3">
-                <option>
-                  महानगरपालिका अतिरिक्त आयुक्त कार्यालय-1
-                </option>
-              </select>
+            <div className="space-y-2">
+              <Label text="Department" required />
+              <Select defaultValue="dept1">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dept1">
+                    महानगरपालिका अतिरिक्त आयुक्त कार्यालय-1
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label required>Year</Label>
-
-              <select className="w-full h-9 border border-gray-400 rounded-md px-3">
-                <option>2026</option>
-              </select>
+            <div className="space-y-2">
+              <Label text="Year" required />
+              <Select defaultValue="2026">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2026">2026</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label required>Month</Label>
-
-              <select className="w-full h-9 border border-gray-400 rounded-md px-3">
-                <option>January</option>
-              </select>
+            <div className="space-y-2">
+              <Label text="Month" required />
+              <Select defaultValue="january">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="january">
+                    January
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label>Employee ID</Label>
-
+            <div className="space-y-2">
+              <Label text="Employee ID" />
               <Input placeholder="Enter Employee Code" />
             </div>
           </div>
 
           {/* Buttons */}
-
           <div className="flex justify-center gap-3">
-            <Button
-              type="button"
-              onClick={handleSearch}
-            >
+            <Button type="button" onClick={handleSearch}>
               Search
             </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-            >
+            <Button type="button" variant="outline">
               Close
             </Button>
           </div>
 
           {/* Table */}
-
           {showTable && (
             <>
               <div className="overflow-x-auto">
@@ -285,14 +301,13 @@ const FrmAttendanceEntry = () => {
                   headers={headers}
                   data={tableData}
                   keyMapping={keyMapping}
-                  columnStyles={columnStyles}
                   pagination={false}
-                  className="min-w-[1700px]"
+               
                   onSelectAllChange={(checked) => {
                     setTableData((prev) =>
                       prev.map((row) => ({
                         ...row,
-                        checked,
+                        checked: checked === true,
                       }))
                     );
                   }}
@@ -312,10 +327,7 @@ const FrmAttendanceEntry = () => {
               </div>
 
               <div className="flex justify-center pt-4">
-                <Button
-                  type="button"
-                  variant="default"
-                >
+                <Button type="button">
                   Submit
                 </Button>
               </div>

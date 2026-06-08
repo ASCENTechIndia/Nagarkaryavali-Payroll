@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import ShadCNTable from "@/components/ui/table";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 const FrmMonthlyBankDeductionAuthorization = () => {
   const [tableData] = useState([
@@ -77,40 +79,47 @@ const FrmMonthlyBankDeductionAuthorization = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             <div>
-              <Label>
-                <span className="text-red-500">*</span>
-                Department
-              </Label>
+              <Label text="Department" required />
+              <Select defaultValue="1">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
 
-              <select className="w-full h-10 border rounded-md px-3">
-                <option>
-                  महापालिका आयुक्त कार्यालय
-                </option>
-              </select>
+                <SelectContent>
+                  <SelectItem value="1">महापालिका आयुक्त कार्यालय</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label>
-                <span className="text-red-500">*</span>
-                Year
-              </Label>
+              <Label text="Year" required />
 
-              <select className="w-full h-10 border rounded-md px-3">
-                <option>-- Select Option --</option>
-                <option>2026</option>
-                <option>2025</option>
-              </select>
+              <Select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="-- Select Option --" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="2026">2026</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label>
-                <span className="text-red-500">*</span>
-                Month
-              </Label>
+              
 
-              <select className="w-full h-10 border rounded-md px-3">
-                <option>December</option>
-              </select>
+              <Label text="Month" required />
+
+              <Select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="-- Select Option --" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="12">December</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -129,15 +138,14 @@ const FrmMonthlyBankDeductionAuthorization = () => {
           {/* Buttons */}
 
           <div className="flex justify-center gap-4">
-            <Button >
-              Authorize
-            </Button>
+            <Button>Authorize</Button>
 
-            <Button variant="destructive">
-              Reject
-            </Button>
+            <Button variant="destructive">Reject</Button>
 
-            <Button variant="outline" path="/Transactions/FrmMonthlyBankDeductionUpload">
+            <Button
+              variant="outline"
+              path="/Transactions/FrmMonthlyBankDeductionUpload"
+            >
               Back
             </Button>
           </div>

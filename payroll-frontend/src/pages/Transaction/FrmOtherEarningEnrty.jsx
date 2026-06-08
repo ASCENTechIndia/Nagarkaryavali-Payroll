@@ -11,10 +11,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 const FrmOtherEarningMst = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-const navigate = useNavigate();
+  const navigate = useNavigate();
   return (
     <Formik
       initialValues={{
@@ -47,59 +54,87 @@ const navigate = useNavigate();
               <CardContent className="pt-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   <div>
-                    <Label required>Department</Label>
+                    <Label text="Department" required />
 
-                    <select
-                      name="department"
+                    <Select
                       value={values.department}
-                      onChange={handleChange}
-                      className="w-full h-9 border border-gray-400 rounded-md px-3"
+                      onValueChange={(value) =>
+                        setFieldValue("department", value)
+                      }
                     >
-                      <option>महापालिका सुरक्षा विभाग</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Department" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value="security">
+                          महापालिका सुरक्षा विभाग
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <Label required>Designation</Label>
+                    <Label text="Designation" required />
 
-                    <select
-                      name="designation"
+                    <Select
                       value={values.designation}
-                      onChange={handleChange}
-                      className="w-full h-9 border border-gray-400 rounded-md px-3"
+                      onValueChange={(value) =>
+                        setFieldValue("designation", value)
+                      }
                     >
-                      <option>चौकीदार (वॉचमन)</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Designation" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value="watchman">
+                          चौकीदार (वॉचमन)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <Label required>Employee Id</Label>
+                    <Label text="Employee Id" required />
 
-                    <select
-                      name="employeeId"
+                    <Select
                       value={values.employeeId}
-                      onChange={handleChange}
-                      className="w-full h-9 border border-gray-400 rounded-md px-3"
+                      onValueChange={(value) =>
+                        setFieldValue("employeeId", value)
+                      }
+                      
                     >
-                      <option>27 - आकाराम चंदर घाडगे</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Employee" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="27">
+                          27 - आकाराम चंदर घाडगे
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <Label required>Earning Head</Label>
+                    <Label text="Earning Head" required />
 
-                    <select
-                      name="payHead"
+                    <Select
                       value={values.payHead}
-                      onChange={handleChange}
+                      onValueChange={(value) => setFieldValue("payHead", value)}
                       className="w-full h-9 border border-gray-400 rounded-md px-3"
                     >
-                      <option>Prize Money</option>
-                    </select>
+                      <SelectTrigger className="w-full"> 
+                        <SelectValue placeholder="Select Earning Head" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">वेतन</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <Label required>Amount Text</Label>
+                    <Label text="Amount" required />
 
                     <Input
                       name="amount"
@@ -109,7 +144,7 @@ const navigate = useNavigate();
                   </div>
 
                   <div>
-                    <Label required>Date</Label>
+                    <Label text="Date" required />
 
                     <DatePicker
                       value={selectedDate}
@@ -125,7 +160,7 @@ const navigate = useNavigate();
                   </div>
 
                   <div>
-                    <Label>Remark</Label>
+                    <Label text="Remark" />
 
                     <Textarea
                       rows={3}
@@ -142,7 +177,6 @@ const navigate = useNavigate();
                   <Button
                     type="button"
                     variant="outline"
-                   
                     path="/Transactions/FrmOtherEarnEntryList"
                   >
                     Cancel

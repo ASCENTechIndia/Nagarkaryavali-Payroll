@@ -38,7 +38,7 @@ const FrmBillGeneration = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Date Section */}
             <div className="space-y-2">
-              <Label required>Date</Label>
+              <Label required text="Date" />
 
               <div className="flex gap-3">
                 <Select defaultValue="2">
@@ -78,7 +78,7 @@ const FrmBillGeneration = () => {
 
             {/* Department */}
             <div className="space-y-2">
-              <Label required>Department</Label>
+              <Label required text="Department" />
 
               <Select>
                 <SelectTrigger className="w-full">
@@ -99,7 +99,7 @@ const FrmBillGeneration = () => {
 
             {/* Type */}
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label text="Type" />
 
               <div className="flex items-center gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
