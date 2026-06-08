@@ -99,6 +99,7 @@ app.use("/api/FrmEmpLstRpt", require("./modules/Reports/FrmEmpLstRpt/FrmEmpLstRp
 
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
+app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))
 
 app.use(errorMiddleware);
 
