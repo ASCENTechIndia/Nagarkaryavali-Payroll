@@ -1,9 +1,11 @@
-import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 import {
   Select,
@@ -17,6 +19,24 @@ import { Button } from "@/components/ui/button";
 import ShadCNTable from "@/components/ui/table";
 
 const FrmRelationConfig = () => {
+  const { token, user } = useAuth();
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const userId = user?.userId;
+
+  const [corporationList, setCorporationList] = useState([]);
+
+  const [mode, setMode] = useState(1);
+
+  const axiosConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token],
+  );
+
   const [tableData, setTableData] = useState([]);
 
   const initialValues = {
@@ -30,65 +50,84 @@ const FrmRelationConfig = () => {
     "Relation Name": "relationName",
   };
 
-  const handleSearch = async () => {
+  const getCorporationList = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/Branchconfi/corporationlist`,
+        axiosConfig,
+      );
+
+      setCorporationList(response?.data?.data?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+    getCorporationList();
+  }, [token]);
+
+  const handleSearch = async (corporationId) => {
+    if (!corporationId) return;
+
     Swal.fire({
       title: "Please Wait...",
       text: "Loading Relations",
       allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
 
     try {
-      // API CALL HERE
+      const [configuredRes, relationRes] = await Promise.all([
+        axios.post(
+          `${baseUrl}/api/RelaCongif/configrelationlist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig,
+        ),
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setTableData([
-        {
-          checked: true,
-          relationName: "Husband",
-        },
-        {
-          checked: true,
-          relationName: "Grand Father",
-        },
-        {
-          checked: false,
-          relationName: "Daughter",
-        },
-        {
-          checked: false,
-          relationName: "Aunty",
-        },
-        {
-          checked: false,
-          relationName: "Brother",
-        },
-        {
-          checked: false,
-          relationName: "Grand Mother",
-        },
-        {
-          checked: false,
-          relationName: "Test.",
-        },
-        {
-          checked: false,
-          relationName: "Father",
-        },
-        {
-          checked: false,
-          relationName: "Mother",
-        },
-        {
-          checked: false,
-          relationName: "Uncle",
-        },
+        axios.post(
+          `${baseUrl}/api/RelaCongif/relationlist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          axiosConfig,
+        ),
       ]);
+
+      const configuredRelations = configuredRes?.data?.data?.data || [];
+
+      const allRelations = relationRes?.data?.data?.data || [];
+
+      const rows = allRelations.map((relation) => {
+        const isConfigured = configuredRelations.some(
+          (x) =>
+            Number(x.CONFIGRELATIONID) ===
+            Number(relation.NUM_RELATION_RELATIONID),
+        );
+
+        return {
+          relationId: relation.NUM_RELATION_RELATIONID,
+
+          relationName: relation.VAR_RELATION_NAME,
+
+          checked: isConfigured,
+
+          originallyConfigured: isConfigured,
+        };
+      });
+
+      setMode(configuredRelations.length > 0 ? 2 : 1);
+
+      setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text: "Failed to load Relations",
+        text: error?.response?.data?.message || "Failed to load Relations",
       });
     } finally {
       Swal.close();
@@ -100,35 +139,110 @@ const FrmRelationConfig = () => {
       prev.map((item) => ({
         ...item,
         checked,
-      }))
+      })),
     );
   };
 
   const handleRowCheck = (row, checked) => {
     setTableData((prev) =>
       prev.map((item) =>
-        item.relationName === row.relationName
+        item.relationId === row.relationId
           ? {
               ...item,
-              checked,
+              checked: checked === true,
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
-
   const handleSubmit = async (values) => {
-    const selectedRelations = tableData.filter((x) => x.checked);
+    try {
+      if (!values.corporation) {
+        Swal.fire({
+          icon: "warning",
+          text: "Please Select Corporation",
+        });
+        return;
+      }
 
-    console.log({
-      ...values,
-      selectedRelations,
-    });
+      let relationStr = "";
+      let hasSelection = false;
 
-    Swal.fire({
-      icon: "success",
-      text: "Relation Configuration Saved Successfully",
-    });
+      tableData.forEach((item) => {
+        const oldValue = item.originallyConfigured;
+
+        const newValue = item.checked;
+
+        if (mode === 1) {
+          if (newValue) {
+            relationStr += `${item.relationId}#N#Y$`;
+
+            hasSelection = true;
+          } else {
+            relationStr += `${item.relationId}#N#N$`;
+          }
+        } else {
+          if (newValue && oldValue) {
+            relationStr += `${item.relationId}#Y#Y$`;
+
+            hasSelection = true;
+          } else if (newValue && !oldValue) {
+            relationStr += `${item.relationId}#N#Y$`;
+
+            hasSelection = true;
+          } else if (!newValue && oldValue) {
+            relationStr += `${item.relationId}#Y#N$`;
+
+            hasSelection = true;
+          } else {
+            relationStr += `${item.relationId}#N#N$`;
+          }
+        }
+      });
+
+      if (!hasSelection) {
+        Swal.fire({
+          icon: "warning",
+          text: "Select Atleast One CheckBox!",
+        });
+        return;
+      }
+
+      relationStr = relationStr.slice(0, -1);
+
+      Swal.fire({
+        title: "Saving...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const response = await axios.post(
+        `${baseUrl}/api/RelaCongif/saverelationconfig`,
+        {
+          userId,
+          ulbId: Number(values.corporation),
+          relationStr,
+          mode,
+        },
+        axiosConfig,
+      );
+
+      Swal.close();
+
+      await Swal.fire({
+        icon: "success",
+        text:
+          response?.data?.message ||
+          "Relation Configuration Updated Successfully!",
+      });
+
+      await handleSearch(values.corporation);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        text: error?.response?.data?.message || "Save Failed",
+      });
+    }
   };
 
   return (
@@ -155,22 +269,25 @@ const FrmRelationConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={(value) =>
-                      setFieldValue("corporation", value)
-                    }
+                    onValueChange={async (value) => {
+                      setFieldValue("corporation", value);
+
+                      await handleSearch(value);
+                    }}
                   >
                     <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="-- Select Option --" />
                     </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="870">
-                        KULGAON BADLAPUR NAGARPARISHAD BADLAPUR
-                      </SelectItem>
-
-                      <SelectItem value="871">
-                        SANGLI MIRAJ KUPWAD CORPORATION
-                      </SelectItem>
+                    <SelectContent className="max-h-72 overflow-y-auto">
+                      {corporationList.map((item) => (
+                        <SelectItem
+                          key={item.ID_VALUE}
+                          value={String(item.ID_VALUE)}
+                        >
+                          {item.DISPLAY_TEXT}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -184,7 +301,7 @@ const FrmRelationConfig = () => {
                   data={tableData}
                   keyMapping={keyMapping}
                   pagination
-                  rowsPerPage={10}
+                  rowsPerPage={6}
                   onSelectAllChange={handleSelectAll}
                   onRowCheckChange={handleRowCheck}
                 />
@@ -193,23 +310,9 @@ const FrmRelationConfig = () => {
               {/* Buttons */}
 
               <div className="flex justify-center gap-3">
-                <Button
-                  type="button"
-                  onClick={handleSearch}
-                >
-                  Search
-                </Button>
+                {tableData.length > 0 && <Button type="submit">Save</Button>}
 
-                {tableData.length > 0 && (
-                  <Button type="submit">
-                    Save
-                  </Button>
-                )}
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                >
+                <Button type="button" variant="secondary">
                   Close
                 </Button>
               </div>
