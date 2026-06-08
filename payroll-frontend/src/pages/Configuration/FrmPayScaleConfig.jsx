@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
@@ -34,14 +34,7 @@ const FrmPayConfig = () => {
 
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token],
-  );
+
 
   const initialValues = {
     corporation: "",
@@ -58,7 +51,8 @@ const FrmPayConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig,
+        { headers: {Authorization: `Bearer ${token}`},
+                },
       );
 
       setCorporationList(response?.data?.data?.data || []);
@@ -92,7 +86,8 @@ const FrmPayConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: {Authorization: `Bearer ${token}`},
+                },
         ),
         
 
@@ -101,7 +96,8 @@ const FrmPayConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: {Authorization: `Bearer ${token}`},
+                },
         ),
       ]);
 
@@ -231,7 +227,8 @@ const handleSubmit = async (values) => {
         ipAddress,
         source: config.source,
       },
-      axiosConfig
+      { headers: {Authorization: `Bearer ${token}`},
+                }
     );
 
     Swal.close();

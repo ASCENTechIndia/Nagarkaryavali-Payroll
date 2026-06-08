@@ -1,7 +1,7 @@
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
 import axios from "axios";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,15 +28,6 @@ const FrmReligionConfig = () => {
   const [tableData, setTableData] = useState([]);
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token],
-  );
-
   const initialValues = {
     corporation: "",
   };
@@ -52,7 +43,9 @@ const FrmReligionConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
 
       setCorporationList(response?.data?.data?.data || []);
@@ -85,7 +78,9 @@ const FrmReligionConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
         ),
 
         axios.post(
@@ -93,7 +88,9 @@ const FrmReligionConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
         ),
       ]);
 
@@ -223,7 +220,9 @@ const FrmReligionConfig = () => {
           religionStr,
           mode,
         },
-        axiosConfig,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
 
       Swal.close();

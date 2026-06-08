@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 
 import axios from "axios";
 import { Formik, Form } from "formik";
@@ -35,14 +35,7 @@ const FrmBankConfig = () => {
 
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token],
-  );
+
 
   const initialValues = {
     corporation: "",
@@ -63,7 +56,8 @@ const FrmBankConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig,
+        { headers: {Authorization: `Bearer ${token}`},
+                },
       );
 
       setCorporationList(response?.data?.data?.data || []);
@@ -109,7 +103,8 @@ const FrmBankConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: {Authorization: `Bearer ${token}`},
+                },
         ),
 
         axios.post(
@@ -117,7 +112,8 @@ const FrmBankConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: {Authorization: `Bearer ${token}`},
+                },
         ),
       ]);
 
@@ -280,7 +276,8 @@ const handleSubmit = async (values) => {
           bankStr,
           mode,
         },
-        axiosConfig
+        { headers: {Authorization: `Bearer ${token}`},
+                }
       );
 
     Swal.close();

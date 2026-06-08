@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 
 import { Formik, Form } from "formik";
@@ -52,11 +50,9 @@ const FrmLeaveApprove = () => {
       }}
     >
       {({ values, setFieldValue, handleChange, resetForm }) => {
-      
-
         return (
           <Form>
-            <Card >
+            <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl ">
                   Leave Application Approval
@@ -73,7 +69,11 @@ const FrmLeaveApprove = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Employee Name */}
                     <div className="space-y-2">
-                      <Label text="Employee Name" required className="min-w-[180px]" />
+                      <Label
+                        text="Employee Name"
+                        required
+                        className="min-w-[180px]"
+                      />
 
                       <Input
                         name="empName"
@@ -85,7 +85,11 @@ const FrmLeaveApprove = () => {
 
                     {/* Employee Code */}
                     <div className="space-y-2">
-                      <Label text="Employee Code" required  className="min-w-[180px]"/>
+                      <Label
+                        text="Employee Code"
+                        required
+                        className="min-w-[180px]"
+                      />
 
                       <Input
                         name="empCode"
@@ -206,12 +210,7 @@ const FrmLeaveApprove = () => {
                     <div className="space-y-2">
                       <Label text="Reason" required />
 
-                      <Textarea
-                        name="reason"
-                        value={values.reason}
-                        readOnly
-                        
-                      />
+                      <Textarea name="reason" value={values.reason} readOnly />
                     </div>
 
                     {/* Contact */}
@@ -257,7 +256,6 @@ const FrmLeaveApprove = () => {
                         value={values.remark}
                         onChange={handleChange}
                         placeholder="Enter Remark"
-                       
                       />
                     </div>
                   </div>
