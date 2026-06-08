@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+@page{
+    size:A4 portrait;
+    margin:10mm;
+}
+
+body{
+    font-family: Arial, sans-serif;
+    font-size:11px;
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    position:relative;
+    margin-bottom:10px;
+}
+
+.main-title{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    font-size: 16px;
+    font-weight:bold;
+}
+
+.sub-title{
+    text-align:center;
+    font-size:14px;
+    font-weight:bold;
+    margin-top:10px;
+    margin-bottom:15px;
+}
+
+.section-title{
+    font-weight:bold;
+    font-size:13px;
+    margin-top:12px;
+    margin-bottom:6px;
+}
+
+.employee-header-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.employee-header-table td {
+    padding: 2px 4px;
+    vertical-align: top;
+    line-height: 1.2;
+}
+
+.header-label {
+    width: 12%;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.header-value {
+    width: 38%;
+}
+
+.detail-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.detail-table td{
+    padding:4px;
+    vertical-align:top;
+}
+
+.label{
+    width:32%;
+    font-weight:bold;
+}
+
+.value{
+    width:68%;
+}
+
+.page-break{
+    page-break-after:always;
+}
+
+.footer{
+    margin-top:25px;
+}
+
+.footer table{
+    width:100%;
+}
+
+.footer td{
+    text-align:center;
+}
+
+</style>
+
+</head>
+
+<body>
+
+{{#each employees}}
+
+<div class="header">
+
+<img src="{{../logo}}" style="height:50px;" />
+
+<div class="main-title">
+{{../corporationName}}
+</div>
+
+</div>
+
+<div class="sub-title">
+कर्मचारी मास्टर सविस्तर अह्वाल
+</div>
+
+<table class="employee-header-table">
+
+    <tr>
+        <td class="header-label">विभाग</td>
+        <td class="header-value">{{DEPT}}</td>
+
+        <td class="header-label">कर्मचारी कोड</td>
+        <td class="header-value">{{EMPID}}</td>
+    </tr>
+
+    <tr>
+        <td class="header-label">कर्मचारी नाव</td>
+        <td class="header-value">{{EMPNAMEE}}</td>
+
+        <td class="header-label">पदनाम</td>
+        <td class="header-value">{{DESIG}}</td>
+    </tr>
+
+</table>
+
+<div class="section-title">
+१. कर्मचारी मूलभूत व शासकीय तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">विभाग</td><td>{{DEPT}}</td></tr>
+<tr><td class="label">कर्मचारी कोड</td><td>{{EMPID}}</td></tr>
+<tr><td class="label">कर्मचारी नाव (मराठी)</td><td>{{EMPNAMEM}}</td></tr>
+<tr><td class="label">कर्मचारी नाव (इंग्रजी)</td><td>{{EMPNAMEE}}</td></tr>
+<tr><td class="label">पदनाम</td><td>{{DESIG}}</td></tr>
+<tr><td class="label">श्रेणी</td><td>{{GRADE}}</td></tr>
+<tr><td class="label">कर्मचारी वर्ग</td><td>{{PAYSHEETCAT}}</td></tr>
+<tr><td class="label">कर्मचारी स्थिती</td><td>{{EMPTYPE}}</td></tr>
+<tr><td class="label">नियुक्तीचा प्रवर्ग</td><td>{{POST}}</td></tr>
+
+</table>
+
+<div class="section-title">
+२. वैयक्तिक तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">लिंग</td><td>{{GENDER}}</td></tr>
+<tr><td class="label">वैवाहिक स्थिती</td><td>{{MARRIAGE}}</td></tr>
+<tr><td class="label">जन्मतारीख</td><td>{{DOB}}</td></tr>
+<tr><td class="label">शिक्षण</td><td>{{EDU}}</td></tr>
+
+</table>
+
+<div class="section-title">
+३. धर्म जात व आरक्षण तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">धर्म</td><td>{{RELIGION}}</td></tr>
+<tr><td class="label">जात</td><td>{{CASTENAMEE}}</td></tr>
+<tr><td class="label">पोटजात</td><td>{{SUBCASTEMNAME}}</td></tr>
+<tr><td class="label">जात प्रवर्ग</td><td>{{CASTCATEGORY}}</td></tr>
+
+</table>
+
+<div class="section-title">
+४. अपंगत्व तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">अपंग आहे का(होय / नाही)</td><td>{{HANDICAP}}</td></tr>
+<tr><td class="label">अपंगत्व प्रकार</td><td>{{DISABTYPE}}</td></tr>
+<tr><td class="label">अपंगत्व टक्केवारी</td><td>{{DISABLEPER}}</td></tr>
+
+</table>
+
+<div class="section-title">
+५. सेवाविषयक तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">सेवेत रुजू दिनांक</td><td>{{EMPJOINDATE}}</td></tr>
+<tr><td class="label">सेवा कायम होण्याची तारीख</td><td>{{EMPCONFDATE}}</td></tr>
+<tr><td class="label">सेवानिवृत्ती दिनांक</td><td>{{EMPRETIREDATE}}</td></tr>
+
+</table>
+
+<div class="section-title">
+६. वेतन व पगार तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">वेतनश्रेणी</td><td>{{PAYSCALENAME}}</td></tr>
+<tr><td class="label">मूळ वेतन</td><td>{{BASICSAL}}</td></tr>
+<tr><td class="label">ग्रेड पे</td><td>{{GRADEPAY}}</td></tr>
+<tr><td class="label">DCPS / PF</td><td>{{DEDUCTIONTYPE}}</td></tr>
+<tr><td class="label">NPS PRAN क्रमांक</td><td>{{PRANNO}}</td></tr>
+</table>
+
+<div class="section-title">
+७. संपर्क व पत्ता तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">सध्याचा पत्ता</td><td>{{PRESENTADR}}</td></tr>
+<tr><td class="label">कायमचा पत्ता</td><td>{{PERADR}}</td></tr>
+<tr><td class="label">मोबाईल क्रमांक</td><td>{{MOBILENO}}</td></tr>
+<tr><td class="label">पर्यायी मोबाईल क्रमांक</td><td>{{ALTMOBNO}}</td></tr>
+<tr><td class="label">ई-मेल आयडी</td><td>{{EMAILID}}</td></tr>
+
+</table>
+
+<div class="section-title">
+८. ओळखपत्र तपशील
+</div>
+
+<table class="detail-table">
+<tr><td class="label">पॅन क्रमांक</td><td>{{PANNO}}</td></tr>
+<tr><td class="label">आधार क्रमांक</td><td>{{ADHARNO}}</td></tr>
+<tr><td class="label">मतदार ओळखपत्र क्रमांक</td><td>{{VOTERID}}</td></tr>
+<tr><td class="label">विधानसभा मतदारसंघ क्र./नाव</td><td>{{VIDHANSABHANAME}}</td></tr>
+<tr><td class="label">भाग क्रमांक</td><td>{{BHAGNO}}</td></tr>
+
+</table>
+
+<div class="section-title">
+९. बँक व वेतन विवरण तपशील
+</div>
+
+<table class="detail-table">
+
+<tr><td class="label">बँकेचे नाव</td><td>{{BANKNAME}}</td></tr>
+<tr><td class="label">शाखा</td><td>{{BRANCH}}</td></tr>
+<tr><td class="label">IFSC कोड</td><td>{{IFSC}}</td></tr>
+<tr><td class="label">खाते क्रमांक</td><td>{{BANKACCNO}}</td></tr>
+<tr><td class="label">अहवाल तयार दिनांक</td><td>{{printDate}}</td></tr>
+
+</table>
+
+<br>
+
+<b>घोषणा</b>
+
+<p>
+हा अहवाल वेतन प्रणालीतील कर्मचारी मास्टर मधून तयार करण्यात आला आहे.
+</p>
+
+<div class="footer">
+
+<table>
+
+<tr>
+
+<td>तयार करणारे</td>
+
+<td>तपासणी करणारे</td>
+
+<td>मंजूर करणारे</td>
+
+</tr>
+
+</table>
+
+</div>
+
+{{#unless @last}}
+<div class="page-break"></div>
+{{/unless}}
+
+{{/each}}
+
+</body>
+</html>
