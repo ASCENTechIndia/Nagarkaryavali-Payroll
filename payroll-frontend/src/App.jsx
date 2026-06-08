@@ -1,5 +1,6 @@
 import './App.css'
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import useDynamicFavicon from './utils/useDynamicFavicon';
 import Layout from '@/layout/main-layout';
 import { Label } from '@/components/ui/label';
 import Login from '@/pages/Login';
@@ -397,13 +398,12 @@ export const router = createBrowserRouter([
         path: "ReportsForm/FrmRetiredEmpRpt",
         element: <FrmRetiredEmpRpt />
       },
-
-
     ]
   }
 ])
 
 function App() {
+  useDynamicFavicon()
   return <RouterProvider router={router} />;
 }
 
