@@ -4,7 +4,7 @@ import { Formik, Form } from "formik";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 import {
@@ -28,15 +28,6 @@ const FrmRelationConfig = () => {
 
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token],
-  );
-
   const [tableData, setTableData] = useState([]);
 
   const initialValues = {
@@ -54,7 +45,7 @@ const FrmRelationConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setCorporationList(response?.data?.data?.data || []);
@@ -87,7 +78,7 @@ const FrmRelationConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: { Authorization: `Bearer ${token}` } },
         ),
 
         axios.post(
@@ -95,7 +86,7 @@ const FrmRelationConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: { Authorization: `Bearer ${token}` } },
         ),
       ]);
 
@@ -224,7 +215,7 @@ const FrmRelationConfig = () => {
           relationStr,
           mode,
         },
-        axiosConfig,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       Swal.close();

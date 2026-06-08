@@ -7,7 +7,7 @@ router.post("/employee-list", auth(), controller.getEmployeeList);
 router.post(
   "/generate-employee-list-pdf",
   auth(),
-  controller.generateEmployeeListPDF
+  controller.generateEmployeeListPDF,
 );
 
 module.exports = router;

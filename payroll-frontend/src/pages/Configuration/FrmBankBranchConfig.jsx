@@ -4,12 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Label } from "@/components/ui/label";
 
@@ -34,15 +29,6 @@ const FrmBankBranchConfig = () => {
   const [tableData, setTableData] = useState([]);
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token]
-  );
-
   const initialValues = {
     corporation: "",
   };
@@ -58,12 +44,10 @@ const FrmBankBranchConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      setCorporationList(
-        response?.data?.data?.data || []
-      );
+      setCorporationList(response?.data?.data?.data || []);
     } catch (error) {
       console.log(error);
     }
@@ -87,72 +71,52 @@ const FrmBankBranchConfig = () => {
     });
 
     try {
-      const [configuredRes, branchRes] =
-        await Promise.all([
-          axios.post(
-            `${baseUrl}/api/Branchconfi/configuredbranchlist`,
-            {
-              ulbId: Number(corporationId),
-            },
-            axiosConfig
-          ),
+      const [configuredRes, branchRes] = await Promise.all([
+        axios.post(
+          `${baseUrl}/api/Branchconfi/configuredbranchlist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          { headers: { Authorization: `Bearer ${token}` } },
+        ),
 
-          axios.post(
-            `${baseUrl}/api/Branchconfi/branchlist`,
-            {
-              ulbId: Number(corporationId),
-            },
-            axiosConfig
-          ),
-        ]);
+        axios.post(
+          `${baseUrl}/api/Branchconfi/branchlist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          { headers: { Authorization: `Bearer ${token}` } },
+        ),
+      ]);
 
-      const configuredBranches =
-        configuredRes?.data?.data?.data || [];
+      const configuredBranches = configuredRes?.data?.data?.data || [];
 
-      const allBranches =
-        branchRes?.data?.data?.data || [];
+      const allBranches = branchRes?.data?.data?.data || [];
 
-      const rows = allBranches.map(
-        (branch) => {
-          const isConfigured =
-            configuredBranches.some(
-              (x) =>
-                Number(
-                  x.CONFIBRANCH_ID
-                ) ===
-                Number(
-                  branch.NUM_BRANCHMST_BRANCHID
-                )
-            );
+      const rows = allBranches.map((branch) => {
+        const isConfigured = configuredBranches.some(
+          (x) =>
+            Number(x.CONFIBRANCH_ID) === Number(branch.NUM_BRANCHMST_BRANCHID),
+        );
 
-          return {
-            branchId:
-              branch.NUM_BRANCHMST_BRANCHID,
+        return {
+          branchId: branch.NUM_BRANCHMST_BRANCHID,
 
-            branchName:
-              branch.VAR_BRANCHMST_BRANCHNAME,
+          branchName: branch.VAR_BRANCHMST_BRANCHNAME,
 
-            checked: isConfigured,
+          checked: isConfigured,
 
-            originallyConfigured:
-              isConfigured,
-          };
-        }
-      );
+          originallyConfigured: isConfigured,
+        };
+      });
 
-      setMode(
-        configuredBranches.length > 0
-          ? 2
-          : 1
-      );
+      setMode(configuredBranches.length > 0 ? 2 : 1);
 
       setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text:
-          error?.response?.data?.message ||
-          "Failed to load branches",
+        text: error?.response?.data?.message || "Failed to load branches",
       });
     } finally {
       Swal.close();
@@ -164,36 +128,29 @@ const FrmBankBranchConfig = () => {
       prev.map((row) => ({
         ...row,
         checked: checked === true,
-      }))
+      })),
     );
   };
 
-  const handleRowCheck = (
-    row,
-    checked
-  ) => {
+  const handleRowCheck = (row, checked) => {
     setTableData((prev) =>
       prev.map((item) =>
         item.branchId === row.branchId
           ? {
               ...item,
-              checked:
-                checked === true,
+              checked: checked === true,
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
-  const handleSubmit = async (
-    values
-  ) => {
+  const handleSubmit = async (values) => {
     try {
       if (!values.corporation) {
         Swal.fire({
           icon: "warning",
-          text:
-            "Please Select Corporation",
+          text: "Please Select Corporation",
         });
         return;
       }
@@ -202,53 +159,33 @@ const FrmBankBranchConfig = () => {
       let hasSelection = false;
 
       tableData.forEach((item) => {
-        const oldValue =
-          item.originallyConfigured;
+        const oldValue = item.originallyConfigured;
 
-        const newValue =
-          item.checked;
+        const newValue = item.checked;
 
         if (mode === 1) {
           if (newValue) {
-            branchStr +=
-              `${item.branchId}#N#Y$`;
+            branchStr += `${item.branchId}#N#Y$`;
 
             hasSelection = true;
           } else {
-            branchStr +=
-              `${item.branchId}#N#N$`;
+            branchStr += `${item.branchId}#N#N$`;
           }
         } else {
           if (newValue && oldValue) {
-            branchStr +=
-              `${item.branchId}#Y#Y$`;
+            branchStr += `${item.branchId}#Y#Y$`;
 
             hasSelection = true;
-          }
-
-          else if (
-            newValue &&
-            !oldValue
-          ) {
-            branchStr +=
-              `${item.branchId}#N#Y$`;
+          } else if (newValue && !oldValue) {
+            branchStr += `${item.branchId}#N#Y$`;
 
             hasSelection = true;
-          }
-
-          else if (
-            !newValue &&
-            oldValue
-          ) {
-            branchStr +=
-              `${item.branchId}#Y#N$`;
+          } else if (!newValue && oldValue) {
+            branchStr += `${item.branchId}#Y#N$`;
 
             hasSelection = true;
-          }
-
-          else {
-            branchStr +=
-              `${item.branchId}#N#N$`;
+          } else {
+            branchStr += `${item.branchId}#N#N$`;
           }
         }
       });
@@ -256,37 +193,29 @@ const FrmBankBranchConfig = () => {
       if (!hasSelection) {
         Swal.fire({
           icon: "warning",
-          text:
-            "Select Atleast One CheckBox!",
+          text: "Select Atleast One CheckBox!",
         });
         return;
       }
 
-      branchStr = branchStr.slice(
-        0,
-        -1
-      );
+      branchStr = branchStr.slice(0, -1);
 
       Swal.fire({
         title: "Saving...",
         allowOutsideClick: false,
-        didOpen: () =>
-          Swal.showLoading(),
+        didOpen: () => Swal.showLoading(),
       });
 
-      const response =
-        await axios.post(
-          `${baseUrl}/api/Branchconfi/savebranchconfiguration`,
-          {
-            userId,
-            ulbId: Number(
-              values.corporation
-            ),
-            branchStr,
-            mode,
-          },
-          axiosConfig
-        );
+      const response = await axios.post(
+        `${baseUrl}/api/Branchconfi/savebranchconfiguration`,
+        {
+          userId,
+          ulbId: Number(values.corporation),
+          branchStr,
+          mode,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
       Swal.close();
 
@@ -297,32 +226,22 @@ const FrmBankBranchConfig = () => {
           "Branch Configuration Updated Successfully!",
       });
 
-      await handleSearch(
-        values.corporation
-      );
+      await handleSearch(values.corporation);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text:
-          error?.response?.data
-            ?.message ||
-          "Save Failed",
+        text: error?.response?.data?.message || "Save Failed",
       });
     }
   };
 
   return (
-    <Formik
-      initialValues={initialValues}
-      onSubmit={handleSubmit}
-    >
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({ values, setFieldValue }) => (
         <Form>
           <Card>
             <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-xl font-bold">
-                Branch Config
-              </CardTitle>
+              <CardTitle className="text-xl font-bold">Branch Config</CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -336,17 +255,10 @@ const FrmBankBranchConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={async (
-                      value
-                    ) => {
-                      setFieldValue(
-                        "corporation",
-                        value
-                      );
+                    onValueChange={async (value) => {
+                      setFieldValue("corporation", value);
 
-                      await handleSearch(
-                        value
-                      );
+                      await handleSearch(value);
                     }}
                   >
                     <SelectTrigger className="w-full h-9">
@@ -354,22 +266,14 @@ const FrmBankBranchConfig = () => {
                     </SelectTrigger>
 
                     <SelectContent className="max-h-72 overflow-y-auto">
-                      {corporationList.map(
-                        (item) => (
-                          <SelectItem
-                            key={
-                              item.ID_VALUE
-                            }
-                            value={String(
-                              item.ID_VALUE
-                            )}
-                          >
-                            {
-                              item.DISPLAY_TEXT
-                            }
-                          </SelectItem>
-                        )
-                      )}
+                      {corporationList.map((item) => (
+                        <SelectItem
+                          key={item.ID_VALUE}
+                          value={String(item.ID_VALUE)}
+                        >
+                          {item.DISPLAY_TEXT}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -382,24 +286,15 @@ const FrmBankBranchConfig = () => {
                   keyMapping={keyMapping}
                   pagination
                   rowsPerPage={6}
-                  onSelectAllChange={
-                    handleSelectAll
-                  }
-                  onRowCheckChange={
-                    handleRowCheck
-                  }
+                  onSelectAllChange={handleSelectAll}
+                  onRowCheckChange={handleRowCheck}
                 />
               )}
 
               <div className="flex justify-center gap-3">
-                <Button type="submit">
-                  Save
-                </Button>
+                <Button type="submit">Save</Button>
 
-                <Button
-                  type="button"
-                  variant="secondary"
-                >
+                <Button type="button" variant="secondary">
                   Close
                 </Button>
               </div>
