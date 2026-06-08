@@ -135,8 +135,7 @@ const FrmSalaryCalculation = () => {
 
     const fetchSubDepartmentList =
         async () => {
-            const res = await axios.post(
-                `${BASE_URL}/api/FrmEmployeeMstList/subdepartment-list`,
+            const res = await axios.post(`${BASE_URL}/api/FrmEmployeeMstList/subdepartment-list`,
                 { ulbid: Number(ulbId), deptId: Number(deptId) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -153,7 +152,6 @@ const FrmSalaryCalculation = () => {
     const fetchBillList =
         async () => {
             const payload = { ulbid: Number(ulbId), deptid: Number(deptId) };
-
             const res = await axios.post(`${BASE_URL}/api/FrmSalaryCalculation/bill-list`,
                 payload,
                 { headers: { Authorization: `Bearer ${token}`, }, }
@@ -170,33 +168,24 @@ const FrmSalaryCalculation = () => {
 
     const getSalaryDate = () =>
         formatDate(
-            new Date(
-                Number(year),
-                Number(month),
-                0
-            )
+            new Date(Number(year), Number(month), 0)
         );
 
     const validateForm = () => {
         if (!zoneId) {
             Swal.fire({
-                // icon: "warning",
                 text: "Please Select Zone",
             });
             return false;
         }
-
         if (!deptId) {
             Swal.fire({
-                // icon: "warning",
                 text: "Please Select Department",
             });
             return false;
         }
-
         if (showSubDepartment && Number(ulbId) === 590 && !subDeptId) {
             Swal.fire({
-                // icon: "warning",
                 text: "Please Select Sub Department",
             });
             return false;
