@@ -97,6 +97,8 @@ app.use("/api/FrmPayHeadList", require("./modules/Reports/FrmPayHeadList/FrmPayH
 app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"))
 app.use("/api/FrmEmpLstRpt", require("./modules/Reports/FrmEmpLstRpt/FrmEmpLstRpt.routes"))
 
+//Loans and Advances
+app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
 
 app.use(errorMiddleware);
 

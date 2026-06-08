@@ -68,11 +68,12 @@ import FrmDeductionPayheadsDtls from '@/pages/Reports/FrmDeductionPayheadsDtls';
 import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
 import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
+import FrmGenericSearch from './pages/Search/FrmGenericSearch';
 
 const Home = () => {
   return (
     <>
-        <Label text="Welcome" />
+      <Label text="Welcome" />
     </>
   );
 };
@@ -80,7 +81,7 @@ const Home = () => {
 export const router = createBrowserRouter([
   {
     path: "/login",
-    element: <Login />,
+    element: <Login />
   },
   {
     path: "/",
@@ -88,27 +89,27 @@ export const router = createBrowserRouter([
     children: [
       // {
       //   path: "/HomePage/FrmHomePage",
-      //   element: <Home />,
+      //   element: <Home />
       // },
       {
         index: true,
-        element: <Home />,
+        element: <Home />
       },
       {
         path: "Masters/FrmCastListMst",
-        element: <FrmCastListMst />,
+        element: <FrmCastListMst />
       },
       {
         path: "Masters/FrmCastMaster",
-        element: <FrmCastMaster />,
+        element: <FrmCastMaster />
       },
       {
         path: "Masters/FrmDeptListMst",
-        element: <FrmDeptListMst />,
+        element: <FrmDeptListMst />
       },
       {
         path: "Masters/FrmDeptMst",
-        element: <FrmDeptMst />,
+        element: <FrmDeptMst />
       },
       {
         path: "Masters/FrmInsuranceMstList",
@@ -143,7 +144,6 @@ export const router = createBrowserRouter([
         path: "Masters/FrmLeaveApplication",
         element: <FrmLeaveApplication />
       },
-
       {
         path: "Masters/FrmLeaveList",
         element: <FrmLeaveList />
@@ -162,158 +162,185 @@ export const router = createBrowserRouter([
       },
       {
         path: "/Masters/FrmPayHeadListMst",
-        element: <FrmPayHeadListMst />,
+        element: <FrmPayHeadListMst />
       },
       {
         path: "/Masters/FrmPayHeadMst",
-        element: <FrmPayHeadMst />,
+        element: <FrmPayHeadMst />
       },
       {
         path: "/Masters/FrmBankList",
-        element: <FrmBankList />,
+        element: <FrmBankList />
       },
       {
         path: "/Masters/FrmBankMst",
-        element: <FrmBankMst />,
+        element: <FrmBankMst />
       },
       {
         path: "/Masters/FrmDesgListMst",
-        element: <FrmDesgListMst />,
+        element: <FrmDesgListMst />
       },
       {
         path: "/Masters/FrmDesgMst",
-        element: <FrmDesgMst />,
+        element: <FrmDesgMst />
       },
       {
         path: "/Masters/FrmPayCommList",
-        element: <FrmPayCommList />,
+        element: <FrmPayCommList />
       },
       {
         path: "/Masters/FrmPayCommMst",
-        element: <FrmPayCommMst />,
+        element: <FrmPayCommMst />
       },
       {
         path: "/Masters/FrmEmployeeMstList",
-        element: <FrmEmployeeMstList />,
+        element: <FrmEmployeeMstList />
       },
       {
         path: "/Masters/FrmEmployeeMstNewTest",
-        element: <FrmEmployeeMstNewTest />,
+        element: <FrmEmployeeMstNewTest />
       },
       {
         path: "/Masters/FrmPayScaleList",
-        element: <FrmPayScaleList />,
+        element: <FrmPayScaleList />
       },
       {
         path: "/Masters/FrmPayScaleMst",
-        element: <FrmPayScaleMst />,
+        element: <FrmPayScaleMst />
       },
       {
         path: "Masters/FrmBankBranchConfig",
-        element: <FrmBankBranchConfig />,
+        element: <FrmBankBranchConfig />
       },
 
       {
         path: "Masters/FrmBankConfig",
-        element: <FrmBankConfig />,
+        element: <FrmBankConfig />
       },
 
       {
         path: "Masters/FrmLeaveConfig",
-        element: <FrmLeaveConfig />,
+        element: <FrmLeaveConfig />
       },
       {
         path: "Masters/FrmPayScaleConfig",
-        element: <FrmPayConfig />,
+        element: <FrmPayConfig />
       },
       {
         path: "Masters/FrmPayCommConfig",
-        element: <FrmPayCommissionConfig />,
+        element: <FrmPayCommissionConfig />
       },
       {
         path: "Masters/FrmRelationConfig",
-        element: <FrmRelationConfig />,
+        element: <FrmRelationConfig />
       },
       {
         path: "Masters/FrmReligionConfig",
-        element: <FrmReligionConfig />,
+        element: <FrmReligionConfig />
       },
       {
         path: "Masters/FrmDepartmentConfig",
-        element: <FrmDepartmentConfig />,
+        element: <FrmDepartmentConfig />
       },
-
       {
         path: "Masters/FrmDesignationConfig",
-        element: <FrmDesignationConfig />,
+        element: <FrmDesignationConfig />
       },
       {
         path: "Masters/FrmBankRecovery",
-        element: < FrmBankRecovery />,
+        element: < FrmBankRecovery />
       },
-
       {
         path: "Masters/FrmRecoveryUpload",
-        element: <FrmRecoveryUpload />,
+        element: <FrmRecoveryUpload />
       },
-
       {
         path: "Masters/FrmPayHeadConfigList",
-        element: <FrmPayHeadConfigList />,
+        element: <FrmPayHeadConfigList />
       },
       {
         path: "Masters/FrmPayHeadConfigMst",
-        element: <FrmPayHeadConfigMst />,
+        element: <FrmPayHeadConfigMst />
       },
-       {
+      {
         path: "Masters/FrmSalaryCalulation",
-        element: <FrmSalaryEditCalulation />,
+        element: <FrmSalaryEditCalulation />
       },
-
-
+      {
+        path: "Masters/FrmEmpLeaveList",
+        element: <FrmEmpLeaveList />
+      },
+      {
+        path: "Masters/FrmLeaveApprove",
+        element: <FrmLeaveApprove />
+      },
+      {
+        path: "Masters/FrmLeaveMst",
+        element: <FrmLeaveMaster />
+      },
+      {
+        path: "Masters/FrmLeaveApprovalList",
+        element: <FrmLeaveApprovalList />
+      },
+      {
+        path: "Masters/FrmLeaveApplication",
+        element: <FrmLeaveApplication />
+      },
       
+
+
+
       //TRANSACTION
       {
         path: "Transactions/FrmMonthClose",
-        element: <FrmMonthClose/>
+        element: <FrmMonthClose />
       },
       {
         path: "Transactions/FrmSalaryCalculation",
-        element: <FrmSalaryCalculation/>
+        element: <FrmSalaryCalculation />
       },
+      {
+        path: "Transactions/FrmAttendanceEntry",
+        element: <FrmAttendanceEntry />
+      },
+      {
+        path:"Transactions/FrmGenericSearch",
+        element:<FrmGenericSearch />
+      },
+
 
       //REPORTS
       {
         path: "ReportsForm/FrmSalaryConsolidationBanks",
-        element: <FrmSalaryConsolidationBanks/>
+        element: <FrmSalaryConsolidationBanks />
       },
       {
         path: "ReportsForm/FrmEmpSalPayheadsReport",
-        element: <FrmEmpSalPayheadsReport/>
+        element: <FrmEmpSalPayheadsReport />
       },
       {
         path: "ReportsForm/FrmOTherEarnEntryRpt",
-        element: <FrmOTherEarnEntryRpt/>
+        element: <FrmOTherEarnEntryRpt />
       },
       {
         path: "ReportsForm/FrmYearlyPayeadRpt",
-        element: <FrmYearlyPayeadRpt />,
+        element: <FrmYearlyPayeadRpt />
       },
       {
         path: "ReportsForm/FrmRecoveryDeduRpt",
-        element: <FrmRecoveryDeductionReport />,
+        element: <FrmRecoveryDeductionReport />
       },
       {
         path: "ReportsForm/FrmEmpLstRpt",
-        element: <FrmEmployeeListReport/>,
+        element: <FrmEmployeeListReport />
       },
       {
         path: "ReportsForm/RptIncPromotion",
-        element: <RptIncPromotion/>,
+        element: <RptIncPromotion />
       },
       {
         path: "ReportsForm/RptLeaveStatus",
-        element: <RptLeaveStatus/>,
+        element: <RptLeaveStatus />
       },
       {
         path: "ReportsForm/FrmDepSalBill",
@@ -329,44 +356,41 @@ export const router = createBrowserRouter([
       },
       {
         path: "ReportsForm/FrmPaySlip",
-        element: <FrmPaySlip />,
+        element: <FrmPaySlip />
       },
       {
         path: "ReportsForm/FrmPayHeadList",
-        element: <FrmPayHeadList />,
+        element: <FrmPayHeadList />
       },
       {
         path: "ReportsForm/FrmPayrollReport",
-        element: <FrmPayrollReport />,
+        element: <FrmPayrollReport />
       },
       {
-          path: "ReportsForm/FrmEsevaReport",
-          element: <FrmEsevaReport />,
-        },
-        {
-          path: "ReportsForm/FrmLoansAndAdvancesRpt",
-          element: <FrmLoansAndAdvancesRpt />,
-        },
-        {
-          path: "ReportsForm/FrmLoansAndAdvancesReceived",
-          element: <FrmLoansAndAdvancesReceived />,
-        },
-        {
-          path: "ReportsForm/FrmDeductionPayheadsDtls",
-          element: <FrmDeductionPayheadsDtls />,
-        },
-        {
-          path: "ReportsForm/FrmNetPayRpt",
-          element: <FrmNetPayRpt />,
-        },
-        {
-          path: "ReportsForm/FrmRetiredEmpRpt",
-          element: <FrmRetiredEmpRpt />,
-         },
-        {
-          path: "Transactions/FrmAttendanceEntry",
-          element: <FrmAttendanceEntry />
-        },
+        path: "ReportsForm/FrmEsevaReport",
+        element: <FrmEsevaReport />
+      },
+      {
+        path: "ReportsForm/FrmLoansAndAdvancesRpt",
+        element: <FrmLoansAndAdvancesRpt />
+      },
+      {
+        path: "ReportsForm/FrmLoansAndAdvancesReceived",
+        element: <FrmLoansAndAdvancesReceived />
+      },
+      {
+        path: "ReportsForm/FrmDeductionPayheadsDtls",
+        element: <FrmDeductionPayheadsDtls />
+      },
+      {
+        path: "ReportsForm/FrmNetPayRpt",
+        element: <FrmNetPayRpt />
+      },
+      {
+        path: "ReportsForm/FrmRetiredEmpRpt",
+        element: <FrmRetiredEmpRpt />
+      },
+
 
     ]
   }
