@@ -545,12 +545,40 @@ const FrmAttendanceEntry = () => {
     }
   }, [ulbId]);
 
+  // useEffect(() => {
+  //   if (ulbId) {
+  //     fetchZones();
+  //     fetchCategories();
+  //     fetchDepartment();
+  //   }
+  // }, [ulbId]);
+
   useEffect(() => {
-    if (ulbId) {
-      fetchZones();
-      fetchCategories();
-      fetchDepartment();
-    }
+    const loadInitialData = async () => {
+      if (!ulbId) return;
+
+      Swal.fire({
+        title: "Loading...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        await Promise.allSettled([
+          fetchZones(),
+          fetchCategories(),
+          fetchDepartment(),
+        ]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        Swal.close();
+      }
+    };
+
+    loadInitialData();
   }, [ulbId]);
 
   return (

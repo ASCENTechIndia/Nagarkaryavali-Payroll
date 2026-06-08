@@ -95,6 +95,7 @@ app.use("/api/FrmEmpPayHeadListRpt", require("./modules/Reports/FrmEmpPayHeadLis
 app.use("/api/FrmPayrollDashbordMst", require("./modules/Reports/FrmPayrollDashbordMst/FrmPayrollDashbordMst.routes"))
 app.use("/api/FrmPayHeadList", require("./modules/Reports/FrmPayHeadList/FrmPayHeadList.routes"))
 app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"))
+app.use("/api/FrmEmpLstRpt", require("./modules/Reports/FrmEmpLstRpt/FrmEmpLstRpt.routes"))
 
 
 app.use(errorMiddleware);
