@@ -37,8 +37,7 @@ const initialValues = {
 const FrmIncreamentPramotionMst = () => {
     const { user } = useAuth();
     const token = user?.token;
-    const ulbId = 770;
-    // const ulbId = user?.ulbId;
+    const ulbId = user?.ulbId;
     const userId = user?.userId;
 
     const BASE_URL = import.meta.env.VITE_BASE_URL;
