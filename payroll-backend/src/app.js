@@ -66,7 +66,8 @@ app.use("/api/FrmPayCommissionListMst", require("./modules/Master/FrmPayCommissi
 app.use("/api/FrmPayScaleListMst", require("./modules/Master/FrmPayScaleListMst/FrmPayScaleListMst.routes"));
 app.use("/api/FrmDeptListMst", require("./modules/Master/FrmDeptListMst/FrmDeptListMst.route"));
 
-
+//Search
+app.use("/api/FrmGenericSearch", require("./modules/Search/FrmGenericSearch/FrmGenericSearch.route"))
 
 // Configuration
 app.use("/api/Branchconfi", require("./modules/ConfigurationP/FrmBranchConfiguration/FrmBranchConfig.route"))

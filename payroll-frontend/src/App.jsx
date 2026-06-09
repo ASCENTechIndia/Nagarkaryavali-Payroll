@@ -316,6 +316,9 @@ export const router = createBrowserRouter([
         path: "Transactions/FrmAttendanceEntry",
         element: <FrmAttendanceEntry />
       },
+
+
+      //Search
       {
         path:"Transactions/FrmGenericSearch",
         element:<FrmGenericSearch />
