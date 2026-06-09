@@ -71,6 +71,7 @@ import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 import FrmGenericSearch from './pages/Search/FrmGenericSearch';
 import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
+import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
 
 const Home = () => {
   return (
@@ -294,6 +295,10 @@ export const router = createBrowserRouter([
       {
         path:"Masters/FrmBankLoanMstList",
         element: <FrmBankLoanMstList/>
+      },
+      {
+        path:"Transactions/FrmIncreamentPramotionMst",
+        element: <FrmIncreamentPramotionMst/>
       },
 
 

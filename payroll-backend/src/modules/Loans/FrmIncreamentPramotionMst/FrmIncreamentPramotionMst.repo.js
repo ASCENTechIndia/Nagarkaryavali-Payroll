@@ -71,7 +71,6 @@ async function getEmployeeListRepo({ deptid, subdeptid, billno, ulbid }) {
 
         binds.ulbid = ulbid;
     }
-    console.log("repo", sql, binds)
     const result = await executeQuery(sql, binds);
 
     if (!result.success) {
