@@ -3,10 +3,10 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from '@/layout/main-layout';
 import { Label } from '@/components/ui/label';
 import Login from '@/pages/Login';
-import FrmCastListMst from '@/Masters/FrmCastListMst';
-import FrmCastMaster from '@/Masters/FrmCastMaster';
-import FrmDeptListMst from '@/Masters/FrmDeptListMst';
-import FrmDeptMst from '@/Masters/FrmDeptMst';
+import FrmCastListMst from '@/pages/Masters/FrmCastListMst';
+import FrmCastMaster from '@/pages/Masters/FrmCastMaster';
+import FrmDeptListMst from '@/pages/Masters/FrmDeptListMst';
+import FrmDeptMst from '@/pages/Masters/FrmDeptMst';
 import FrmInsuranceMstList from "@/pages/Masters/FrmInsuranceMstList"
 import FrmInsuranceMst from '@/pages/Masters/FrmInsuranceMst';
 import FrmDeptList from '@/pages/Masters/FrmDeptSelect';

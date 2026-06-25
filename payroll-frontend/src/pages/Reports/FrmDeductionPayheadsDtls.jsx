@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -10,320 +8,455 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Formik, Form } from "formik";
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
+import { Form, Formik } from "formik";
+import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import ShadCNTable from "@/components/ui/table";
+import { motion } from "framer-motion";
 
 const FrmDeductionPayheadsDtls = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const token = user?.token;
   const ulbId = user?.ulbId;
-
-  const [departmentOptions, setDepartmentOptions] = useState([]);
-  const [deductionOptions, setDeductionOptions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [payheads, setPayheads] = useState([]);
+  const [years, setYears] = useState([]);
   const [loading, setLoading] = useState(false);
-  const today = new Date();
+  const [reportData, setReportData] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const [selectedMonth, setSelectedMonth] = useState(
-    String(today.getMonth() + 1)
-  );
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const [selectedYear, setSelectedYear] = useState(
-    String(today.getFullYear())
-  );
+  // Month options
+  const monthOptions = [
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
 
+  // Initial form values
   const initialFormValues = {
-    department: "",
-    deductionHead: "",
+    deptId: "",
+    payheadId: "",
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+  };
+
+  const validateForm = (values) => {
+    const errors = {};
+    if (!values.deptId || values.deptId === "0" || values.deptId === "-1") {
+      errors.deptId = "Department is required";
+    }
+    if (!values.payheadId || values.payheadId === "0" || values.payheadId === "-1") {
+      errors.payheadId = "Deduction Payhead is required";
+    }
+    return errors;
   };
 
   useEffect(() => {
-    loadDropdowns();
-    fetchDepartment();
-    fetchDeductionData(empId,ulbId);
+    loadYears();
+    loadDepartments();
+    loadPayheads();
   }, []);
 
-  //remove this and add different func for dept and deduction
-  const loadDropdowns = async () => {
-    try {
-      // Replace with API calls
-
-      setDepartmentOptions([
-        { value: "HR", label: "Human Resources" },
-        { value: "IT", label: "Information Technology" },
-        { value: "ACC", label: "Accounts" },
-      ]);
-
-      setDeductionOptions([
-        { value: "PF", label: "Provident Fund" },
-        { value: "PT", label: "Professional Tax" },
-        { value: "LIC", label: "LIC" },
-      ]);
-    } catch (error) {
-      console.error(error);
+  const loadYears = () => {
+    const currentYear = new Date().getFullYear();
+    const yearOptions = [];
+    for (let i = 0; i < 10; i++) {
+      yearOptions.push(currentYear - i);
     }
+    setYears(yearOptions);
   };
 
-  //dept func check 
-  const fetchDepartment = async () => {
+  const loadDepartments = async () => {
     try {
-      if (!ulbId) return;
-      
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
-        { ulbid: Number(ulbId) },
+      const response = await axios.post(
+        `${BASE_URL}/api/FrmDeductionPayheadsDtls/departments`,
+        { ulbId: ulbId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      const apiData = res.data?.data?.data || res.data?.data || [];
-      
-      if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.DEPTNAME,
-          value: String(item.DEPTID),
-        }));
-        setDepartmentOptions([{ value: "-1", label: "-- ALL --" }, ...formatted]);
-      }
-    } catch (err) {
-      console.error("Error fetching departments:", err);
-    }
-  };
-
-  //deduction func check
-  const fetchDeductionData = async (empId, ulbId) => {
-    try {
-      const response = await axios.post(`${BASE_URL}/api/FrmEmployeeMstNewTest/salary-deduction-list`,
-        { empid: empId, ulbid: ulbId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data?.data?.data) {
-        const formattedDeductions = response.data.data.data.map(item => ({
-          id: item.NUM_PAYHEADS_ID,
-          name: item.VAR_PAYHEADS_ENAME,
-          amount: item.NUM_EMPALLOWDED_AMOUNT?.toString() || "0"
-        }));
-        setDeductionList(formattedDeductions);
+      if (response.data.data.success) {
+        setDepartments(response.data.data.data);
       }
     } catch (error) {
-      console.error("Error fetching deduction data:", error);
+      console.error("Error loading departments:", error);
     }
   };
 
-  //check if print is required or search
-  //check if pdf is need or table format is enough
-  const handlePrint = async (values) => {
-    {/* if (!selectedMonth || !selectedYear) {
-    Swal.fire({
-      icon: "warning",
-      text: "Please select month and year",
-    });
-    return;
-    } */}
+  const loadPayheads = async () => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/FrmDeductionPayheadsDtls/payheads-list`,
+        { ulbId: ulbId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.data.success) {
+        setPayheads(response.data.data.data);
+      }
+    } catch (error) {
+      console.error("Error loading payheads:", error);
+    }
+  };
 
-  try {
-    setLoading(true);
+  const handleSearch = async (values, { setSubmitting, setErrors }) => {
+    const errors = validateForm(values);
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      setSubmitting(false);
+      return;
+    }
 
-    const payload = {
-      reportMonth: selectedMonth,
-      reportYear: selectedYear,
-      department: values.department,
-      deductionHead: values.deductionHead,
-      ulbid: Number(ulbId),
-    };
+    try {
+      setLoading(true);
+      const lastDate = new Date(values.year, values.month, 0);
+      const salDate = lastDate.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).toUpperCase();
 
-    const res = await axios.post(
-      `${BASE_URL}/api/`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
+      const response = await axios.post(
+        `${BASE_URL}/api/FrmDeductionheadsDtls/search-deductions`,
+        {
+          ulbId: ulbId || user?.ulbId,
+          deptId: values.deptId,
+          payheadId: values.payheadId,
+          salDate: salDate,
         },
-        responseType: "blob", // if API returns PDF
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        setReportData(response.data);
+        setHasSearched(true);
+        {/*Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: `Found ${response.data.count} records`,
+          timer: 2000,
+          showConfirmButton: false,
+        });*/}
       }
-    );
-
-    const file = new Blob([res.data], {
-      type: "application/pdf",
-    });
-
-    const fileURL = URL.createObjectURL(file);
-    window.open(fileURL, "_blank");
-  } catch (error) { 
-    console.error("Print Error", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleCancel = () => {
-    navigate("/");
+    } catch (error) {
+      console.error("Error processing report:", error);
+      Swal.fire({
+        icon: "error",
+        title: "No Records Found",
+        text: error.response?.data?.message,
+      });
+      setReportData(null);
+      setHasSearched(true);
+    } finally {
+      setLoading(false);
+      setSubmitting(false);
+    }
   };
 
-  const months = [
-  { value: "1", label: "January" },
-  { value: "2", label: "February" },
-  { value: "3", label: "March" },
-  { value: "4", label: "April" },
-  { value: "5", label: "May" },
-  { value: "6", label: "June" },
-  { value: "7", label: "July" },
-  { value: "8", label: "August" },
-  { value: "9", label: "September" },
-  { value: "10", label: "October" },
-  { value: "11", label: "November" },
-  { value: "12", label: "December" },
-];
+  const handleReset = (resetForm) => {
+    resetForm();
+    setReportData(null);
+    setHasSearched(false);
+  };
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => {
-    const year = currentYear - i;
-    return { value: String(year), label: String(year) };
-  });
+  const generatePDF = async (values) => {
+    if (!reportData || !reportData.data || reportData.data.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "No Data",
+        text: "Please search for records first",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${BASE_URL}/api/FrmDeductionPayheadsDtls/generate-pdf`,
+        {
+          ulbId: ulbId || user?.ulbId,
+          deptId: values.deptId,
+          payheadId: values.payheadId,
+          month: values.month,
+          year: values.year,
+          reportData: reportData.data,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        window.open(response.data.pdfUrl, "_blank");
+        Swal.fire({
+          icon: "success",
+          title: "PDF Generated",
+          text: "PDF generated successfully",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to generate PDF",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getMonthName = (month) => {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ];
+    return months[month - 1];
+  };
+
+  const calculateGrandTotal = () => {
+    if (!reportData || !reportData.data) return 0;
+    return reportData.data.reduce(
+      (sum, record) => sum + parseFloat(record.AMOUNT || 0),
+      0
+    );
+  };
+
+  // Table headers
+  const getHeaders = () => {
+    return [
+      "Sr No",
+      "EMP ID",
+      "Employee Name",
+      "Deduction No",
+      "Amount (₹)",
+      "Salary Date",
+      "Department",
+    ];
+  };
+
+  // Key mapping for table
+  const keyMapping = {
+    "Sr No": "srNo",
+    "EMP ID": "empid",
+    "Employee Name": "engname",
+    "Deduction No": "deductionno",
+    "Amount (₹)": "amount",
+    "Salary Date": "saldate",
+    "Department": "deptnamee",
+  };
+
+  // Prepare table rows
+  const tableRows = reportData?.data?.map((record, index) => ({
+    srNo: index + 1,
+    empid: record.EMPID,
+    engname: record.ENGNAME,
+    deductionno: record.DEDUCTIONNO || "-",
+    amount: parseFloat(record.AMOUNT || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    saldate: record.SALDATE,
+    deptnamee: record.DEPTNAMEE,
+  }));
 
   return (
-    <Formik
-      initialValues={initialFormValues}
-      enableReinitialize
-      //onSubmit={handlePrint}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      {({ values, setFieldValue }) => (
-        <Form>
-          <Card className="shadow-sm border">
-            <CardHeader className="border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <CardTitle className="text-2xl font-semibold">
-                Deduction Report
-              </CardTitle>
-            </CardHeader>
+      <Formik
+        initialValues={initialFormValues}
+        enableReinitialize={true}
+        onSubmit={handleSearch}
+      >
+        {({ values, setFieldValue, isSubmitting, resetForm }) => {
+          return (
+            <Form>
+              <Card className="shadow-sm border">
+                <CardHeader className="border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <CardTitle className="text-lg font-semibold">
+                    Deduction Payheads Details Report
+                  </CardTitle>
+                  {reportData && reportData.data && reportData.data.length > 0 && (
+                    <Button 
+                      type="button" 
+                      onClick={() => generatePDF(values)}
+                      disabled={loading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Download PDF
+                    </Button>
+                  )}
+                </CardHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold">Date</Label>
-
-                <div className="flex gap-4">
-
-                <div className="flex flex-col gap-2 w-1/2">
-                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Month --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {months.map((m) => (
-                        <SelectItem 
-                          key={m.value} 
-                          value={m.value}>
-                          {m.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex flex-col gap-2 w-1/2">
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Year --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {years.map((y) => (
-                        <SelectItem 
-                          key={y.value} 
-                          value={y.value}>
-                          {y.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold">
-                  Department
-                </Label>
-
-                <Select
-                  value={values.department}
-                  onValueChange={(value) =>
-                    setFieldValue("department", value)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="-- Select Option --" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {departmentOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label text="Month" />
+                      </div>
+                      <Select
+                        value={values.month.toString()}
+                        onValueChange={(v) => setFieldValue("month", parseInt(v))}
                       >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Month --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {monthOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold whitespace-nowrap">
-                  Deduction Head
-                </Label>
-
-                <Select
-                  value={values.deductionHead}
-                  onValueChange={(value) =>
-                    setFieldValue("deductionHead", value)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="-- Select Option --" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {deductionOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
+                    {/* Year */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label text="Year" />
+                      </div>
+                      <Select
+                        value={values.year.toString()}
+                        onValueChange={(v) => setFieldValue("year", parseInt(v))}
                       >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Year --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((year) => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-            <CardContent className="p-6">
-              <div className="flex justify-center gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label text="Department" />
+                      </div>
+                      <Select
+                        value={String(values.deptId || "")}
+                        onValueChange={(v) => 
+                          setFieldValue("deptId", v)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Department --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departments.map((dept) => (
+                            <SelectItem key={dept.DEPTID} value={String(dept.DEPTID)}>
+                              {dept.DEPTNAME}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <Button
-                  type="button"
-                  onClick={() => handlePrint(values)}
-                  className="bg-blue-600 text-white hover:bg-gray-300 hover:text-blue-600"
-                >
-                  Print
-                </Button>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label text="Deduction Payhead" />
+                      </div>
+                      <Select
+                        value={values.payheadId || ""}
+                        onValueChange={(v) => setFieldValue("payheadId", v)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Payhead --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {payheads.map((payhead) => (
+                            <SelectItem key={payhead.NUM_PAYHEADS_ID} value={String(payhead.NUM_PAYHEADS_ID)}>
+                              {payhead.VAR_PAYHEADS_ENAME}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                <Button
-                  type="button"
-                  onClick={handleCancel}
-                  className="bg-gray-200 text-black hover:bg-gray-200"
-                >
-                  Cancel
-                </Button>
+                  <div className="flex justify-center gap-4">
+                    <Button type="submit" disabled={isSubmitting || loading}>
+                      {loading ? "Processing..." : "Process"}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => handleReset(resetForm)}
+                    >
+                      Reset
+                    </Button>
+                  </div>
 
-              </div>
-            </CardContent>
-          </Card>
-        </Form>
-      )}
-    </Formik>
+                  <div>
+                    {loading && (
+                      <div className="py-10 text-center text-sm text-muted-foreground">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        <div className="mt-2">Loading...</div>
+                      </div>
+                    )}
+
+                    {!loading && reportData && reportData.data && reportData.data.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                          <div className="text-sm">
+                            <span className="font-semibold">Total Records:</span> {reportData.data.length}
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-semibold">Month:</span> {getMonthName(values.month)} - {values.year}
+                          </div>
+                          <div className="text-sm font-semibold">
+                            <span className="font-semibold">Grand Total:</span> ₹ {calculateGrandTotal().toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <ShadCNTable
+                            headers={getHeaders()}
+                            data={tableRows}
+                            keyMapping={keyMapping}
+                            pagination={true}
+                            rowsPerPage={10}
+                            className="min-w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {hasSearched && !loading && (!reportData || !reportData.data || reportData.data.length === 0) && (
+                      <div className="py-10 text-center text-sm text-muted-foreground">
+                        No records found.
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Form>
+          );
+        }}
+      </Formik>
+    </motion.div>
   );
 };
 
