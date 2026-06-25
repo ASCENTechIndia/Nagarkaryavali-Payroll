@@ -1,6 +1,8 @@
-import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -17,7 +19,14 @@ import { Button } from "@/components/ui/button";
 import ShadCNTable from "@/components/ui/table";
 
 const FrmReligionConfig = () => {
+  const { token, user } = useAuth();
+
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const userId = user?.userId;
+
+  const [corporationList, setCorporationList] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [mode, setMode] = useState(1);
 
   const initialValues = {
     corporation: "",
@@ -30,45 +39,90 @@ const FrmReligionConfig = () => {
     "Religion Name": "religionName",
   };
 
-  const handleSearch = async () => {
+  const getCorporationList = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/Branchconfi/corporationlist`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      setCorporationList(response?.data?.data?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+    getCorporationList();
+  }, [token]);
+
+  const handleSearch = async (corporationId) => {
+    if (!corporationId) return;
+
     Swal.fire({
       title: "Please Wait...",
       text: "Loading Religions",
       allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
 
     try {
-      // API CALL HERE
+      const [configuredRes, religionRes] = await Promise.all([
+        axios.post(
+          `${baseUrl}/api/ReligConfig/configreligionlist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        ),
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setTableData([
-        {
-          checked: false,
-          religionName: "Christian",
-        },
-        {
-          checked: false,
-          religionName: "Sikh",
-        },
-        {
-          checked: false,
-          religionName: "Other",
-        },
-        {
-          checked: false,
-          religionName: "Hindu",
-        },
-        {
-          checked: false,
-          religionName: "Muslim",
-        },
+        axios.post(
+          `${baseUrl}/api/ReligConfig/religionlist`,
+          {
+            ulbId: Number(corporationId),
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        ),
       ]);
+
+      const configuredReligions = configuredRes?.data?.data?.data || [];
+
+      const allReligions = religionRes?.data?.data?.data || [];
+
+      const rows = allReligions.map((religion) => {
+        const isConfigured = configuredReligions.some(
+          (x) =>
+            Number(x.CONFIGRELATIONID) ===
+            Number(religion.NUM_RELEGION_RELEGIONID),
+        );
+
+        return {
+          religionId: religion.NUM_RELEGION_RELEGIONID,
+
+          religionName: religion.VAR_RELEGION_NAME,
+
+          checked: isConfigured,
+
+          originallyConfigured: isConfigured,
+        };
+      });
+
+      setMode(configuredReligions.length > 0 ? 2 : 1);
+
+      setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text: "Failed to load Religions",
+        text: error?.response?.data?.message || "Failed to load Religions",
       });
     } finally {
       Swal.close();
@@ -77,38 +131,116 @@ const FrmReligionConfig = () => {
 
   const handleSelectAll = (checked) => {
     setTableData((prev) =>
-      prev.map((item) => ({
-        ...item,
-        checked,
-      }))
+      prev.map((row) => ({
+        ...row,
+        checked: checked === true,
+      })),
     );
   };
 
   const handleRowCheck = (row, checked) => {
     setTableData((prev) =>
       prev.map((item) =>
-        item.religionName === row.religionName
+        item.religionId === row.religionId
           ? {
               ...item,
-              checked,
+              checked: checked === true,
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
   const handleSubmit = async (values) => {
-    const selectedReligions = tableData.filter((x) => x.checked);
+    try {
+      if (!values.corporation) {
+        Swal.fire({
+          icon: "warning",
+          text: "Please Select Corporation",
+        });
+        return;
+      }
 
-    console.log({
-      ...values,
-      selectedReligions,
-    });
+      let religionStr = "";
+      let hasSelection = false;
 
-    Swal.fire({
-      icon: "success",
-      text: "Religion Configuration Saved Successfully",
-    });
+      tableData.forEach((item) => {
+        const oldValue = item.originallyConfigured;
+
+        const newValue = item.checked;
+
+        if (mode === 1) {
+          if (newValue) {
+            religionStr += `${item.religionId}#N#Y$`;
+
+            hasSelection = true;
+          } else {
+            religionStr += `${item.religionId}#N#N$`;
+          }
+        } else {
+          if (newValue && oldValue) {
+            religionStr += `${item.religionId}#Y#Y$`;
+
+            hasSelection = true;
+          } else if (newValue && !oldValue) {
+            religionStr += `${item.religionId}#N#Y$`;
+
+            hasSelection = true;
+          } else if (!newValue && oldValue) {
+            religionStr += `${item.religionId}#Y#N$`;
+
+            hasSelection = true;
+          } else {
+            religionStr += `${item.religionId}#N#N$`;
+          }
+        }
+      });
+
+      if (!hasSelection) {
+        Swal.fire({
+          icon: "warning",
+          text: "Select Atleast One CheckBox!",
+        });
+        return;
+      }
+
+      religionStr = religionStr.slice(0, -1);
+
+      Swal.fire({
+        title: "Saving...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const response = await axios.post(
+        `${baseUrl}/api/ReligConfig/savereliconfig`,
+        {
+          userId,
+          ulbId: Number(values.corporation),
+          religionStr,
+          mode,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      Swal.close();
+
+      await Swal.fire({
+        icon: "success",
+        text:
+          response?.data?.message ||
+          "Religion Configuration Updated Successfully!",
+      });
+
+      await handleSearch(values.corporation);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        text: error?.response?.data?.message || "Save Failed",
+      });
+    }
   };
 
   return (
@@ -135,22 +267,25 @@ const FrmReligionConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={(value) =>
-                      setFieldValue("corporation", value)
-                    }
+                    onValueChange={async (value) => {
+                      setFieldValue("corporation", value);
+
+                      await handleSearch(value);
+                    }}
                   >
                     <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="-- Select Option --" />
                     </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="870">
-                        KULGAON BADLAPUR NAGARPARISHAD BADLAPUR
-                      </SelectItem>
-
-                      <SelectItem value="871">
-                        SANGLI MIRAJ KUPWAD CORPORATION
-                      </SelectItem>
+                    <SelectContent className="max-h-72 overflow-y-auto">
+                      {corporationList.map((item) => (
+                        <SelectItem
+                          key={item.ID_VALUE}
+                          value={String(item.ID_VALUE)}
+                        >
+                          {item.DISPLAY_TEXT}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -171,25 +306,10 @@ const FrmReligionConfig = () => {
               )}
 
               {/* Buttons */}
-
               <div className="flex justify-center gap-3">
-                <Button
-                  type="button"
-                  onClick={handleSearch}
-                >
-                  Search
-                </Button>
+                {tableData.length > 0 && <Button type="submit">Save</Button>}
 
-                {tableData.length > 0 && (
-                  <Button type="submit">
-                    Save
-                  </Button>
-                )}
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                >
+                <Button type="button" variant="secondary">
                   Close
                 </Button>
               </div>

@@ -26,15 +26,6 @@ const FrmPayCommissionConfig = () => {
   const [tableData, setTableData] = useState([]);
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token],
-  );
-
   const initialValues = {
     corporation: "",
   };
@@ -75,7 +66,7 @@ const FrmPayCommissionConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setCorporationList(response?.data?.data?.data || []);
@@ -113,14 +104,14 @@ const FrmPayCommissionConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: { Authorization: `Bearer ${token}` } },
         ),
         axios.post(
           `${baseUrl}/api/PayCommConf/paycommlist`,
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig,
+          { headers: { Authorization: `Bearer ${token}` } },
         ),
       ]);
 
@@ -174,18 +165,18 @@ const FrmPayCommissionConfig = () => {
     );
   };
 
- const handleRowCheck = (row, checked) => {
-  setTableData((prev) =>
-    prev.map((item) =>
-      item.payCommId === row.payCommId
-        ? {
-            ...item,
-            checked: checked === true,
-          }
-        : item
-    )
-  );
-};
+  const handleRowCheck = (row, checked) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.payCommId === row.payCommId
+          ? {
+              ...item,
+              checked: checked === true,
+            }
+          : item,
+      ),
+    );
+  };
 
   const handleSubmit = async (values) => {
     try {
@@ -252,7 +243,7 @@ const FrmPayCommissionConfig = () => {
           payCommStr,
           mode,
         },
-        axiosConfig,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       Swal.close();

@@ -1,16 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { Formik, Form } from "formik";
 
 import { useAuth } from "@/context/AuthContext";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Label } from "@/components/ui/label";
 
@@ -36,15 +31,6 @@ const FrmLeaveConfig = () => {
   const [corporationList, setCorporationList] = useState([]);
   const [mode, setMode] = useState(1);
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token]
-  );
-
   const initialValues = {
     corporation: "",
   };
@@ -60,7 +46,7 @@ const FrmLeaveConfig = () => {
     try {
       const response = await axios.get(
         `${baseUrl}/api/Branchconfi/corporationlist`,
-        axiosConfig
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setCorporationList(response?.data?.data?.data || []);
@@ -91,7 +77,7 @@ const FrmLeaveConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig
+          { headers: { Authorization: `Bearer ${token}` } },
         ),
 
         axios.post(
@@ -99,21 +85,17 @@ const FrmLeaveConfig = () => {
           {
             ulbId: Number(corporationId),
           },
-          axiosConfig
+          { headers: { Authorization: `Bearer ${token}` } },
         ),
       ]);
 
-      const configuredLeaves =
-        configuredRes?.data?.data?.data || [];
+      const configuredLeaves = configuredRes?.data?.data?.data || [];
 
-      const allLeaves =
-        leaveRes?.data?.data?.data || [];
+      const allLeaves = leaveRes?.data?.data?.data || [];
 
       const rows = allLeaves.map((leave) => {
         const isConfigured = configuredLeaves.some(
-          (x) =>
-            Number(x.LEAVECONFIG) ===
-            Number(leave.NUM_LEAVE_LEAVEID)
+          (x) => Number(x.LEAVECONFIG) === Number(leave.NUM_LEAVE_LEAVEID),
         );
 
         return {
@@ -127,17 +109,13 @@ const FrmLeaveConfig = () => {
         };
       });
 
-      setMode(
-        configuredLeaves.length > 0 ? 2 : 1
-      );
+      setMode(configuredLeaves.length > 0 ? 2 : 1);
 
       setTableData(rows);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text:
-          error?.response?.data?.message ||
-          "Failed to load leave data",
+        text: error?.response?.data?.message || "Failed to load leave data",
       });
     } finally {
       Swal.close();
@@ -149,7 +127,7 @@ const FrmLeaveConfig = () => {
       prev.map((item) => ({
         ...item,
         checked: checked === true,
-      }))
+      })),
     );
   };
 
@@ -161,8 +139,8 @@ const FrmLeaveConfig = () => {
               ...item,
               checked: checked === true,
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
@@ -180,49 +158,29 @@ const FrmLeaveConfig = () => {
       let hasSelection = false;
 
       tableData.forEach((item) => {
-        const oldValue =
-          item.originallyConfigured;
+        const oldValue = item.originallyConfigured;
 
-        const newValue =
-          item.checked;
+        const newValue = item.checked;
 
         if (mode === 1) {
           if (newValue) {
-            leaveStr +=
-              `${item.leaveId}#N#Y$`;
+            leaveStr += `${item.leaveId}#N#Y$`;
             hasSelection = true;
           } else {
-            leaveStr +=
-              `${item.leaveId}#N#N$`;
+            leaveStr += `${item.leaveId}#N#N$`;
           }
         } else {
           if (newValue && oldValue) {
-            leaveStr +=
-              `${item.leaveId}#Y#Y$`;
+            leaveStr += `${item.leaveId}#Y#Y$`;
             hasSelection = true;
-          }
-
-          else if (
-            newValue &&
-            !oldValue
-          ) {
-            leaveStr +=
-              `${item.leaveId}#N#Y$`;
+          } else if (newValue && !oldValue) {
+            leaveStr += `${item.leaveId}#N#Y$`;
             hasSelection = true;
-          }
-
-          else if (
-            !newValue &&
-            oldValue
-          ) {
-            leaveStr +=
-              `${item.leaveId}#Y#N$`;
+          } else if (!newValue && oldValue) {
+            leaveStr += `${item.leaveId}#Y#N$`;
             hasSelection = true;
-          }
-
-          else {
-            leaveStr +=
-              `${item.leaveId}#N#N$`;
+          } else {
+            leaveStr += `${item.leaveId}#N#N$`;
           }
         }
       });
@@ -230,8 +188,7 @@ const FrmLeaveConfig = () => {
       if (!hasSelection) {
         Swal.fire({
           icon: "warning",
-          text:
-            "Select Atleast One CheckBox!",
+          text: "Select Atleast One CheckBox!",
         });
         return;
       }
@@ -241,59 +198,44 @@ const FrmLeaveConfig = () => {
       Swal.fire({
         title: "Saving...",
         allowOutsideClick: false,
-        didOpen: () =>
-          Swal.showLoading(),
+        didOpen: () => Swal.showLoading(),
       });
 
-      const response =
-        await axios.post(
-          `${baseUrl}/api/LeaveConfig/saveleaveconfiguration`,
-          {
-            userId,
-            ulbId: Number(
-              values.corporation
-            ),
-            leaveStr,
-            mode,
-          },
-          axiosConfig
-        );
+      const response = await axios.post(
+        `${baseUrl}/api/LeaveConfig/saveleaveconfiguration`,
+        {
+          userId,
+          ulbId: Number(values.corporation),
+          leaveStr,
+          mode,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
       Swal.close();
 
       await Swal.fire({
         icon: "success",
         text:
-          response?.data?.message ||
-          "Leave Configuration Saved Successfully",
+          response?.data?.message || "Leave Configuration Saved Successfully",
       });
 
-      await loadLeaves(
-        values.corporation
-      );
+      await loadLeaves(values.corporation);
     } catch (error) {
       Swal.fire({
         icon: "error",
-        text:
-          error?.response?.data
-            ?.message ||
-          "Save Failed",
+        text: error?.response?.data?.message || "Save Failed",
       });
     }
   };
 
   return (
-    <Formik
-      initialValues={initialValues}
-      onSubmit={handleSubmit}
-    >
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({ values, setFieldValue }) => (
         <Form>
           <Card>
             <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-xl font-bold">
-                Leave Config
-              </CardTitle>
+              <CardTitle className="text-xl font-bold">Leave Config</CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -307,17 +249,10 @@ const FrmLeaveConfig = () => {
 
                   <Select
                     value={values.corporation}
-                    onValueChange={async (
-                      value
-                    ) => {
-                      setFieldValue(
-                        "corporation",
-                        value
-                      );
+                    onValueChange={async (value) => {
+                      setFieldValue("corporation", value);
 
-                      await loadLeaves(
-                        value
-                      );
+                      await loadLeaves(value);
                     }}
                   >
                     <SelectTrigger className="w-full h-9">
@@ -325,22 +260,14 @@ const FrmLeaveConfig = () => {
                     </SelectTrigger>
 
                     <SelectContent className="max-h-72 overflow-y-auto">
-                      {corporationList.map(
-                        (item) => (
-                          <SelectItem
-                            key={
-                              item.ID_VALUE
-                            }
-                            value={String(
-                              item.ID_VALUE
-                            )}
-                          >
-                            {
-                              item.DISPLAY_TEXT
-                            }
-                          </SelectItem>
-                        )
-                      )}
+                      {corporationList.map((item) => (
+                        <SelectItem
+                          key={item.ID_VALUE}
+                          value={String(item.ID_VALUE)}
+                        >
+                          {item.DISPLAY_TEXT}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -353,24 +280,15 @@ const FrmLeaveConfig = () => {
                   keyMapping={keyMapping}
                   pagination
                   rowsPerPage={6}
-                  onSelectAllChange={
-                    handleSelectAll
-                  }
-                  onRowCheckChange={
-                    handleRowCheck
-                  }
+                  onSelectAllChange={handleSelectAll}
+                  onRowCheckChange={handleRowCheck}
                 />
               )}
 
               <div className="flex justify-center gap-3">
-                <Button type="submit">
-                  Save
-                </Button>
+                <Button type="submit">Save</Button>
 
-                <Button
-                  type="button"
-                  variant="secondary"
-                >
+                <Button type="button" variant="secondary">
                   Close
                 </Button>
               </div>

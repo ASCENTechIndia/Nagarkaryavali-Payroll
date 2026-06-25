@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -21,14 +21,7 @@ const FrmLeaveList = () => {
 
   const corpId = user?.ulbId;
 
-  const axiosConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token],
-  );
+
 
   /* -------------------------------------------------------------------------- */
   /*                                   TABLE                                    */
@@ -62,7 +55,9 @@ const FrmLeaveList = () => {
         {
           corpId,
         },
-        axiosConfig,
+        {
+                    headers: {Authorization: `Bearer ${token}`},
+                },
       );
 
       setLeaveList(response?.data?.data?.data || []);

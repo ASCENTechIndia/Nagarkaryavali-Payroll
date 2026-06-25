@@ -170,3 +170,35 @@ export const FrmEmpPayHeadListValidationSchema = z.object({
             message: "Please select a PayHead",
         }),
 });
+
+export const FrmAttendanceEntryValidationSchema = z.object({
+    category: z.string()
+        .min(1, "Please select a category")
+        .refine((val) => val !== undefined && val !== null && val !== "", {
+            message: "Please select a category",
+        }),
+    zone: z.string()
+        .min(1, "Please select a zone")
+        .refine((val) => val !== undefined && val !== null && val !== "", {
+            message: "Please select a zone",
+        }),
+    department: z.string()
+        .min(1, "Please select a department")
+        .refine((val) => val !== undefined && val !== null && val !== "", {
+            message: "Please select a department",
+        }),
+    year: z.string()
+        .min(1, "Please select a year")
+        .refine((val) => val !== "-1", {
+            message: "Please select a year",
+        }),
+    month: z.string()
+        .min(1, "Please select a month")
+        .refine((val) => val !== "-1", {
+            message: "Please select a month",
+        }),
+    employeeCode: z.string().optional(),
+    subDepartment: z.string().optional(),
+    billNo: z.string().optional(),
+});
+
