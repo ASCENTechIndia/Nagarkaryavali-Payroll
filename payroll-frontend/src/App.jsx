@@ -72,6 +72,8 @@ import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 import FrmGenericSearch from './pages/Search/FrmGenericSearch';
 import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
 import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
+import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
+import FrmEmpTransferApproval from './pages/Transaction/FrmEmpTransferApproval';
 
 const Home = () => {
   return (
@@ -289,16 +291,16 @@ export const router = createBrowserRouter([
         path: "Masters/FrmLeaveApplication",
         element: <FrmLeaveApplication />
       },
-      
+
 
       //Loan
       {
-        path:"Masters/FrmBankLoanMstList",
-        element: <FrmBankLoanMstList/>
+        path: "Masters/FrmBankLoanMstList",
+        element: <FrmBankLoanMstList />
       },
       {
-        path:"Transactions/FrmIncreamentPramotionMst",
-        element: <FrmIncreamentPramotionMst/>
+        path: "Transactions/FrmIncreamentPramotionMst",
+        element: <FrmIncreamentPramotionMst />
       },
 
 
@@ -316,12 +318,20 @@ export const router = createBrowserRouter([
         path: "Transactions/FrmAttendanceEntry",
         element: <FrmAttendanceEntry />
       },
+      {
+        path: "Transactions/FrmEmpTransferApprList",
+        element: <FrmEmpTransferApprList />
+      },
+      {
+        path: "Transactions/FrmEmpTransferApproval",
+        element: <FrmEmpTransferApproval />
+      },
 
 
       //Search
       {
-        path:"Transactions/FrmGenericSearch",
-        element:<FrmGenericSearch />
+        path: "Transactions/FrmGenericSearch",
+        element: <FrmGenericSearch />
       },
 
 
