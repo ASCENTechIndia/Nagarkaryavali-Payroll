@@ -68,6 +68,8 @@ import FrmDeductionPayheadsDtls from '@/pages/Reports/FrmDeductionPayheadsDtls';
 import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
 import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
+import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
+import FrmEmpTransferApproval from './pages/Transaction/FrmEmpTransferApproval';
 
 const Home = () => {
   return (
@@ -366,6 +368,14 @@ export const router = createBrowserRouter([
         {
           path: "Transactions/FrmAttendanceEntry",
           element: <FrmAttendanceEntry />
+        },
+        {
+          path: "Transactions/FrmEmpTransferApprList",
+          element: <FrmEmpTransferApprList />
+        },
+        {
+          path: "Transactions/FrmEmpTransferApproval",
+          element: <FrmEmpTransferApproval />
         },
 
     ]
