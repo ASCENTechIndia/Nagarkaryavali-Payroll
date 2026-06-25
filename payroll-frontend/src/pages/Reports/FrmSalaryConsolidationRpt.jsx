@@ -1,5 +1,11 @@
-import React, { useState } from "react";
+
 import { motion } from "framer-motion";
+import  { useEffect, useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { useAuth } from "@/context/AuthContext";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 import {
   Card,
@@ -12,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
+
+
 import {
   Select,
   SelectTrigger,
@@ -21,7 +29,59 @@ import {
 } from "@/components/ui/select";
 
 const FrmSalaryConsolidationReport = () => {
+  const { user } = useAuth();
+
+const token = user?.token;
+const ulbid = user?.ulbId;
+
+const [departments, setDepartments] = useState([]);
+const [departmentId, setDepartmentId] = useState("");
   const [reportType, setReportType] = useState("department");
+
+
+  useEffect(() => {
+  fetchDepartmentList();
+}, []);
+
+const fetchDepartmentList = async () => {
+  try {
+    Swal.fire({
+      title: "Loading Departments...",
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    const res = await axios.post(
+      `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
+      {
+        ulbid: Number(ulbid),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const rows =
+      res?.data?.data?.data ||
+      res?.data?.data?.rows ||
+      [];
+
+    setDepartments(rows);
+
+    Swal.close();
+  } catch (error) {
+    Swal.close();
+
+    Swal.fire({
+      text:
+        error?.response?.data?.message ||
+        "Failed to load departments",
+    });
+  }
+};
 
   return (
     <motion.div
@@ -84,24 +144,31 @@ const FrmSalaryConsolidationReport = () => {
             <div className="space-y-2">
               <Label required>Department</Label>
 
-              <Select defaultValue="all">
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
+             <div className="space-y-2">
+  <Label required>Department</Label>
 
-                <SelectContent>
-                  <SelectItem value="all">-- ALL --</SelectItem>
-                  <SelectItem value="1">
-                    Administration Department
-                  </SelectItem>
-                  <SelectItem value="2">
-                    Health Department
-                  </SelectItem>
-                  <SelectItem value="3">
-                    Water Department
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+  <Select
+    value={departmentId}
+    onValueChange={setDepartmentId}
+  >
+    <SelectTrigger className="w-full">
+      <SelectValue placeholder="Select Department" />
+    </SelectTrigger>
+
+    <SelectContent>
+      <SelectItem value="0">-- ALL --</SelectItem>
+
+      {departments.map((dept) => (
+        <SelectItem
+          key={dept.DEPTID}
+          value={String(dept.DEPTID)}
+        >
+          {dept.DEPTNAME}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
             </div>
 
             {/* Report Type */}
