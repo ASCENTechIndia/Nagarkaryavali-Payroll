@@ -70,6 +70,8 @@ import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
 import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 import FrmGenericSearch from './pages/Search/FrmGenericSearch';
+
+import FrmBankLoanMst from './pages/LoanAndAdv/FrmBankLoanMst';
 import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
 import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
 
@@ -406,6 +408,13 @@ export const router = createBrowserRouter([
         path: "ReportsForm/FrmRetiredEmpRpt",
         element: <FrmRetiredEmpRpt />
       },
+
+      // Loan and Advance 
+      {
+        path:"Masters/FrmBankLoanMst",
+        element:<FrmBankLoanMst/>
+      }
+
     ]
   }
 ])
