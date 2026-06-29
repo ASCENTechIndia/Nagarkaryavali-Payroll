@@ -76,6 +76,8 @@ import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
 import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
 import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
 import FrmEmpTransferApproval from './pages/Transaction/FrmEmpTransferApproval';
+import FrmOtherEarnEntryList from './pages/Transaction/FrmOtherEarnEntryList';
+import FrmOtherEarningEnrty from './pages/Transaction/FrmOtherEarningEnrty';
 
 const Home = () => {
   return (
@@ -328,6 +330,15 @@ export const router = createBrowserRouter([
         path: "Transactions/FrmEmpTransferApproval",
         element: <FrmEmpTransferApproval />
       },
+      {
+          path: "Transactions/FrmOtherEarnEntryList",
+          element: <FrmOtherEarnEntryList />
+        },
+        {
+          path: "Transactions/FrmOtherEarningEnrty",
+          element: <FrmOtherEarningEnrty />
+        },
+
 
 
       //Search
