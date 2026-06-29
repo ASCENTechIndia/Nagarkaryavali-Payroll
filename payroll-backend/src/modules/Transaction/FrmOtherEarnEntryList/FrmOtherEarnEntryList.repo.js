@@ -126,6 +126,66 @@ async function getEditRecordRepo({ ulbid, empId, detId }) {
     return result.rows;
 }
 
+// async function saveOtherEarningRepo({
+//     userId,
+//     empId,
+//     earnId,
+//     payheadId,
+//     amount,
+//     ulbid,
+//     deptId,
+//     desigId,
+//     amtDate,
+//     remark,
+//     mode
+// }) {
+    
+//     const result = await executeProcedure({
+//         sql: `
+//             BEGIN
+//                 aopr_otherearnings_ins(
+//                     :in_userid,
+//                     :in_empid,
+//                     :in_earningid,
+//                     :in_payheadid,
+//                     :in_amount,
+//                     :in_ulbid,
+//                     :in_deptid,
+//                     :in_desigid,
+//                     :in_amtdate,
+//                     :in_remark,
+//                     :in_mode,
+//                     :out_ErrorCode,
+//                     :out_ErrorMsg
+//                 );
+//             END;
+//         `,
+//         binds: {
+//             in_userid: { val: userId, dir: oracledb.BIND_IN, type: oracledb.STRING },
+//             in_empid: { val: parseInt(empId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_earningid: { val: parseInt(earnId) || 0, dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_payheadid: { val: parseInt(payheadId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_amount: { val: parseFloat(amount), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_ulbid: { val: parseInt(ulbid), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_deptid: { val: parseInt(deptId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_desigid: { val: parseInt(desigId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             in_amtdate: { val: amtDate, dir: oracledb.BIND_IN, type: oracledb.DATE },
+//             in_remark: { val: remark, dir: oracledb.BIND_IN, type: oracledb.STRING },
+//             in_mode: { val: parseInt(mode), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
+//             out_ErrorCode: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+//             out_ErrorMsg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 5000000 }
+//         }
+//     });
+    
+//     if (!result.success) throw new Error(result.error);
+    
+//     return {
+//         errorCode: result.outBinds.out_errorcode,
+//         errorMsg: result.outBinds.out_errormsg
+//     };
+// }
+
+
 async function saveOtherEarningRepo({
     userId,
     empId,
@@ -139,7 +199,40 @@ async function saveOtherEarningRepo({
     remark,
     mode
 }) {
-    
+
+    let bindDate = null;
+
+    if (amtDate) {
+        bindDate = new Date(amtDate);
+
+        if (isNaN(bindDate.getTime())) {
+            const parts = amtDate.split("-");
+
+            if (parts.length === 3) {
+                const months = {
+                    JAN: 0,
+                    FEB: 1,
+                    MAR: 2,
+                    APR: 3,
+                    MAY: 4,
+                    JUN: 5,
+                    JUL: 6,
+                    AUG: 7,
+                    SEP: 8,
+                    OCT: 9,
+                    NOV: 10,
+                    DEC: 11
+                };
+
+                bindDate = new Date(
+                    Number(parts[2]),
+                    months[parts[1].toUpperCase()],
+                    Number(parts[0])
+                );
+            }
+        }
+    }
+
     const result = await executeProcedure({
         sql: `
             BEGIN
@@ -161,29 +254,95 @@ async function saveOtherEarningRepo({
             END;
         `,
         binds: {
-            in_userid: { val: userId, dir: oracledb.BIND_IN, type: oracledb.STRING },
-            in_empid: { val: parseInt(empId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_earningid: { val: parseInt(earnId) || 0, dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_payheadid: { val: parseInt(payheadId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_amount: { val: parseFloat(amount), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_ulbid: { val: parseInt(ulbid), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_deptid: { val: parseInt(deptId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_desigid: { val: parseInt(desigId), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            in_amtdate: { val: amtDate, dir: oracledb.BIND_IN, type: oracledb.DATE },
-            in_remark: { val: remark, dir: oracledb.BIND_IN, type: oracledb.STRING },
-            in_mode: { val: parseInt(mode), dir: oracledb.BIND_IN, type: oracledb.NUMBER },
-            out_ErrorCode: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-            out_ErrorMsg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 5000000 }
+            in_userid: {
+                val: userId,
+                dir: oracledb.BIND_IN,
+                type: oracledb.STRING
+            },
+
+            in_empid: {
+                val: Number(empId),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_earningid: {
+                val: Number(earnId) || 0,
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_payheadid: {
+                val: Number(payheadId),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_amount: {
+                val: Number(amount),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_ulbid: {
+                val: Number(ulbid),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_deptid: {
+                val: Number(deptId),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_desigid: {
+                val: Number(desigId),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            in_amtdate: {
+                val: bindDate,
+                dir: oracledb.BIND_IN,
+                type: oracledb.DATE
+            },
+
+            in_remark: {
+                val: remark,
+                dir: oracledb.BIND_IN,
+                type: oracledb.STRING
+            },
+
+            in_mode: {
+                val: Number(mode),
+                dir: oracledb.BIND_IN,
+                type: oracledb.NUMBER
+            },
+
+            out_ErrorCode: {
+                dir: oracledb.BIND_OUT,
+                type: oracledb.NUMBER
+            },
+
+            out_ErrorMsg: {
+                dir: oracledb.BIND_OUT,
+                type: oracledb.STRING,
+                maxSize: 5000
+            }
         }
     });
-    
-    if (!result.success) throw new Error(result.error);
-    
+
+    if (!result.success) {
+        throw new Error(result.error);
+    }
+
     return {
-        errorCode: result.outBinds.out_errorcode,
-        errorMsg: result.outBinds.out_errormsg
+        errorCode: result.outBinds.out_ErrorCode,
+        errorMsg: result.outBinds.out_ErrorMsg
     };
 }
+
 
 module.exports = {
     getOtherEarningListRepo,

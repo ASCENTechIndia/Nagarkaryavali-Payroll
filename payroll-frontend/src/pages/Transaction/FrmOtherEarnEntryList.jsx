@@ -65,9 +65,8 @@ const FrmOtherEarnEntryList = () => {
     navigate("/Transactions/FrmOtherEarningEnrty", {
       state: {
         mode: 2,
-        data: {
-          empId: item.EMPID,
-        },
+        empId: item.EMPID,
+        detId: item.ID,
       },
     });
   };

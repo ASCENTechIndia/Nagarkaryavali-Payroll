@@ -13,18 +13,11 @@ import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import { Form, Formik } from "formik";
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { FrmAttendanceEntryValidationSchema } from "@/validations/global.validation";
+import { DatePicker } from "@/components/ui/calendar";
+import { FrmOtherEarningEntryValidationSchema } from "@/validations/global.validation";
+import SearchableSelect from "@/components/SearchableSelect";
 
 const FrmOtherEarningEnrty = () => {
   const { authUser } = useAuth();
@@ -35,116 +28,208 @@ const FrmOtherEarningEnrty = () => {
   const token = storedToken || authToken;
   const user = storedUser || authUser;
   const ulbId = user?.orgId || user?.ulbId;
+  const userId = user?.userId;
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { mode, empId, detId } = location.state || {};
 
+  const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [zoneOptions, setZoneOptions] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
+
   const [departmentOptions, setDepartmentOptions] = useState([]);
-  const [subDepartmentOptions, setSubDepartmentOptions] = useState([]);
-  const [billNoOptions, setBillNoOptions] = useState([]);
-  const [showSubDept, setShowSubDept] = useState(false);
-  const [showBillNo, setShowBillNo] = useState(false);
-  const [attendanceData, setAttendanceData] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [searchParams, setSearchParams] = useState(null);
+  const [designationOptions, setDesignationOptions] = useState([]);
+  const [employeeOptions, setEmployeeOptions] = useState([]);
+  const [earningHeadOptions, setEarningHeadOptions] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const defaultValues = {
+    department: "",
+    designation: "",
+    employeeId: "",
+    earningHead: "",
+    amount: "",
+    date: new Date(),
+    remark: "",
+    earnId: "0",
+  };
+
+  const [initialFormValues, setInitialFormValues] = useState(defaultValues);
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const monthOptions = [
-    { value: "-1", label: "Select Month" },
-    { value: "1", label: "January" },
-    { value: "2", label: "February" },
-    { value: "3", label: "March" },
-    { value: "4", label: "April" },
-    { value: "5", label: "May" },
-    { value: "6", label: "June" },
-    { value: "7", label: "July" },
-    { value: "8", label: "August" },
-    { value: "9", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
-  ];
+  const fetchDepartments = async () => {
+    try {
+      if (!ulbId) return;
 
-  const yearOptions = [
-    { value: "-1", label: "Select Year" },
-    {
-      value: new Date().getFullYear().toString(),
-      label: new Date().getFullYear().toString(),
-    },
-    {
-      value: (new Date().getFullYear() - 1).toString(),
-      label: (new Date().getFullYear() - 1).toString(),
-    },
-    {
-      value: (new Date().getFullYear() - 2).toString(),
-      label: (new Date().getFullYear() - 2).toString(),
-    },
-  ];
-
-  const initialFormValues = {
-    month: "-1",
-    year: "-1",
-    category: "",
-    zone: "",
-    department: "",
-    subDepartment: "",
-    billNo: "0",
-    employeeCode: "",
-  };
-
-  const calculatePresent = (
-    attendance,
-    medicalLeave,
-    earnedLeave,
-    lwp,
-    halfDay,
-  ) => {
-    const att = parseFloat(attendance) || 0;
-    const ml = parseFloat(medicalLeave) || 0;
-    const el = parseFloat(earnedLeave) || 0;
-    const lwpVal = parseFloat(lwp) || 0;
-    const hp = parseFloat(halfDay) || 0;
-
-    return att - (ml + el + lwpVal + hp / 2);
-  };
-
-  const handleLeaveFieldChange = (rowIndex, field, value, setData) => {
-    setData((prevData) => {
-      const newData = [...prevData];
-      const row = { ...newData[rowIndex] };
-      row[field] = value;
-
-      row.present = calculatePresent(
-        row.attendance,
-        field === "medicalLeave" ? value : row.medicalLeave,
-        field === "earnedLeave" ? value : row.earnedLeave,
-        field === "lwp" ? value : row.lwp,
-        field === "halfDay" ? value : row.halfDay,
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmSalaryCalulation/department`,
+        { ulbid: Number(ulbId) },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      newData[rowIndex] = row;
-      return newData;
-    });
+      const apiData = res.data?.data?.data || res.data?.data || [];
+      const formatted = apiData.map((item) => ({
+        label: item.DEPTNAME,
+        value: String(item.DEPTID),
+      }));
+      setDepartmentOptions(formatted);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+      setDepartmentOptions([]);
+    }
   };
 
-  const handleRowCheck = (rowIndex, checked, setData) => {
-    setData((prevData) => {
-      const newData = [...prevData];
-      newData[rowIndex] = { ...newData[rowIndex], checked };
-      return newData;
-    });
+  const fetchDesignations = async () => {
+    try {
+      if (!ulbId) return;
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmEmployeeMstNewTest/designation-list`,
+        { ulbid: Number(ulbId) },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const apiData = res.data?.data?.data || res.data?.data || [];
+      const formatted = apiData.map((item) => ({
+        label: item.DESIG_ENAME,
+        value: String(item.DESIG_ID),
+      }));
+      setDesignationOptions(formatted);
+    } catch (err) {
+      console.error("Error fetching designations:", err);
+      setDesignationOptions([]);
+    }
   };
 
-  const formatDateForAPI = (year, month) => {
-    const yearNum = parseInt(year);
-    const monthNum = parseInt(month);
-    const lastDay = new Date(yearNum, monthNum, 0).getDate();
-    const date = new Date(yearNum, monthNum - 1, lastDay);
+  const fetchEarningHeads = async () => {
+    try {
+      if (!ulbId) return;
 
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmOtherEarnEntryList/earning-head-list`,
+        { ulbid: Number(ulbId) },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const apiData = res.data?.data?.data || res.data?.data || [];
+      const formatted = apiData.map((item) => ({
+        label: item.VAR_OTHERPAYHEADS_ENAME,
+        value: String(item.NUM_OTHERPAYHEADS_ID),
+      }));
+      setEarningHeadOptions(formatted);
+    } catch (err) {
+      console.error("Error fetching earning heads:", err);
+      setEarningHeadOptions([]);
+    }
+  };
+
+  const fetchEmployees = async (deptId = null, desgnId = null) => {
+    try {
+      if (!ulbId) return;
+
+      setLoadingEmployees(true);
+
+      const payload = {
+        ulbid: Number(ulbId),
+        deptId: deptId && deptId !== "0" ? Number(deptId) : null,
+        desgnId: desgnId && desgnId !== "0" ? Number(desgnId) : null,
+      };
+
+      if (deptId && deptId !== "0" && deptId !== "-1") {
+        payload.deptId = deptId;
+      }
+
+      if (desgnId && desgnId !== "0" && desgnId !== "-1") {
+        payload.desgnId = desgnId;
+      }
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmOtherEarnEntryList/employee-list`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const apiData = res.data?.data?.data || res.data?.data || [];
+      const formatted = apiData.map((item) => ({
+        label: item.EMPNAME,
+        value: String(item.NUM_EMPLOYEE_EMPID),
+      }));
+      setEmployeeOptions(formatted);
+    } catch (err) {
+      console.error("Error fetching employees:", err);
+      setEmployeeOptions([]);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const fetchEmployeeDetails = async (empId) => {
+    try {
+      if (!ulbId || !empId || empId === "0") return null;
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmOtherEarnEntryList/employee-details`,
+        { ulbid: Number(ulbId), empId: empId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const data = res.data?.data?.data || res.data?.data;
+
+      if (data) {
+        return {
+          deptId: String(data.NUM_EMPLOYEE_DEPTID),
+          desgnId: String(data.NUM_EMPLOYEE_DESIGID),
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error("Error fetching employee details:", err);
+      return null;
+    }
+  };
+
+  const fetchEditRecord = async (empId, detId) => {
+    try {
+      if (!ulbId || !empId || empId === "0" || !detId || detId === "0")
+        return null;
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmOtherEarnEntryList/get-edit-record`,
+        { ulbid: Number(ulbId), empId: empId, detId: detId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const data = res.data?.data?.data || res.data?.data;
+
+      if (data) {
+        const formData = {
+          department: String(data.DEPARTMENT || data.department || ""),
+          designation: String(data.DESIGNATION || data.designation || ""),
+          employeeId: String(data.EMPID || data.empid || ""),
+          earningHead: String(data.PAYHEAD_ID || data.payhead_id || ""),
+          amount: String(data.AMOUNT || data.amount || ""),
+          date:
+            data.AMT_DATE || data.amt_date
+              ? new Date(data.AMT_DATE || data.amt_date)
+              : new Date(),
+          remark: data.OTHER_REMARK || data.other_remark || "",
+          earnId: String(data.DET_ID || data.det_id || "0"),
+        };
+
+        setInitialFormValues(formData);
+
+        await fetchEmployees(formData.department, formData.designation);
+
+        return formData;
+      }
+      return null;
+    } catch (err) {
+      console.error("Error fetching edit record:", err);
+      return null;
+    }
+  };
+
+  const formatDateForAPI = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
     const monthNames = [
       "Jan",
@@ -160,156 +245,36 @@ const FrmOtherEarningEnrty = () => {
       "Nov",
       "Dec",
     ];
-    const monthAbbr = monthNames[monthNum - 1];
-
-    return `${day}-${monthAbbr}-${yearNum}`;
+    const monthAbbr = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${monthAbbr}-${year}`;
   };
 
-  const fetchZones = async () => {
-    if (!ulbId) return;
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmEmpPayHeadListRpt/zone-list`,
-        { ulbid: Number(ulbId) },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.ZONENAME,
-          value: String(item.ZONEID),
-        }));
-        setZoneOptions(formatted);
-      } else {
-        setZoneOptions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching zones:", err);
-      setZoneOptions([]);
-    }
+  const handleDepartmentChange = async (value, values, setFieldValue) => {
+    setFieldValue("department", value);
+    setFieldValue("employeeId", "");
+    await fetchEmployees(value, values.designation || null);
   };
 
-  const fetchCategories = async () => {
-    if (!ulbId) return;
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmSalaryCalulation/category`,
-        { ulbid: Number(ulbId) },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.VAR_CATEGORY_NAME,
-          value: String(item.NUM_CATEGORY_ID),
-        }));
-        setCategoryOptions(formatted);
-      } else {
-        setCategoryOptions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-      setCategoryOptions([]);
-    }
+  const handleDesignationChange = async (value, values, setFieldValue) => {
+    setFieldValue("designation", value);
+    setFieldValue("employeeId", "");
+    await fetchEmployees(values.department || null, value);
   };
 
-  const fetchDepartment = async () => {
-    try {
-      if (!ulbId) return;
-
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmSalaryCalulation/department`,
-        { ulbid: Number(ulbId) },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.DEPTNAME,
-          value: String(item.DEPTID),
-        }));
-        setDepartmentOptions(formatted);
-      } else {
-        setDepartmentOptions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching departments:", err);
-      setDepartmentOptions([]);
-    }
+  const handleEmployeeChange = async (value, setFieldValue) => {
+    setFieldValue("employeeId", value);
+    if (!value) return;
+    const details = await fetchEmployeeDetails(value);
+    if (!details) return;
+    setFieldValue("department", String(details.deptId));
+    setFieldValue("designation", String(details.desgnId));
+    await fetchEmployees(String(details.deptId), String(details.desgnId));
   };
 
-  const fetchSubDepartment = async (deptId) => {
-    try {
-      if (!ulbId || !deptId || deptId === "") {
-        setSubDepartmentOptions([]);
-        return;
-      }
-
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmSalaryCalulation/subdepartment`,
-        {
-          ulbid: Number(ulbId),
-          deptId: Number(deptId),
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.VAR_DEPTSUB_SDEPTNAMEE,
-          value: String(item.NUM_DEPTSUB_ID),
-        }));
-        setSubDepartmentOptions(formatted);
-      } else {
-        setSubDepartmentOptions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching sub-departments:", err);
-      setSubDepartmentOptions([]);
-    }
-  };
-
-  const fetchBillNo = async (deptId, subDeptId) => {
-    try {
-      if (!ulbId) return;
-
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmSalaryCalulation/billno`,
-        {
-          ulbid: Number(ulbId),
-          deptId: deptId && deptId !== "" ? deptId : null,
-          subdeptId: subDeptId && subDeptId !== "" ? subDeptId : null,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.BILLCODE || item.billno,
-          value: String(item.BILLCODE || item.billno),
-        }));
-        setBillNoOptions(formatted);
-      } else {
-        setBillNoOptions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching bill numbers:", err);
-      setBillNoOptions([]);
-    }
-  };
-
-  const handleSearch = async (values) => {
-    const validationResult = FrmAttendanceEntryValidationSchema.safeParse(values);
+  const handleSubmit = async (values, { setSubmitting }) => {
+    const validationResult =
+      FrmOtherEarningEntryValidationSchema.safeParse(values);
 
     if (!validationResult.success) {
       const firstError = validationResult.error.issues[0];
@@ -320,244 +285,122 @@ const FrmOtherEarningEnrty = () => {
       return;
     }
 
-    setLoading(true);
-    setHasSearched(true);
-    setSearchParams(values);
-
-    try {
-      const formattedLastDate = formatDateForAPI(values.year, values.month);
-
-      const payload = {
-        ulbid: Number(ulbId),
-        categoryId: values.category,
-        zoneId: values.zone,
-        deptId: values.department,
-        subdeptId:
-          values.subDepartment && values.subDepartment !== ""
-            ? values.subDepartment
-            : null,
-        billNo: values.billNo !== "0" ? values.billNo : null,
-        empId: values.employeeCode || null,
-        month: values.month,
-        year: values.year,
-      };
-
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmAttendanceEntry/attendance-list`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (apiData.length > 0) {
-        const mappedData = apiData.map((item, index) => ({
-          srNo: index + 1,
-          empId: item.NUM_EMPLOYEE_EMPID,
-          empName: item.EMPNAME,
-          biometric: "0",
-          attendance: item.monthattend_workingdays ?? 0,
-          medicalLeave: item.MONTHATTEND_MEDICALLEAVE ?? 0,
-          earnedLeave: item.MONTHATTEND_EARNEDLEAVE ?? 0,
-          halfDay: item.MONTHATTEND_HALFDAY ?? 0,
-          lwp: item.MONTHATTEND_WITHOUTPAY ?? 0,
-          present: item.monthattend_present ?? 0,
-          remark: item.MONTHATTEND_REMARK ?? "",
-          attendentryId: item.ATTENDENTRY_ID,
-          checked: false,
-          isDisabled: item.ATTENDENTRY_ID !== null,
-        }));
-
-        setAttendanceData(mappedData);
-      } else {
-        setAttendanceData([]);
-        Swal.fire({
-          text: "No records found",
-          confirmButtonColor: "#1e3a8a",
-        });
-      }
-    } catch (error) {
-      console.error("Search Error:", error);
-      setAttendanceData([]);
-      Swal.fire({
-        text: error.response?.data?.message || "Error searching attendance",
-        confirmButtonColor: "#1e3a8a",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    const checkedRows = attendanceData.filter(
-      (row) => row.checked && !row.isDisabled,
-    );
-
-    if (checkedRows.length === 0) {
-      Swal.fire({
-        text: "Please select at least one record to proceed",
-        confirmButtonColor: "#1e3a8a",
-      });
-      return;
-    }
-
     setSubmitting(true);
+    setLoading(true);
+
+    const pdfLoaderSwal = Swal.fire({
+      title: 'Submitting...',
+      text: 'Please wait while submitting',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      willOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
     try {
-      let attendanceStr = "";
-
-      const year = parseInt(searchParams.year);
-      const month = parseInt(searchParams.month);
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const lastDateObj = new Date(year, month - 1, daysInMonth);
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      const attDate = `${lastDateObj.getDate()}-${monthNames[month - 1]}-${year}`;
-
-      checkedRows.forEach((row) => {
-        attendanceStr += `${row.empId}$${row.empName}$${row.biometric}$${row.attendance}$${row.present}$${row.medicalLeave}$${row.earnedLeave}$${row.halfDay}$${row.lwp}$${row.remark || ""}$${attDate}#`;
-      });
-
-      // Remove trailing #
-      if (attendanceStr.endsWith("#")) {
-        attendanceStr = attendanceStr.slice(0, -1);
-      }
-
       const payload = {
-        userId: user?.userId || user?.id || "ADMIN",
-        categoryId: parseInt(searchParams.category),
-        zoneId: parseInt(searchParams.zone),
-        departmentId: parseInt(searchParams.department),
-        subdepartmentId:
-          searchParams.subDepartment && searchParams.subDepartment !== ""
-            ? parseInt(searchParams.subDepartment)
-            : 0,
-        month: parseInt(searchParams.month),
-        year: parseInt(searchParams.year),
-        attendanceStr: attendanceStr,
-        ulbId: Number(ulbId),
+        userId,
+        empId: Number(values.employeeId),
+        earnId: Number(values.earnId || 0),
+        payheadId: Number(values.earningHead),
+        amount: Number(values.amount),
+        ulbid: Number(ulbId),
+        deptId: Number(values.department),
+        desigId: Number(values.designation),
+        amtDate: formatDateForAPI(values.date),
+        remark: values.remark.trim(),
+        mode,
       };
 
       const res = await axios.post(
-        `${BASE_URL}/api/FrmAttendanceEntry/save-attendance`,
+        `${BASE_URL}/api/FrmOtherEarnEntryList/save-other-earning`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } },
       );
+
+      pdfLoaderSwal.close();
 
       if (res.data?.ok) {
         Swal.fire({
-          text: res.data?.data?.message || "Attendance saved successfully!",
-          icon: "success",
+          text: res.data?.message || "Other earning entry saved successfully",
           confirmButtonColor: "#1e3a8a",
         }).then(() => {
-          // Refresh the search results
-          handleSearch(searchParams);
+          navigate("/Transactions/FrmOtherEarnEntryList");
         });
       } else {
         Swal.fire({
-          text:
-            res.data?.error ||
-            res.data?.data?.message ||
-            "Error saving attendance",
+          text: res.data?.message || "Failed to save entry",
           confirmButtonColor: "#1e3a8a",
         });
       }
-    } catch (error) {
-      console.error("Submit Error:", error);
+    } catch (err) {
+      console.error("Submit error:", err);
       Swal.fire({
-        text: error.response?.data?.error || "Error saving attendance",
+        text:
+          err.response?.data?.message || err.message || "Something went wrong",
         confirmButtonColor: "#1e3a8a",
       });
     } finally {
       setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const handleDepartmentChange = (value, setFieldValue) => {
-    setFieldValue("department", value);
-    setFieldValue("subDepartment", "");
-    if (value && value !== "") {
-      fetchSubDepartment(value);
-      if (showBillNo) {
-        fetchBillNo(value, "");
-      }
-    } else {
-      setSubDepartmentOptions([]);
-      if (showBillNo) {
-        fetchBillNo(null, null);
-      }
+  useEffect(() => {
+    const loadInitial = async () => {
+      if (!ulbId) return;
+
+      setPageLoading(true);
+
+      await Promise.allSettled([
+        fetchDepartments(),
+        fetchDesignations(),
+        fetchEarningHeads(),
+        fetchEmployees(),
+      ]);
+
+      setPageLoading(false);
+    };
+
+    if (mode !== 2) {
+      loadInitial();
     }
-  };
+  }, [ulbId, mode]);
 
-  const handleSubDepartmentChange = (value, setFieldValue, deptId) => {
-    setFieldValue("subDepartment", value);
-    if (showBillNo && deptId && deptId !== "") {
-      fetchBillNo(deptId, value);
-    }
-  };
+  useEffect(() => {
+    const loadEdit = async () => {
+      if (mode !== 2 || !empId || !detId || !ulbId) return;
 
-  const isAllChecked =
-    attendanceData.length > 0 &&
-    attendanceData.every((row) => row.checked || row.isDisabled);
-  const isSomeChecked = attendanceData.some(
-    (row) => row.checked && !row.isDisabled,
-  );
+      setPageLoading(true);
 
-  const handleHeaderCheckboxChange = (checked) => {
-    setAttendanceData((prevData) =>
-      prevData.map((row) => ({
-        ...row,
-        checked: checked === true && !row.isDisabled,
-      })),
+      await Promise.allSettled([
+        fetchDepartments(),
+        fetchDesignations(),
+        fetchEarningHeads(),
+      ]);
+
+      await fetchEditRecord(empId, detId);
+
+      setPageLoading(false);
+    };
+    loadEdit();
+  }, [mode, empId, detId, ulbId]);
+
+  if (pageLoading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <span className="ml-3 text-gray-600">Loading...</span>
+      </div>
     );
-  };
-
-  useEffect(() => {
-    if (ulbId) {
-      if (ulbId === "590") {
-        setShowSubDept(true);
-        setShowBillNo(false);
-      } else if (ulbId === "770" || ulbId === "1750") {
-        setShowSubDept(true);
-        setShowBillNo(true);
-      } else if (ulbId === "2") {
-        setShowSubDept(false);
-        setShowBillNo(false);
-      } else if (ulbId === "1630") {
-        setShowSubDept(true);
-        setShowBillNo(false);
-      } else {
-        setShowSubDept(false);
-        setShowBillNo(false);
-      }
-    }
-  }, [ulbId]);
-
-  useEffect(() => {
-    if (ulbId) {
-      fetchZones();
-      fetchCategories();
-      fetchDepartment();
-    }
-  }, [ulbId]);
+  }
 
   return (
     <Formik
       initialValues={initialFormValues}
       enableReinitialize={true}
-      onSubmit={handleSearch}
+      onSubmit={handleSubmit}
     >
       {({ values, setFieldValue, isSubmitting }) => {
         return (
@@ -572,15 +415,16 @@ const FrmOtherEarningEnrty = () => {
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                       <Label text="Department" />
                       <span>:</span>
                     </div>
                     <Select
                       value={values.department}
                       onValueChange={(v) =>
-                        handleDepartmentChange(v, setFieldValue)
+                        handleDepartmentChange(v, values, setFieldValue)
                       }
+                      disabled={mode === 2}
                     >
                       <SelectTrigger className="w-full! h-9 overflow-hidden">
                         <SelectValue placeholder="-- Select Department --" />
@@ -596,64 +440,122 @@ const FrmOtherEarningEnrty = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
-                      <Label text="Category" required />
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Designation" />
                       <span>:</span>
                     </div>
                     <Select
-                      value={values.category}
-                      onValueChange={(v) => setFieldValue("category", v)}
-                    >
-                      <SelectTrigger className="w-full! h-9 overflow-hidden">
-                        <SelectValue placeholder="-- Select Category --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categoryOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
-                      <Label text="Zone" required />
-                      <span>:</span>
-                    </div>
-                    <Select
-                      value={values.zone}
-                      onValueChange={(v) => setFieldValue("zone", v)}
-                    >
-                      <SelectTrigger className="w-full! h-9 overflow-hidden">
-                        <SelectValue placeholder="-- Select Zone --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {zoneOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
-                      <Label text="Employee ID" />
-                      <span>:</span>
-                    </div>
-                    <Input
-                      name="employeeCode"
-                      value={values.employeeCode}
-                      onChange={(e) =>
-                        setFieldValue("employeeCode", e.target.value)
+                      value={values.designation}
+                      onValueChange={(v) =>
+                        handleDesignationChange(v, values, setFieldValue)
                       }
-                      type="text"
-                      className="w-full h-9"
-                      placeholder="Enter Employee Code"
+                      disabled={mode === 2}
+                    >
+                      <SelectTrigger className="w-full! h-9 overflow-hidden">
+                        <SelectValue placeholder="-- Select Designation --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {designationOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Employee Id" />
+                      <span>:</span>
+                    </div>
+                    <SearchableSelect
+                      value={values.employeeId}
+                      options={employeeOptions}
+                      loading={loadingEmployees}
+                      placeholder="-- Select Employee --"
+                      disabled={mode === 2}
+                      onChange={(value) =>
+                        handleEmployeeChange(value, setFieldValue)
+                      }
+                      className="w-full! h-9 overflow-hidden"
                     />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Earning Head" />
+                      <span>:</span>
+                    </div>
+                    <Select
+                      value={values.earningHead}
+                      onValueChange={(v) => setFieldValue("earningHead", v)}
+                    >
+                      <SelectTrigger className="w-full! h-9 overflow-hidden">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {earningHeadOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Amount Text" />
+                      <span>:</span>
+                    </div>
+                    <div className="w-full">
+                      <Input
+                        name="amount"
+                        value={values.amount}
+                        onChange={(e) =>
+                          setFieldValue(
+                            "amount",
+                            e.target.value.replace(/[^0-9.]/g, ""),
+                          )
+                        }
+                        type="text"
+                        className="w-full h-9"
+                        placeholder="Enter amount"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Date" />
+                      <span>:</span>
+                    </div>
+                    <div className="w-full">
+                      <DatePicker
+                        value={values.date}
+                        onChange={(date) => setFieldValue("date", date)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Remark" />
+                      <span>:</span>
+                    </div>
+                    <div className="w-full">
+                      <Input
+                        name="remark"
+                        value={values.remark}
+                        onChange={(e) =>
+                          setFieldValue("remark", e.target.value)
+                        }
+                        type="text"
+                        className="w-full h-9"
+                        placeholder="Enter remark"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -663,14 +565,16 @@ const FrmOtherEarningEnrty = () => {
                     disabled={isSubmitting || loading}
                     className="bg-blue-800 hover:bg-blue-900"
                   >
-                    {loading ? "Searching..." : "Search"}
+                    {loading ? "Submitting..." : "Submit"}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate("/HomePage/FrmHomePage")}
+                    onClick={() =>
+                      navigate("/Transactions/FrmOtherEarnEntryList")
+                    }
                   >
-                    Close
+                    Cancel
                   </Button>
                 </div>
               </CardContent>
