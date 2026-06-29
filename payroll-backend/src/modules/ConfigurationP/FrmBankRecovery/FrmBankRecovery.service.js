@@ -30,7 +30,18 @@ const getBankRecoveryListService = async (body) => {
 };
 
 async function saveBankRecoveryService(body) {
-  const { userId, deptId, subDeptId, empId, bankId, branchId, recovAmount, fromYear, toYear, fromMonth, toMonth, ulbId } = body;
+  const {
+    deptId,
+    subDeptId,
+    empId,
+    bankId,
+    branchId,
+    recovAmount,
+    fromYear,
+    toYear,
+    fromMonth,
+    toMonth,
+  } = body;
 
   if (!deptId) throw new AppError("Please select Department.", 400);
   if (!subDeptId) throw new AppError("Please select Sub Department.", 400);
@@ -49,11 +60,16 @@ async function saveBankRecoveryService(body) {
     throw new AppError(result.error, 400);
   }
 
-  if (result.errorCode !== -100) {
-    throw new AppError(result.errorMsg, 400);
+  const errorCode = Number(result.errorCode);
+
+  if (errorCode === 9999) {
+    return result;
   }
 
-  return result;
+  throw new AppError(
+    result.errorMsg || "Failed to save Bank Recovery.",
+    400
+  );
 }
 
 module.exports = {
