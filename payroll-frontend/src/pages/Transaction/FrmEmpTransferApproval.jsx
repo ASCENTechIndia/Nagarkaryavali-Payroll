@@ -40,9 +40,17 @@ const FrmEmpTransferApproval = () => {
   const location = useLocation();
 
   const mode = location.state?.mode;
-  const headId = location.state?.headId;
+  const empId = location.state?.empId;
+  const empTransId = location.state?.empTransId;
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  console.log("console.log", {
+    mode,
+    empId,
+    empTransId,
+    ulbId,
+  });
 
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [designationOptions, setDesignationOptions] = useState([]);
@@ -89,7 +97,8 @@ const FrmEmpTransferApproval = () => {
   const fetchTransferTypes = async () => {
     try {
       const res = await axios.post(
-        `${BASE_URL}/api/FrmEmpTransferApproval/transfer-types`,{ },
+        `${BASE_URL}/api/FrmEmpTransferApproval/transfer-types`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -122,93 +131,52 @@ const FrmEmpTransferApproval = () => {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchDepartments();
-      fetchDesignations();
-      fetchTransferTypes();
-      fetchGrades();
-    }
-  }, [token]);
+useEffect(() => {
+  const loadData = async () => {
+    if (!token) return;
 
-  const fetchPayHeadDetails = async () => {
+    Swal.fire({
+      title: "Loading...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
     try {
-      Swal.fire({
-        title: "Loading ...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      await Promise.allSettled([
+        fetchDepartments(),
+        fetchDesignations(),
+        fetchTransferTypes(),
+        fetchGrades(),
+      ]);
 
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmPayHeadListMst/payhead-details`,
-        {
-          payHeadId: headId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const data = res.data?.rows?.[0];
-
-      if (data) {
-        const updatedValues = {
-          payHead: data.SUBPAYID?.toString() || "",
-          payHeadId: data.PAYID?.toString() || "",
-          englishName: data.NAMEE || "",
-          marathiName: data.NAMEM || "",
-          paySheetOrder: data.NUM_PAYHEADS_ORDERNO?.toString() || "",
-          mergeIn: data.NUM_PAYHEADS_MERGEID?.toString() || "",
-        };
-
-        setFormInitialValues(updatedValues);
-
-        if (data.SUBPAYID) {
-          await fetchMergeInOptions(data.SUBPAYID);
-        }
+      if (mode === 2 && empId && empTransId) {
+        await fetchTransferDetails();
       }
     } catch (error) {
-      console.error("PayHead Details API Error:", error);
+      console.error(error);
     } finally {
       Swal.close();
     }
   };
 
-  useEffect(() => {
-    if (mode == 2 && headId && token) {
-      fetchPayHeadDetails();
-    }
-  }, [mode, headId, token]);
+  loadData();
+}, [token, mode, empId, empTransId]);
 
-  const handleSubmit = async (values) => {
+  const fetchTransferDetails = async () => {
     try {
       Swal.fire({
-        title: "Saving...",
+        title: "Loading...",
         allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        didOpen: () => Swal.showLoading(),
       });
 
-      const payload = {
-        userId: userId,
-        corpId: Number(ulbId),
-        payHeadId: mode == 2 ? Number(values.payHeadId) : 0,
-        subHeadId: Number(values.payHead),
-        engName: values.englishName,
-        marathiName: values.marathiName,
-        orderNo: Number(values.paySheetOrder),
-        mergeId: values.mergeIn ? Number(values.mergeIn) : null,
-        mode: mode == 2 ? 2 : 1,
-      };
-
       const res = await axios.post(
-        `${BASE_URL}/api/FrmPayHeadListMst/save-payhead`,
-        payload,
+        `${BASE_URL}/api/FrmEmpTransferApproval/transfer-details`,
+        {
+          ulbid: ulbId,
+          empId: empTransId,
+          empTransId: empId,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -216,25 +184,116 @@ const FrmEmpTransferApproval = () => {
         },
       );
 
-      if (res.data?.success) {
-        Swal.fire({
-          text: res.data?.message,
-          confirmButtonColor: "#1e3a8a",
-        }).then(() => {
-          navigate("/Masters/FrmPayHeadListMst");
-        });
-      } else {
-        Swal.fire({
-          text: res.data?.message,
+      const data = res.data?.data?.data;
+
+      console.log("data.....", data);
+
+      if (data) {
+        setFormInitialValues({
+          employeeId: data.EMPID?.toString() || "",
+          employeeName: data.EMPNAME || "",
+          department: data.NUM_EMPTRANS_NEWDEPTID?.toString() || "",
+          designation: data.NUM_EMPTRANS_NEWDESIGID?.toString() || "",
+          transferType: data.NUM_EMPTRANS_TRANSFTYPEID?.toString() || "",
+          payBand: data.NUM_EMPTRANS_NEWPAYBANDID?.toString() || "",
+          orderDate: data.DAT_EMPTRANS_ORDERDATE
+            ? new Date(data.DAT_EMPTRANS_ORDERDATE)
+            : new Date(),
+          orderNumber: data.VAR_EMPTRANS_ORDERNUMBER || "",
+          joiningDate: data.SLIPNO ? new Date(data.SLIPNO) : new Date(),
+          status: "approve",
         });
       }
     } catch (error) {
-      console.error("Save API Error:", error);
+      console.error("Transfer Details Error:", error);
+
       Swal.fire({
-        text: "Failed to save data",
+        text: "Failed to fetch transfer details.",
       });
+    } finally {
+      Swal.close();
     }
   };
+
+ const formatDate = (date) => {
+  if (!date) return null;
+
+  const months = [
+    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+  ];
+
+  const d = new Date(date);
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
+
+const handleSubmit = async (values) => {
+  try {
+    Swal.fire({
+      title: "Saving...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    const payload = {
+      userId: userId,
+      empId: empId,
+      empNumber: empId,
+      deptId: Number(values.department),          
+      desigId: Number(values.designation),        
+      payBand: Number(values.payBand),           
+      dateOfJoin: formatDate(values.joiningDate),
+      periodWithDept: values.periodWithDept || "0",
+      newDeptId: 0,
+      newDesigId: 0,
+      transferTypeId: Number(values.transferType),
+      newPayBandId: 0,
+      orderDate: formatDate(values.orderDate),
+      orderNumber: values.orderNumber,
+      ulbid: Number(ulbId),
+      empTransId: mode === 2 ? Number(empTransId) : 0,
+      mode: mode === 2 ? 3 : 1,
+      status: values.status === "approve" ? "A" : "R",
+    };
+
+    console.log("Payload :", payload);
+
+    const res = await axios.post(
+      `${BASE_URL}/api/FrmEmpTransferApproval/save-transfer`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data?.ok && res.data?.data?.success) {
+      Swal.fire({
+        text: res.data.message,
+        confirmButtonColor: "#1e3a8a",
+      }).then(() => {
+        navigate("/Transactions/FrmEmpTransferApprList");
+      });
+    } else {
+      Swal.fire({
+
+        text: res.data?.message || "Failed to save.",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+
+    Swal.fire({
+      text: "Failed to save employee transfer.",
+    });
+  }
+};
 
   return (
     <Formik

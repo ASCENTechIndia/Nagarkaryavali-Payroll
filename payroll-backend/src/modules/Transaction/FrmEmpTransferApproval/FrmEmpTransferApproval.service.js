@@ -27,7 +27,7 @@ async function saveEmpTransferService(payload) {
     if (result.errorCode === 9999) {
         return { success: false, errorCode: result.errorCode, message: result.errorMsg };
     } else {
-        return { success: true, errorCode: result.errorCode, message: result.errorMsg || "Employee transfer saved successfully" };
+        return { success: true, errorCode: result.errorCode, message: result.errorMsg};
     }
 }
 

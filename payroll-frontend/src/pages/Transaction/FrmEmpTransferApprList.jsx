@@ -104,9 +104,9 @@ const FrmEmpTransferApprList = () => {
                                 "/Transactions/FrmEmpTransferApproval",
                                 {
                                     state: {
-                                        mode: 3,
-                                        emptranid: item.EMPID,
-                                        emptranidemp: item.EMPTRANSID
+                                        mode: 2,
+                                        empId: item.EMPID,
+                                        empTransId: item.EMPTRANSID
                                     },
                                 }
                             )
