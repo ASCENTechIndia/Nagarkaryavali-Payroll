@@ -86,6 +86,7 @@ app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCal
 app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalulation/FrmSalaryCalulation.routes"))
 app.use("/api/FrmAttendanceEntry", require("./modules/Transaction/FrmAttendanceEntry/FrmAttendanceEntry.routes"))
 app.use("/api/FrmEmpTransferApproval", require("./modules/Transaction/FrmEmpTransferApproval/FrmEmpTransferApproval.route"))
+app.use("/api/FrmOtherEarnEntryList", require("./modules/Transaction/FrmOtherEarnEntryList/FrmOtherEarnEntryList.routes"))
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))

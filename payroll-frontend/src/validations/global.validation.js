@@ -202,3 +202,38 @@ export const FrmAttendanceEntryValidationSchema = z.object({
     billNo: z.string().optional(),
 });
 
+export const FrmOtherEarningEntryValidationSchema = z.object({
+  department: z.string()
+    .min(1, "Please select Department")
+    .refine((val) => val !== undefined && val !== null && val !== "", {
+      message: "Please select Department",
+    }),
+  designation: z.string()
+    .min(1, "Please select Designation")
+    .refine((val) => val !== undefined && val !== null && val !== "", {
+      message: "Please select Designation",
+    }),
+  employeeId: z.string()
+    .min(1, "Please select Employee")
+    .refine((val) => val !== undefined && val !== null && val !== "", {
+      message: "Please select Employee",
+    }),
+  earningHead: z.string()
+    .min(1, "Please select Earning Head")
+    .refine((val) => val !== undefined && val !== null && val !== "", {
+      message: "Please select Earning Head",
+    }),
+  amount: z.string()
+    .min(1, "Please enter Amount")
+    .regex(/^\d+(\.\d{1,2})?$/, "Enter a valid amount"),
+  date: z.date({
+    required_error: "Please select Date",
+    invalid_type_error: "Please select a valid Date",
+  }),
+  remark: z.string()
+    .min(1, "Please enter Remark")
+    .refine((val) => val !== undefined && val !== null && val.trim() !== "", {
+      message: "Please enter Remark",
+    }),
+});
+
