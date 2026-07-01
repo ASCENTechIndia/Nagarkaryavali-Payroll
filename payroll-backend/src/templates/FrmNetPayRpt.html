@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Net Pay Report</title>
+
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .main-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .top-table,
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .top-table td,
+        .main-table td,
+        .main-table th {
+            border: 1px solid black;
+            padding: 6px;
+        }
+
+        .main-table th {
+            text-align: center;
+            background-color: #2C3E50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .report-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+        }
+
+        .footer table {
+            width: 100%;
+        }
+
+        .footer td {
+            border: none;
+            padding: 5px;
+        }
+
+        .grand-total {
+            background-color: #ECF0F1;
+            font-weight: bold;
+        }
+
+        .record-count {
+            margin-top: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        {{#if logo}}
+        <img src="{{logo}}" style="height:50px;" />
+        {{/if}}
+        <div class="main-title">
+            {{corporationName}}
+        </div>
+    </div>
+
+    <table class="top-table">
+        <tr>
+            <td width="15%" class="center">
+                <b>Date</b>
+            </td>
+            <td width="70%" class="center">
+                <b>{{reportName}}</b>
+            </td>
+            <td width="15%" class="center">
+                <b>Page No</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="center">
+                {{printDate}}
+            </td>
+            <td class="center">
+                Month: {{month}} - {{year}}
+            </td>
+            <td class="center">
+                1
+            </td>
+        </tr>
+    </table>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th>Sr No</th>
+                <th>Emp ID</th>
+                <th>Employee Name</th>
+                <th>Account No</th>
+                <th class="right">Net Salary (₹)</th>
+                <th>Department</th>
+                <th>Branch</th>
+                <th>Emp Class</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each rows}}
+            <tr>
+                <td class="center">{{SRNO}}</td>
+                <td class="center">{{EMPID}}</td>
+                <td class="left">{{EMPNAME}}</td>
+                <td class="center">{{ACCNO}}</td>
+                <td class="right">{{NETSAL}}</td>
+                <td class="left">{{DEPTNAME}}</td>
+                <td class="left">{{BRANCHNAME}}</td>
+                <td class="center">{{EMPCLASS}}</td>
+            </tr>
+            {{/each}}
+            <tr class="grand-total">
+                <td colspan="4" class="right">
+                    <b>Grand Total:</b>
+                </td>
+                <td class="right">
+                    <b>₹ {{grandTotal}}</b>
+                </td>
+                <td colspan="3"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <table>
+            <tr>
+                <td class="left">
+                    <b>Branch:</b> {{branchName}}
+                </td>
+                <td class="center">
+                    <b>User:</b> {{userId}}
+                </td>
+                <td class="right">
+                    <b>Total Records:</b> {{recordCount}}
+                </td>
+            </tr>
+        </table>
+        <div class="record-count center">
+            This is a computer generated report
+        </div>
+    </div>
+</body>
+
+</html>

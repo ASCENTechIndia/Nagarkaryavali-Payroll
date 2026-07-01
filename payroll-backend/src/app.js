@@ -65,9 +65,9 @@ app.use("/api/EmpleaveList", require("./modules/Master/FrmEmpLeave/FrmEmpLeaveLi
 app.use("/api/FrmPayCommissionListMst", require("./modules/Master/FrmPayCommissionListMst/FrmPayCommissionListMst.routes"));
 app.use("/api/FrmPayScaleListMst", require("./modules/Master/FrmPayScaleListMst/FrmPayScaleListMst.routes"));
 app.use("/api/FrmDeptListMst", require("./modules/Master/FrmDeptListMst/FrmDeptListMst.route"));
-
-//Search
-app.use("/api/FrmGenericSearch", require("./modules/Search/FrmGenericSearch/FrmGenericSearch.route"))
+app.use("/api/FrmBillGeneration", require("./modules/Master/FrmBillGeneration/FrmBillGeneration.route"));
+app.use("/api/FrmEsevaReport", require("./modules/Master/FrmEsevaReport/FrmEsevaReport.route"));
+app.use("/api/FrmLoanAndAdvancedReceived", require("./modules/Master/FrmLoanAndAdvancedReceived.route"));
 
 // Configuration
 app.use("/api/Branchconfi", require("./modules/ConfigurationP/FrmBranchConfiguration/FrmBranchConfig.route"))
@@ -106,4 +106,10 @@ app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreament
 
 app.use(errorMiddleware);
 
+app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"));
+app.use("/api/FrmLoansAndAdvancesReceived", require("./modules/Reports/FrmLoansAndAdvancesReceived/FrmLoansAndAdvancesReceived.routes"));
+app.use("/api/FrmLoansAndAdvancesRpt", require("./modules/Reports/FrmLoansAndAdvancesRpt/FrmLoansAndAdvancesRpt.route"));
+app.use("/api/FrmNetPayRpt", require("./modules/Reports/FrmNetPayRpt/FrmNetPayRpt.route"));
+app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeductionPayheadsDtls/FrmDeductionPayheadsDtls.route"));
+app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
 module.exports = app;

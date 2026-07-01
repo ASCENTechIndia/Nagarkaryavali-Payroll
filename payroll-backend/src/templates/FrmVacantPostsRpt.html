@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vacant Posts Report</title>
+
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: 'Arial', 'Kruti Dev', 'Mangal', sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .main-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .top-table,
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .top-table td,
+        .main-table td,
+        .main-table th {
+            border: 1px solid black;
+            padding: 8px;
+        }
+
+        .main-table th {
+            text-align: center;
+            background-color: #8B0000;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .report-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #8B0000;
+        }
+
+        .footer {
+            margin-top: 20px;
+        }
+
+        .footer table {
+            width: 100%;
+        }
+
+        .footer td {
+            border: none;
+            padding: 5px;
+        }
+
+        .record-count {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #FFF8F0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        {{#if logo}}
+        <img src="{{logo}}" style="height:50px;" />
+        {{/if}}
+        <div class="main-title">
+            {{corporationName}}
+        </div>
+    </div>
+
+    <table class="top-table">
+        <tr>
+            <td width="15%" class="center">
+                <b>दिनांक</b>
+            </td>
+            <td width="70%" class="center">
+                <b>{{reportName}}</b>
+            </td>
+            <td width="15%" class="center">
+                <b>पृष्ठ क्रमांक</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="center">
+                {{printDate}}
+            </td>
+            <td class="center">
+                माह: {{month}} {{#if year}}- {{year}}{{/if}}
+            </td>
+            <td class="center">
+                1
+            </td>
+        </tr>
+    </table>
+
+    <div class="report-title">
+        {{reportName}}
+    </div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th>क्र.</th>
+                <th>कर्मचारी क्रमांक</th>
+                <th>कर्मचारी नाव</th>
+                <th>विभाग</th>
+                <th>पदनाम</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each rows}}
+            <tr>
+                <td class="center">{{SRNO}}</td>
+                <td class="center">{{EMPID}}</td>
+                <td class="left">{{ENGNAME}}</td>
+                <td class="left">{{DEPTNAMEE}}</td>
+                <td class="left">{{DESIGENAME}}</td>
+            </tr>
+            {{/each}}
+            {{#if (eq recordCount 0)}}
+            <tr>
+                <td colspan="5" class="center">
+                    कोणतेही रेकॉर्ड सापडले नाहीत
+                </td>
+            </tr>
+            {{/if}}
+        </tbody>
+    </table>
+
+    <div class="record-count">
+        एकूण रिक्त पदे: {{recordCount}}
+    </div>
+
+    <div class="footer">
+        <div class="center" style="font-size: 9px; margin-top: 10px;">
+            हा संगणकीय अहवाल आहे | वापरकर्ता: {{userId}}
+        </div>
+    </div>
+</body>
+
+</html>
