@@ -129,30 +129,30 @@ export const router = createBrowserRouter([
         element: <FrmInsuranceMst />
       },
 
-      {
-        path: "Masters/FrmDeptMst",
-        element: <FrmDeptMaster />
-      },
+      // {
+      //   path: "Masters/FrmDeptMst",
+      //   element: <FrmDeptMaster />
+      // },
       {
         path: "Masters/FrmDeptList",
         element: <FrmDeptList />
       },
-      {
-        path: "Masters/FrmEmpLeaveList",
-        element: <FrmEmpLeaveList />
-      },
-      {
-        path: "Masters/FrmLeaveApprove",
-        element: <FrmLeaveApprove />
-      },
-      {
-        path: "Masters/FrmLeaveApprovalList",
-        element: <FrmLeaveApprovalList />
-      },
-      {
-        path: "Masters/FrmLeaveApplication",
-        element: <FrmLeaveApplication />
-      },
+      // {
+      //   path: "Masters/FrmEmpLeaveList",
+      //   element: <FrmEmpLeaveList />
+      // },
+      // {
+      //   path: "Masters/FrmLeaveApprove",
+      //   element: <FrmLeaveApprove />
+      // },
+      // {
+      //   path: "Masters/FrmLeaveApprovalList",
+      //   element: <FrmLeaveApprovalList />
+      // },
+      // {
+      //   path: "Masters/FrmLeaveApplication",
+      //   element: <FrmLeaveApplication />
+      // },
       {
         path: "Masters/FrmLeaveList",
         element: <FrmLeaveList />
@@ -283,10 +283,10 @@ export const router = createBrowserRouter([
         path: "Masters/FrmLeaveApprove",
         element: <FrmLeaveApprove />
       },
-      {
-        path: "Masters/FrmLeaveMst",
-        element: <FrmLeaveMaster />
-      },
+      // {
+      //   path: "Masters/FrmLeaveMst",
+      //   element: <FrmLeaveMaster />
+      // },
       {
         path: "Masters/FrmLeaveApprovalList",
         element: <FrmLeaveApprovalList />
