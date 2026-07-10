@@ -710,12 +710,37 @@ const FrmEmployeeMstNewTest = () => {
       fromDate: record.fromDate ? formatDateForProcedure(record.fromDate) : null,
       toDate: record.toDate ? formatDateForProcedure(record.toDate) : null
     }));
+
+    const licString = formattedLicRecords
+      .map(record => [
+        record.policyNumber || "",
+        record.premiumAmount || "",
+        record.policyAmount || "",
+        record.tenure || "",
+        record.policyHolder || "",
+        record.fromDate || "",
+        record.toDate || "",
+        record.flag || "Y",          
+        record.id || "0"           
+      ].join("$"))
+    .join("#");
     
     const formattedBankRecords = bankRecords.map(record => ({
       ...record,
       fromDate: record.fromDate ? formatDateForProcedure(record.fromDate) : null,
       toDate: record.toDate ? formatDateForProcedure(record.toDate) : null
     }));
+
+    const earningString = earningList.map(item =>
+      `${item.amount || 0}#${item.id}`
+    );
+
+    const deductionString = deductionList.map(item =>
+      `${item.amount || 0}#${item.id}`
+    );
+
+    const empEarDudStr =
+      [...earningString, ...deductionString].join("$");
     
     
     const payload = {
@@ -761,7 +786,8 @@ const FrmEmployeeMstNewTest = () => {
       mode: mode,
       societyAmt: personalValues.societyAmt ? parseInt(personalValues.societyAmt) : 0,
       // empEarDudStr: "",
-      empEarDudStr: null,
+      // empEarDudStr: null,
+      empEarDudStr: empEarDudStr || null,
       currbasic: 0,
       currgradepay: 0,
       ic: null,
@@ -777,7 +803,8 @@ const FrmEmployeeMstNewTest = () => {
       cast: officeValues.caste ? parseInt(officeValues.caste) : 0,
       subcast: officeValues.subCaste,
       festivalAdvanceId: officeValues.festivalAdvance ? parseInt(officeValues.festivalAdvance) : 0,
-      str: formattedLicRecords.length === 0 ? null : JSON.stringify(formattedLicRecords),
+      // str: formattedLicRecords.length === 0 ? null : JSON.stringify(formattedLicRecords),
+      str: licString || null,
       subdeptId: officeValues.subDepartment ? parseInt(officeValues.subDepartment) : 0,
       deductionType: officeValues.deductionType,
       billno: officeValues.billNo,
@@ -805,7 +832,7 @@ const FrmEmployeeMstNewTest = () => {
       karyazone: officeValues.karyaratZone ? parseInt(officeValues.karyaratZone) : 0,
       bankstramc: formattedBankRecords.length === 0 ? null : JSON.stringify(formattedBankRecords)
     };
-
+    
     console.log("Formatted Payload:", payload);
     
     try {
