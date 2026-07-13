@@ -497,7 +497,7 @@ const FrmSalaryEditCalulation = () => {
       }
 
       const saveData = {
-        userId: user?.userId || user?.id || "ADMIN",
+        userId: user?.userId,
         date: employeeDetails.salaryDate,
         empid: Number(employeeDetails.empId),
         paramStr: paramStr,

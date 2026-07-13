@@ -10,7 +10,7 @@ import FrmDeptListMst from '@/pages/Masters/FrmDeptListMst';
 import FrmDeptMst from '@/pages/Masters/FrmDeptMst';
 import FrmInsuranceMstList from "@/pages/Masters/FrmInsuranceMstList"
 import FrmInsuranceMst from '@/pages/Masters/FrmInsuranceMst';
-import FrmDeptList from '@/pages/Masters/FrmDeptSelect';
+import FrmDeptSelect from '@/pages/Masters/FrmDeptSelect';
 import FrmDeptMaster from '@/pages/Masters/FrmDeptMst';
 import FrmEmpLeaveList from '@/pages/Masters/FrmEmpLeaveList';
 import FrmLeaveApprove from '@/pages/Masters/FrmLeaveApprove';
@@ -78,6 +78,7 @@ import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
 import FrmEmpTransferApproval from './pages/Transaction/FrmEmpTransferApproval';
 import FrmOtherEarnEntryList from './pages/Transaction/FrmOtherEarnEntryList';
 import FrmOtherEarningEnrty from './pages/Transaction/FrmOtherEarningEnrty';
+import FrmDeptOrder from './pages/Masters/FrmDeptOrder';
 
 const Home = () => {
   return (
@@ -134,8 +135,12 @@ export const router = createBrowserRouter([
       //   element: <FrmDeptMaster />
       // },
       {
-        path: "Masters/FrmDeptList",
-        element: <FrmDeptList />
+        path: "Masters/FrmDeptSelect",
+        element: <FrmDeptSelect />
+      },
+      {
+        path: "Masters/FrmDeptOrder",
+        element: <FrmDeptOrder />
       },
       // {
       //   path: "Masters/FrmEmpLeaveList",
