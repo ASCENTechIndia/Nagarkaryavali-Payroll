@@ -20,8 +20,8 @@ exports.getEmpTransferDetails = asyncHandler(async (req, res) => {
 exports.saveEmpTransfer = asyncHandler(async (req, res) => {
     const data = await service.saveEmpTransferService(req.body);
     if (data.success) {
-        return ok(res, data, data.message);
+        return ok(res, data, data.errorMsg);
     } else {
-        return fail(res, data.message, 400);
+        return fail(res, data.errorMsg, 400);
     }
 });

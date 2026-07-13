@@ -158,7 +158,7 @@ const FrmEmpTransferApprList = () => {
 
                 <CardContent className="px-4 pt-3 sm:pt-8 space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-1/2">
-                        <Label className="sm:w-44 text-[15px] font-semibold text-gray-700 text-nowrap">Employee Name :</Label>
+                        <Label text="Employee Name :" className="text-nowrap" />
                         <Input
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}

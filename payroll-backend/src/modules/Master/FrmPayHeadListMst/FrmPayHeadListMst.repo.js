@@ -113,9 +113,9 @@ const getPayHeadDetailsById = async (body) => {
 const savePayHead = async (payload) => {
   console.log("📤 Repo: Execute PayHead Procedure", payload);
 
-  const sql = `
-    BEGIN
-      aopr_payheads_ins(
+ const sql = `
+BEGIN
+    aopr_payheads_ins(
         :IN_UserId,
         :IN_CorpId,
         :IN_PayHeadID,
@@ -125,11 +125,12 @@ const savePayHead = async (payload) => {
         :IN_OrderNo,
         :IN_Mode,
         :IN_Mergeid,
+        :IN_UlbID,
         :Out_ErrorCode,
         :out_ErrorMsg
-      );
-    END;
-  `;
+    );
+END;
+`;
 
   const binds = {
     IN_UserId: {
@@ -175,6 +176,11 @@ const savePayHead = async (payload) => {
     IN_Mergeid: {
       val: payload.mergeId !== undefined && payload.mergeId !== null ? Number(payload.mergeId) : null,
       type: oracledb.NUMBER,
+    },
+
+    IN_UlbID: {
+        val: Number(payload.ulbId),
+        type: oracledb.NUMBER,
     },
 
     Out_ErrorCode: {

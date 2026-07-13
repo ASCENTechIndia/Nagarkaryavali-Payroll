@@ -90,6 +90,8 @@ app.use("/api/FrmAttendanceEntry", require("./modules/Transaction/FrmAttendanceE
 app.use("/api/FrmEmpTransferApproval", require("./modules/Transaction/FrmEmpTransferApproval/FrmEmpTransferApproval.route"))
 app.use("/api/FrmOtherEarnEntryList", require("./modules/Transaction/FrmOtherEarnEntryList/FrmOtherEarnEntryList.routes"))
 app.use("/api/FrmEmployeeTransfer", require("./modules/Transaction/FrmEmployeeTransfer/FrmEmployeeTransfer.route"))
+app.use("/api/FrmMonthlyBankDeductionUpload",require ("./modules/Transaction/FrmMonthlyBankDeductionUpload/FrmMonthlyBankDeductionUpload.routes"))
+app.use("/api/FrmSalDeduction", require("./modules/Transaction/FrmSalDeduction/FrmSalDeduction.routes"))
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))

@@ -319,10 +319,10 @@ const handleSubmit = async (values) => {
                 <CardContent className="p-4 sm:p-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {/* Employee ID */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black"
+                
                           text="Employee ID"
                           required
                         />
@@ -338,10 +338,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* Employee Name */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black text-nowrap"
+                    className="text-nowrap"
                           text="Employee Name"
                           required
                         />
@@ -357,10 +357,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* New Department */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black text-nowrap"
+                    className="text-nowrap"
                           text="New Department"
                           required
                         />
@@ -373,7 +373,7 @@ const handleSubmit = async (values) => {
                           setFieldValue("department", value)
                         }
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
                           <SelectValue placeholder="Select Department" />
                         </SelectTrigger>
 
@@ -391,10 +391,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* New Designation */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black text-nowrap"
+                    className="text-nowrap"
                           text="New Designation"
                           required
                         />
@@ -407,7 +407,7 @@ const handleSubmit = async (values) => {
                           setFieldValue("designation", value)
                         }
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
                           <SelectValue placeholder="Select Designation" />
                         </SelectTrigger>
 
@@ -425,10 +425,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* Transfer Type */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black text-nowrap"
+                    
                           text="Transfer Type"
                           required
                         />
@@ -441,7 +441,7 @@ const handleSubmit = async (values) => {
                           setFieldValue("transferType", value)
                         }
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
                           <SelectValue placeholder="Select Transfer Type" />
                         </SelectTrigger>
 
@@ -459,10 +459,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* Pay Band */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black"
+                
                           text="Pay Band"
                           required
                         />
@@ -475,7 +475,7 @@ const handleSubmit = async (values) => {
                           setFieldValue("payBand", value)
                         }
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
                           <SelectValue placeholder="Select Pay Band" />
                         </SelectTrigger>
 
@@ -493,10 +493,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* Order Date */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black"
+                
                           text="Order Date"
                           required
                         />
@@ -511,10 +511,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* Order Number */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black text-nowrap"
+                    
                           text="Order Number"
                           required
                         />
@@ -530,10 +530,10 @@ const handleSubmit = async (values) => {
                     </div>
 
                     {/* Date Of Joining */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black text-nowrap"
+                    className="text-nowrap"
                           text="Date Of Joining"
                           required
                         />
@@ -551,9 +551,9 @@ const handleSubmit = async (values) => {
                   {/* Status */}
                   <div className="pt-4">
                     <div className="flex flex-col sm:flex-row gap-2">
-                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
-                          className="text-[15px] font-semibold text-black"
+                
                           text="Status"
                           required
                         />

@@ -180,6 +180,7 @@ const FrmPayHeadMst = () => {
                 marathiName: values.marathiName,
                 orderNo: Number(values.paySheetOrder),
                 mergeId: values.mergeIn ? Number(values.mergeIn) : null,
+                ulbId: ulbId,
                 mode: mode == 2 ? 2 : 1,
             };
 
@@ -273,7 +274,7 @@ const FrmPayHeadMst = () => {
 
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                             <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label className="text-[15px] font-semibold text-black" text=" Pay Head ID" required />
+                                                <Label className="text-[15px] font-semibold text-black" text=" Pay Head ID" />
                                                 <span>:</span>
                                             </div>
 
@@ -330,7 +331,7 @@ const FrmPayHeadMst = () => {
 
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                             <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label className="text-[15px] font-semibold text-black text-nowrap" text="Merge In" required />
+                                                <Label className="text-[15px] font-semibold text-black text-nowrap" text="Merge In" />
                                                 <span>:</span>
                                             </div>
 

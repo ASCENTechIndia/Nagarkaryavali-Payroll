@@ -95,10 +95,13 @@ async function saveEmpTransferRepo(payload) {
 
     if (!result.success) throw new Error(result.error);
 
+    console.log("Procedure Result =>", JSON.stringify(result, null, 2));
+
     return {
-        errorCode: result.outBinds.out_errorcode,
-        errorMsg: result.outBinds.out_errormsg,
-        transferId: result.outBinds.out_trasferid
+        success: true,
+        errorCode: result.outBinds.out_ErrorCode,
+        errorMsg: result.outBinds.out_ErrorMsg,
+        transferId: result.outBinds.out_trasferID
     };
 }
 

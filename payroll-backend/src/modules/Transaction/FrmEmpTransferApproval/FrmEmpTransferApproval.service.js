@@ -25,10 +25,20 @@ async function saveEmpTransferService(payload) {
 
     const result = await repo.saveEmpTransferRepo(payload);
     if (result.errorCode === 9999) {
-        return { success: false, errorCode: result.errorCode, message: result.errorMsg };
-    } else {
-        return { success: true, errorCode: result.errorCode, message: result.errorMsg};
+        return {
+            success: true,
+            errorCode: result.errorCode,
+            errorMsg: result.errorMsg,
+            transferId: result.transferId
+        };
     }
+
+    return {
+        success: false,
+        errorCode: result.errorCode,
+        errorMsg: result.errorMsg,
+        transferId: result.transferId
+    };
 }
 
 module.exports = {

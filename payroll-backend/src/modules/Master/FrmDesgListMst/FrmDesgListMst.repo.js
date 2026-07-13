@@ -67,22 +67,21 @@ const getDesignationDetailsById = async (body) => {
 };
 
 const saveDesignation = async (payload) => {
-  
-  const sql = `
-    BEGIN
-      aopr_designation_ins(
-        :in_DesigId,
-        :in_DesigName,
-        :in_WashAllowance,
-        :in_UserId,
-        :in_CleanAllowance,
-        :in_Mode,
-        :out_ErrorCode,
-        :out_ErrorMsg
-      );
-    END;
-  `;
 
+  const sql = `
+      BEGIN
+          aopr_designation_ins(
+              :in_UserId,
+              :in_DesigId,
+              :in_DesigName,
+              :in_WashAllowance,
+              :in_CleanAllowance,
+              :in_Mode,
+              :out_ErrorCode,
+              :out_ErrorMsg
+          );
+      END;
+`;
   const binds = {
     in_DesigId: {
       val: Number(payload.desgId || 0),

@@ -128,7 +128,7 @@ const FrmDesgMst = () => {
             if (res.data?.success) {
                 Swal.fire({
                     text: res.data?.message,
-                    confirmButtonColor: "#1e3a8a" 
+                    confirmButtonColor: "#1e3a8a"
                 }).then(() => {
                     navigate("/Masters/FrmDesgListMst");
                 });
@@ -138,11 +138,18 @@ const FrmDesgMst = () => {
                 });
             }
         } catch (error) {
-            console.error("Save Designation API Error:", error );
-            Swal.fire({
-                text: "Failed to save designation",
-            });
+            console.error("Save Designation API Error:", error);
 
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                "Failed to save designation";
+
+            Swal.fire({
+                text: errorMessage,
+                confirmButtonColor: "#1e3a8a",
+            });
         }
     }
 
@@ -172,7 +179,7 @@ const FrmDesgMst = () => {
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                         <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                                             <Label className="text-[15px] font-semibold text-black text-nowrap" required>
-                                                 Designation ID
+                                                Designation ID
                                             </Label>
                                             <span>:</span>
                                         </div>
