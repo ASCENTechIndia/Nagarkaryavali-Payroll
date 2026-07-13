@@ -79,7 +79,7 @@ app.use("/api/FrmBankRecovery", require("./modules/ConfigurationP/FrmBankRecover
 app.use("/api/PayCommConf", require("./modules/ConfigurationP/FrmPayCommissionConfiguration/FrmPayCommissionConfig.route"))
 app.use("/api/RelaCongif", require("./modules/ConfigurationP/FrmRelationConfiguration/FrmRelationConfig.route"))
 app.use("/api/ReligConfig", require("./modules/ConfigurationP/FrmReligionConfiguration/FrmReligionConfig.route"))
-
+app.use("/api/FrmDeptconfig", require("./modules/ConfigurationP/FrmDepartmentConfig/FrmDeptConfig.route"))
 //Transaction
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
