@@ -2,7 +2,6 @@ const { executeQuery } = require("../../../db/queryExecutor");
 const oracledb = require("oracledb");
 const { withTx } = require("../../../db/tx");
 
-// ✅ Get Relation List
 async function getRelationListRepo() {
   try {
     const query = `
@@ -21,7 +20,6 @@ async function getRelationListRepo() {
   }
 }
 
-// ✅ Get Relation Details By Id
 async function getRelationByIdRepo(payload) {
   try {
     const query = `
@@ -43,63 +41,79 @@ async function getRelationByIdRepo(payload) {
   }
 }
 
-// ✅ Save / Update / Delete Relation
 async function saveRelationRepo(data) {
   try {
     const result = await withTx(async (conn) => {
+      const corpId = data.corpId ? Number(data.corpId) : null;
+      
+      if (corpId === null || isNaN(corpId)) {
+        throw new Error("corpId must be a valid number");
+      }
+
       const res = await conn.execute(
         `BEGIN
             aopr_relation_ins(
-              :in_RelId,
-              :in_CorpId,
-              :in_RelName,
               :in_UserId,
+              :in_CorpId,
+              :in_RelId,
+              :in_RelName,
               :in_Mode,
               :out_ErrorCode,
               :out_ErrorMsg
             );
          END;`,
-
         {
-          in_RelId: data.relid,
-
-          in_CorpId: data.corpId,
-
-          in_RelName: data.relname,
-
-          in_UserId: data.userId,
-
-          in_Mode: data.mode,
-
+          in_UserId: {
+            dir: oracledb.BIND_IN,
+            type: oracledb.STRING,
+            val: data.userId
+          },
+          in_CorpId: {
+            dir: oracledb.BIND_IN,
+            type: oracledb.NUMBER,
+            val: corpId 
+          },
+          in_RelId: {
+            dir: oracledb.BIND_IN,
+            type: oracledb.NUMBER,
+            val: data.relid ? Number(data.relid) : null
+          },
+          in_RelName: {
+            dir: oracledb.BIND_IN,
+            type: oracledb.STRING,
+            val: data.relname
+          },
+          in_Mode: {
+            dir: oracledb.BIND_IN,
+            type: oracledb.NUMBER,
+            val: data.mode ? Number(data.mode) : null
+          },
           out_ErrorCode: {
             dir: oracledb.BIND_OUT,
             type: oracledb.NUMBER,
           },
-
           out_ErrorMsg: {
             dir: oracledb.BIND_OUT,
             type: oracledb.STRING,
             maxSize: 1000,
           },
-        },
+        }
       );
 
-      console.log("saveRelationRepo", res);
+      console.log("saveRelationRepo result:", res);
 
       return res.outBinds;
     });
 
     return {
       success: true,
-
       errorCode: result.out_ErrorCode,
-
       errorMsg: result.out_ErrorMsg,
     };
   } catch (err) {
+    console.error("saveRelationRepo error:", err);
     return {
       success: false,
-
       error: err.message,
     };
   }

@@ -22,9 +22,10 @@ const FrmRelListMst = () => {
   };
 
   const fetchRelations = async () => {
+    console.log("Full user object:", user);
     try {
       Swal.fire({
-        title: "Loading Casts...",
+        title: "Loading Relations...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });

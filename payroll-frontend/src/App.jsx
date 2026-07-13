@@ -8,6 +8,10 @@ import FrmCastListMst from '@/pages/Masters/FrmCastListMst';
 import FrmCastMaster from '@/pages/Masters/FrmCastMaster';
 import FrmDeptListMst from '@/pages/Masters/FrmDeptListMst';
 import FrmDeptMst from '@/pages/Masters/FrmDeptMst';
+import FrmRelegionList from '@/pages/Masters/FrmRelegionList';
+import FrmRelegionMst from '@/pages/Masters/FrmRelegionMst';
+import FrmRelationMst from './pages/Masters/FrmRelationMst';
+import FrmRelListMst from './pages/Masters/FrmRelListMst';
 import FrmInsuranceMstList from "@/pages/Masters/FrmInsuranceMstList"
 import FrmInsuranceMst from '@/pages/Masters/FrmInsuranceMst';
 import FrmDeptSelect from '@/pages/Masters/FrmDeptSelect';
@@ -79,6 +83,9 @@ import FrmEmpTransferApproval from './pages/Transaction/FrmEmpTransferApproval';
 import FrmOtherEarnEntryList from './pages/Transaction/FrmOtherEarnEntryList';
 import FrmOtherEarningEnrty from './pages/Transaction/FrmOtherEarningEnrty';
 import FrmDeptOrder from './pages/Masters/FrmDeptOrder';
+import FrmEmployeeTransfer from './pages/Transaction/FrmEmployeeTransfer';
+import FrmEmployeeDtls from './pages/Search/FrmEmployeeDtls'
+
 
 const Home = () => {
   return (
@@ -120,6 +127,22 @@ export const router = createBrowserRouter([
       {
         path: "Masters/FrmDeptMst",
         element: <FrmDeptMst />
+      },
+      {
+        path: "Masters/FrmRelegionList",
+        element: <FrmRelegionList />
+      },
+      {
+        path: "Masters/FrmRelegionMst",
+        element: <FrmRelegionMst />
+      },
+      {
+        path: "Masters/FrmRelationMst",
+        element: <FrmRelationMst />
+      },
+      {
+        path: "Masters/FrmRelListMst",
+        element: <FrmRelListMst />
       },
       {
         path: "Masters/FrmInsuranceMstList",
@@ -343,6 +366,11 @@ export const router = createBrowserRouter([
           path: "Transactions/FrmOtherEarningEnrty",
           element: <FrmOtherEarningEnrty />
         },
+         {
+        path: "Transactions/FrmEmployeeTransfer",
+        element: <FrmEmployeeTransfer/>
+      },
+
 
 
 
@@ -350,6 +378,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmGenericSearch",
         element: <FrmGenericSearch />
+      },
+      {
+        path: "Transactions/FrmEmployeeDtls",
+        element: <FrmEmployeeDtls/>
       },
 
 

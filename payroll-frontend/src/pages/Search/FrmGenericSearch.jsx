@@ -40,7 +40,6 @@ const FrmGenericSearch = () => {
   const [tableData, setTableData] = useState([]);
   const [showTable, setShowTable] = useState(false);
 
-
   useEffect(() => {
     if (!token) return;
 
@@ -86,12 +85,6 @@ const FrmGenericSearch = () => {
         });
         return;
       }
-      // setCorporationOptions(
-      //   rows.map((item) => ({
-      //     value: item.CORPORATIONID.toString(),
-      //     label: item.CORPORATIONNAME,
-      //   }))
-      // );
 
       const options = rows.map((item) => ({
         value: item.CORPORATIONID.toString(),
@@ -209,10 +202,16 @@ const FrmGenericSearch = () => {
   };
 
   const handleSelect = (row) => {
+    console.log("=== SELECT BUTTON CLICKED ===");
+    console.log("Selected Row Data:", row);
+    console.log("Employee ID:", row.NUM_EMPLOYEE_EMPID);
+    
+    // Navigate with full employee data
     navigate("/Transactions/FrmEmployeeDtls", {
       state: {
-        mode: 2,
+        mode: 2, // Edit mode
         empId: row.NUM_EMPLOYEE_EMPID,
+        employeeData: row, // Pass the entire row data
       },
     });
   };
@@ -540,6 +539,7 @@ const FrmGenericSearch = () => {
                   onChange={(e) =>
                     setGender(e.target.value)
                   }
+                  className="h-4 w-4"
                 />
                 <Label text={"Male"} className="sm:w-16"/>
 
@@ -551,6 +551,7 @@ const FrmGenericSearch = () => {
                   onChange={(e) =>
                     setGender(e.target.value)
                   }
+                  className="h-4 w-4"
                 />
                 <Label text={"Female"} className="sm:w-16"/>
 

@@ -22,22 +22,49 @@ const getDepartmentDetailsByIdService = async (body) => {
 const saveDepartmentService = async (body) => {
   const { userId, deptId, deptnameE, deptnameM, mode } = body;
 
+  console.log('Service received payload:', body);
+
   if (!userId) throw new AppError("userId is required", 400);
   if (!deptnameE) throw new AppError("Department Name (English) is required", 400);
   if (!deptnameM) throw new AppError("Department Name (Marathi) is required", 400);
   if (!mode) throw new AppError("mode is required", 400);
 
-  const result = await repo.saveDepartment(body);
+  try {
+    const result = await repo.saveDepartment(body);
+    console.log('Repository result:', result);
+    const errorCode = result.out_ErrorCode;
+    const errorMsg = result.out_ErrorMsg;
 
-  if (result.out_ErrorCode < 0 && result.out_ErrorCode !== -100) {
-    throw new AppError(result.out_ErrorMsg, 400);
+    if (errorCode === 0 || errorCode === -100) {
+      return {
+        ok: true,
+        success: true,
+        errorCode: errorCode,
+        message: errorMsg || 'Department saved successfully',
+        data: { message: errorMsg || 'Department saved successfully' }
+      };
+    } else if (errorCode < 0) {
+      
+      return {
+        ok: false,
+        success: false,
+        errorCode: errorCode,
+        message: errorMsg || 'Procedure returned an error',
+        data: { message: errorMsg || 'Procedure returned an error' }
+      };
+    }
+
+    return {
+      ok: true,
+      success: true,
+      errorCode: errorCode || 0,
+      message: errorMsg || 'Department saved successfully',
+      data: { message: errorMsg || 'Department saved successfully' }
+    };
+  } catch (error) {
+    console.error('Service error:', error);
+    throw error;
   }
-
-  return {
-    success: true,
-    errorCode: result.out_ErrorCode,
-    message: result.out_ErrorMsg,
-  };
 };
 
 module.exports = {

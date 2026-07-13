@@ -21,11 +21,17 @@ const FrmDeptListMst = () => {
     Select: "select",
     "Department ID": "id",
     "Department Name (English)": "name_eng",
-    "Department Name (Marathi)": "name_mr",
+    "Department Name (Marathi)": "name_mr", 
   };
 
   const searchDepts = async (text) => {
   try {
+    Swal.fire({
+        title: "Searching Departments...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+    
     const res = await axios.post(
       `${BASE_URL}/api/FrmDeptListMst/department-search`,
       {
@@ -37,6 +43,7 @@ const FrmDeptListMst = () => {
         },
       }
     );
+    Swal.close();
 
     if (res.data.rows) {
       setDeptList(res.data.rows);

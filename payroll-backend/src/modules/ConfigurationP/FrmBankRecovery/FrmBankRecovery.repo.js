@@ -2,7 +2,7 @@ const { executeQuery } = require("../../../db/queryExecutor");
 const oracledb = require("oracledb");
 const { withTx } = require("../../../db/tx");
 
-// ✅ Month List
+// Month List
 async function getMonthListRepo() {
   try {
     const query = `
@@ -20,7 +20,7 @@ async function getMonthListRepo() {
   }
 }
 
-// ✅ Year List
+// Year List
 async function getYearListRepo() {
   try {
     const query = `
@@ -38,43 +38,43 @@ async function getYearListRepo() {
   }
 }
 
-// ✅ Bank Recovery List
+// Bank Recovery List
 async function getBankRecoveryListRepo(payload) {
   try {
     const query = `
       SELECT
-        num_bankrecover_id,
-        var_employee_engname,
-        var_bankmst_bankname,
-        var_branchmst_branchname,
-        num_bankrecover_amount,
+        e.NUM_BANKRECOVER_ID,
+        emp.VAR_EMPLOYEE_ENGNAME AS EMPLOYEE_NAME,
+        b.VAR_BANKMST_BANKNAME AS BANK_NAME,
+        br.VAR_BRANCHMST_BRANCHNAME AS BRANCH_NAME,
+        e.NUM_BANKRECOVER_AMOUNT,
         CASE
-          WHEN var_bankrecover_isworking = 'Y'
-          THEN 'Yes'
+          WHEN TRIM(UPPER(e.VAR_BANKRECOVER_ISWORKING)) = 'Y' THEN 'Yes'
           ELSE 'No'
-        END AS isworking,
-        a.var_month_name AS frommonth,
-        b.var_month_name AS tomonth,
-        c.var_year AS fromyear,
-        d.var_year AS toyear
-      FROM aopr_bankrecovery_mst e
-      INNER JOIN aopr_employee_def
-        ON num_employee_empid = num_bankrecover_empid
-       AND e.num_bankrecover_ulbid = num_employee_ulbid
-      INNER JOIN aopr_bankmst_def
-        ON num_bankmst_bankid = num_bankrecover_bankid
-      INNER JOIN aopr_branchmst_def
-        ON num_branchmst_branchid = num_bankrecover_branchid
-      INNER JOIN admins.aoup_calendar a
-        ON a.num_month_id = var_bankrecover_frommonth
-      INNER JOIN admins.aoup_calendar b
-        ON b.num_month_id = var_bankrecover_tomonth
-      INNER JOIN admins.aoma_year c
-        ON c.num_year_id = var_bankrecover_fromyear
-      INNER JOIN admins.aoma_year d
-        ON d.num_year_id = var_bankrecover_toyear
-      WHERE num_bankrecover_empid = :empId
-        AND e.num_bankrecover_ulbid = :ulbId
+        END AS ISWORKING,
+        a.VAR_MONTH_NAME AS FROMMONTH,
+        a2.VAR_MONTH_NAME AS TOMONTH,
+        c.VAR_YEAR AS FROMYEAR,
+        c2.VAR_YEAR AS TOYEAR
+      FROM AOPR_BANKRECOVERY_MST e
+      INNER JOIN AOPR_EMPLOYEE_DEF emp
+        ON emp.NUM_EMPLOYEE_EMPID = e.NUM_BANKRECOVER_EMPID
+       AND e.NUM_BANKRECOVER_ULBID = emp.NUM_EMPLOYEE_ULBID
+      INNER JOIN AOPR_BANKMST_DEF b
+        ON b.NUM_BANKMST_BANKID = e.NUM_BANKRECOVER_BANKID
+      LEFT JOIN AOPR_BRANCHMST_DEF br
+        ON br.NUM_BRANCHMST_BRANCHID = e.NUM_BANKRECOVER_BRANCHID
+      LEFT JOIN ADMINS.AOUP_CALENDAR a
+        ON a.NUM_MONTH_ID = e.VAR_BANKRECOVER_FROMMONTH
+      LEFT JOIN ADMINS.AOUP_CALENDAR a2
+        ON a2.NUM_MONTH_ID = e.VAR_BANKRECOVER_TOMONTH
+      LEFT JOIN ADMINS.AOMA_YEAR c
+        ON c.NUM_YEAR_ID = e.VAR_BANKRECOVER_FROMYEAR
+      LEFT JOIN ADMINS.AOMA_YEAR c2
+        ON c2.NUM_YEAR_ID = e.VAR_BANKRECOVER_TOYEAR
+      WHERE e.NUM_BANKRECOVER_EMPID = :empId
+        AND e.NUM_BANKRECOVER_ULBID = :ulbId
+      ORDER BY e.NUM_BANKRECOVER_ID DESC
     `;
 
     const result = await executeQuery(query, {
@@ -84,13 +84,48 @@ async function getBankRecoveryListRepo(payload) {
 
     return result.rows;
   } catch (err) {
+    console.error("Error in getBankRecoveryListRepo:", err);
     throw err;
   }
 }
 
+// Save Recovery List
 async function saveBankRecoveryRepo(data) {
   try {
     const result = await withTx(async (conn) => {
+      let subDeptIdValue = data.subDeptId;
+      if (!subDeptIdValue || subDeptIdValue === "" || subDeptIdValue === "null" || subDeptIdValue === "undefined") {
+        subDeptIdValue = null;
+      }
+
+      let branchIdValue = data.branchId;
+      if (!branchIdValue || branchIdValue === "" || branchIdValue === "null" || branchIdValue === "undefined") {
+        branchIdValue = null;
+      }
+      console.log(data.isWorking);
+
+      let isWorkingValue = 'N';
+      if (data.isWorking === 'Y' || data.isWorking === true || data.isWorking === 'true'|| data.isWorking ==="true") {
+        isWorkingValue = 'Y';
+      }
+
+      console.log("Saving ISWORKING value:", isWorkingValue);
+      console.log("Saving payload:", {
+        userId: data.userId,
+        empId: data.empId,
+        deptId: data.deptId,
+        subDeptId: subDeptIdValue,
+        isWorking: data.isWorking,
+        recovAmount: data.recovAmount,
+        fromYear: data.fromYear,
+        fromMonth: data.fromMonth,
+        toYear: data.toYear,
+        toMonth: data.toMonth,
+        bankId: data.bankId,
+        branchId: branchIdValue,
+        ulbId: data.ulbId
+      });
+
       const res = await conn.execute(
         `BEGIN
             aopr_bankrecov_ins(
@@ -115,22 +150,20 @@ async function saveBankRecoveryRepo(data) {
           in_UserId: data.userId,
           in_EmpId: data.empId,
           in_deptid: data.deptId,
-          in_Subdeptid: data.subDeptId,
-          in_IsWorking: data.isWorking,
+          in_Subdeptid: subDeptIdValue,
+          in_IsWorking: isWorkingValue,
           in_recovamount: data.recovAmount,
           in_fromyear: data.fromYear,
           in_fromonth: data.fromMonth,
           in_toyear: data.toYear,
           in_tomonth: data.toMonth,
           in_bankid: data.bankId,
-          in_branchid: data.branchId,
+          in_branchid: branchIdValue,
           in_ulbid: data.ulbId,
-
           out_ErrorCode: {
             dir: oracledb.BIND_OUT,
             type: oracledb.NUMBER,
           },
-
           out_ErrorMsg: {
             dir: oracledb.BIND_OUT,
             type: oracledb.STRING,
@@ -148,6 +181,7 @@ async function saveBankRecoveryRepo(data) {
       errorMsg: result.out_ErrorMsg,
     };
   } catch (err) {
+    console.error("Error in saveBankRecoveryRepo:", err);
     return {
       success: false,
       error: err.message,

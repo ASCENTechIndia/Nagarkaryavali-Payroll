@@ -66,6 +66,8 @@ async function saveCastService(castData) {
   const result =
     await repo.insertCastRepo({
 
+      corpId: castData.corpId || 1,
+
       castId: castData.castId || 0,
 
       castName: castData.castName,
@@ -76,13 +78,9 @@ async function saveCastService(castData) {
 
     });
 
-  console.log(
-    "Service insertCastRepo Result:",
-    result
-  );
+  console.log( "Service insertCastRepo Result:", result);
 
   if (!result.success) {
-
     throw new AppError(
       result.error,
       500
@@ -90,7 +88,6 @@ async function saveCastService(castData) {
   }
 
   if (result.errorCode !== -100) {
-
     throw new AppError(
       result.errorMsg ||
       "Failed to save cast",
@@ -105,8 +102,7 @@ async function saveCastService(castData) {
 
     errorMsg: result.errorMsg,
 
-    message:
-      "Cast saved successfully",
+    message: "Cast saved successfully",
   };
 }
 

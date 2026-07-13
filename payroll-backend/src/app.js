@@ -76,11 +76,12 @@ app.use("/api/BankConfig", require("./modules/ConfigurationP/FrmBankConfiguratio
 app.use("/api/LeaveConfig", require("./modules/ConfigurationP/FrmLeaveConfiguration/FrmLeaveConfig.route"))
 app.use("/api/PayScaConfig", require("./modules/ConfigurationP/FrmPayScaleConfiguration/FrmPayScaleConfig.route"))
 app.use("/api/FrmPayHeadConfigList", require("./modules/ConfigurationP/FrmPayHeadConfigList/FrmPayHeadConfigList.routes"))
-app.use("/api/FrmBankRecovery", require("./modules/ConfigurationP/FrmBankRecovery/FrmBankRecovery.routes"));
+app.use("/api/FrmBankRecovery", require("./modules/ConfigurationP/FrmBankRecovery/FrmBankRecovery.route"));
 app.use("/api/PayCommConf", require("./modules/ConfigurationP/FrmPayCommissionConfiguration/FrmPayCommissionConfig.route"))
 app.use("/api/RelaCongif", require("./modules/ConfigurationP/FrmRelationConfiguration/FrmRelationConfig.route"))
 app.use("/api/ReligConfig", require("./modules/ConfigurationP/FrmReligionConfiguration/FrmReligionConfig.route"))
 app.use("/api/FrmDeptconfig", require("./modules/ConfigurationP/FrmDepartmentConfig/FrmDeptConfig.route"))
+app.use("/api/FrmDesignationConfig", require("./modules/ConfigurationP/FrmDesignationConfig/FrmDesignationConfig.route"))
 //Transaction
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
@@ -88,6 +89,7 @@ app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalu
 app.use("/api/FrmAttendanceEntry", require("./modules/Transaction/FrmAttendanceEntry/FrmAttendanceEntry.routes"))
 app.use("/api/FrmEmpTransferApproval", require("./modules/Transaction/FrmEmpTransferApproval/FrmEmpTransferApproval.route"))
 app.use("/api/FrmOtherEarnEntryList", require("./modules/Transaction/FrmOtherEarnEntryList/FrmOtherEarnEntryList.routes"))
+app.use("/api/FrmEmployeeTransfer", require("./modules/Transaction/FrmEmployeeTransfer/FrmEmployeeTransfer.route"))
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
@@ -100,17 +102,22 @@ app.use("/api/FrmPayrollDashbordMst", require("./modules/Reports/FrmPayrollDashb
 app.use("/api/FrmPayHeadList", require("./modules/Reports/FrmPayHeadList/FrmPayHeadList.routes"))
 app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"))
 app.use("/api/FrmEmpLstRpt", require("./modules/Reports/FrmEmpLstRpt/FrmEmpLstRpt.routes"))
-
-//Loans and Advances
-app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
-app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))
-
-app.use(errorMiddleware);
-
 app.use("/api/FrmPayrollReport", require("./modules/Reports/FrmPayrollReport/FrmPayrollReport.route"));
 app.use("/api/FrmLoansAndAdvancesReceived", require("./modules/Reports/FrmLoansAndAdvancesReceived/FrmLoansAndAdvancesReceived.routes"));
 app.use("/api/FrmLoansAndAdvancesRpt", require("./modules/Reports/FrmLoansAndAdvancesRpt/FrmLoansAndAdvancesRpt.route"));
 app.use("/api/FrmNetPayRpt", require("./modules/Reports/FrmNetPayRpt/FrmNetPayRpt.route"));
 app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeductionPayheadsDtls/FrmDeductionPayheadsDtls.route"));
 app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
+
+//Loans and Advances
+app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
+app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))
+
+//Search
+app.use("/api/FrmGenericSearch", require("./modules/Search/FrmGenericSearch/FrmGenericSearch.route"));
+app.use("/api/FrmEmployeeDtls", require("./modules/Search/FrmEmployeeDtls/FrmEmployeeDtls.route"));
+
+app.use(errorMiddleware);
+
+
 module.exports = app;
