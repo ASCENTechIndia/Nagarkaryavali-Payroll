@@ -1,5 +1,9 @@
-import React, { useState } from "react";
 import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -7,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import ShadCNTable from "@/components/ui/table";
+
 import {
   Select,
   SelectTrigger,
@@ -16,28 +21,222 @@ import {
 } from "@/components/ui/select";
 
 const FrmMonthlyBankDeductionAuthorization = () => {
-  const [tableData] = useState([
-    {
-      employeeCode: 2084,
-      employeeName: "",
-      department: "महापालिका आयुक्त कार्यालय",
-      salaryMonth: "December",
-      deductionHead: "सोसायटी २",
-      deductionAmount: 11416,
-      remarks: "",
-      monthId: 6,
-    },
-    {
-      employeeCode: 3516,
-      employeeName: "",
-      department: "महापालिका आयुक्त कार्यालय",
-      salaryMonth: "December",
-      deductionHead: "सोसायटी २",
-      deductionAmount: 20575,
-      remarks: "",
-      monthId: 6,
-    },
-  ]);
+  const { state } = useLocation();
+
+  const mainId = state?.mainId;
+
+  const { user } = useAuth();
+
+  const token = user?.token;
+  const ulbId = user?.ulbId;
+
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  const [tableData, setTableData] = useState([]);
+
+  const [departmentList, setDepartmentList] = useState([]);
+  const [yearList, setYearList] = useState([]);
+
+  const [department, setDepartment] = useState("");
+  const [departmentName, setDepartmentName] = useState("");
+
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+
+  const months = [
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
+  const fetchMasters = async () => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const payload = {
+        ulbId,
+      };
+
+      const [departmentRes, yearRes] = await Promise.all([
+        axios.post(
+          `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/department-list`,
+          payload,
+          config,
+        ),
+        axios.get(
+          `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/year-list`,
+          config,
+        ),
+      ]);
+
+      const departments = departmentRes.data?.data || [];
+
+      setDepartmentList(departments);
+      setYearList(yearRes.data?.data || []);
+
+      if (departmentName) {
+        const dept = departments.find((item) => item.LABEL === departmentName);
+
+        if (dept) {
+          setDepartment(String(dept.VALUE));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchAuthorizationDetails = async () => {
+    try {
+      Swal.fire({
+        title: "Loading...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const { data } = await axios.post(
+        `${BASE_URL}/api/FrmMonthlyBankDeductionUploadAuth/authdetails`,
+        {
+          mainId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const rows =
+        data?.data?.map((item) => ({
+          employeeCode: item.EMPLOYEE_CODE,
+          employeeName: item.EMPLOYEE_NAME || "",
+          department: item.DEPARTMENT,
+          salaryMonth: item.SALARY_MONTH_YEAR,
+          deductionHead: item.DEDUCTION_PAYHEAD,
+          deductionAmount: item.DEDUCTION_AMOUNT,
+          remarks: item.REMARKS || "",
+          monthId: item.MONTH_NUM,
+        })) || [];
+
+      setTableData(rows);
+
+      if (data?.data?.length > 0) {
+        const first = data.data[0];
+
+        setDepartmentName(first.DEPARTMENT || "");
+        setMonth(String(first.MONTH_NUM));
+        setYear(String(first.YEAR_NUM));
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        text:
+          err.response?.data?.message ||
+          "Failed to load authorization details.",
+      });
+    } finally {
+      Swal.close();
+    }
+  };
+
+  useEffect(() => {
+    if (token && ulbId) {
+      fetchMasters();
+    }
+  }, [token, ulbId]);
+
+  useEffect(() => {
+    if (mainId && token) {
+      fetchAuthorizationDetails();
+    }
+  }, [mainId, token]);
+
+  useEffect(() => {
+    if (departmentList.length && departmentName) {
+      const dept = departmentList.find((item) => item.LABEL === departmentName);
+
+      if (dept) {
+        setDepartment(String(dept.VALUE));
+      }
+    }
+  }, [departmentList, departmentName]);
+
+  const handleSubmit = async (mode) => {
+    try {
+      Swal.fire({
+        title: "Please Wait...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const in_str =
+        tableData
+          .map(
+            (row) =>
+              `${row.employeeCode}$${row.employeeName || ""}$${row.department}$${row.salaryMonth}$${row.deductionHead}$${row.deductionAmount}$${row.remarks || ""}$`,
+          )
+          .join("#") + "#";
+
+      const payload = {
+        userId: user.userId,
+        month: Number(month),
+        year: Number(
+          yearList.find((x) => String(x.LABEL) === String(year))?.VALUE || year,
+        ),
+        mode,
+        id: mainId,
+        in_str,
+      };
+
+      const { data } = await axios.post(
+        `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/submit`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      Swal.close();
+
+      if (data.success && data.errorCode === 9999) {
+        Swal.fire({
+          icon: "success",
+          text: data.errorMsg,
+        });
+        return;
+      }
+
+      Swal.fire({
+        icon: data.success ? "warning" : "error",
+        text: data.errorMsg,
+      });
+    } catch (err) {
+      Swal.close();
+
+      Swal.fire({
+        icon: "error",
+        text:
+          err.response?.data?.errorMsg ||
+          err.response?.data?.message ||
+          "Something went wrong.",
+      });
+    }
+  };
 
   const headers = [
     "EMPLOYEE_CODE",
@@ -78,46 +277,62 @@ const FrmMonthlyBankDeductionAuthorization = () => {
           {/* Filters */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Department */}
+
             <div>
               <Label text="Department" required />
-              <Select defaultValue="1">
+
+              <Select value={department} disabled>
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Select Department" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="1">महापालिका आयुक्त कार्यालय</SelectItem>
+                  {departmentList.map((item) => (
+                    <SelectItem key={item.VALUE} value={String(item.VALUE)}>
+                      {item.LABEL}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Year */}
 
             <div>
               <Label text="Year" required />
 
-              <Select>
+              <Select value={year} disabled>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="-- Select Option --" />
+                  <SelectValue placeholder="Select Year" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="2026">2026</SelectItem>
-                  <SelectItem value="2025">2025</SelectItem>
+                  {yearList.map((item) => (
+                    <SelectItem key={item.VALUE} value={String(item.LABEL)}>
+                      {item.LABEL}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              
+            {/* Month */}
 
+            <div>
               <Label text="Month" required />
 
-              <Select>
+              <Select value={month} disabled>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="-- Select Option --" />
+                  <SelectValue placeholder="Select Month" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="12">December</SelectItem>
+                  {months.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -138,13 +353,22 @@ const FrmMonthlyBankDeductionAuthorization = () => {
           {/* Buttons */}
 
           <div className="flex justify-center gap-4">
-            <Button>Authorize</Button>
-
-            <Button variant="destructive">Reject</Button>
+            <Button type="button" onClick={() => handleSubmit(2)}>
+              Authorize
+            </Button>
 
             <Button
+              type="button"
+              variant="destructive"
+              onClick={() => handleSubmit(1)}
+            >
+              Reject
+            </Button>
+
+            <Button
+              type="button"
               variant="outline"
-              path="/Transactions/FrmMonthlyBankDeductionUpload"
+              path="/Transactions/FrmMonthlyBankDeductionUploadAuthList"
             >
               Back
             </Button>

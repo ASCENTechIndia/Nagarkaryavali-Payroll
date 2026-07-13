@@ -78,6 +78,10 @@ import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
 import FrmEmpTransferApproval from './pages/Transaction/FrmEmpTransferApproval';
 import FrmOtherEarnEntryList from './pages/Transaction/FrmOtherEarnEntryList';
 import FrmOtherEarningEnrty from './pages/Transaction/FrmOtherEarningEnrty';
+import FrmMonthlyBankDeductionUpload from './pages/Transaction/FrmMonthlyBankDeduction';
+import FrmBillGeneration from './pages/Transaction/FrmBillGeneration';
+import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthList"
+import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
 
 const Home = () => {
   return (
@@ -338,7 +342,25 @@ export const router = createBrowserRouter([
           path: "Transactions/FrmOtherEarningEnrty",
           element: <FrmOtherEarningEnrty />
         },
+        {
+          path: "Transactions/FrmMonthlyBankDeductionUpload",
+          element: <FrmMonthlyBankDeductionUpload />
+        },
 
+        {
+          path: "Transactions/FrmBillGeneration",
+          element: <FrmBillGeneration/>
+        },
+
+        {
+          path :"Transactions/FrmMonthlyBankDeductionUploadAuthList",
+          element: <FrmMonthlyBankDeductionUploadAuthList/>
+        },
+        
+        {
+          path :"Transactions/FrmMonthlyBankDeductionUploadAuthMst",
+          element: <FrmMonthlyBankDeductionUploadAuthMst/>
+        },
 
 
       //Search

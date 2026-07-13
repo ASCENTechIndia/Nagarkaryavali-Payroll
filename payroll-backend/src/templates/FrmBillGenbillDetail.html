@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Nirmala UI", "Mangal", "Arial", sans-serif;
+        font-size: 11px;
+        color: #000;
+        line-height: 1.4;
+      }
+
+      .page {
+        width: 100%;
+      }
+
+      .main-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .main-table td {
+        vertical-align: top;
+      }
+
+      .left-copy {
+        width: 50%;
+        border-right: 1px solid #000;
+        padding-right: 12px;
+      }
+
+      .right-copy {
+        width: 50%;
+        padding-left: 12px;
+      }
+
+      .title {
+        font-size: 14px;
+        font-weight: bold;
+        text-align: left;
+        margin-top: 5px;
+      }
+
+      .right-title {
+        font-size: 14px;
+        font-weight: bold;
+        text-align: left;
+        margin-top: 5px;
+      }
+
+      .sub-title {
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 10px;
+        margin-bottom: 5px;
+      }
+
+      .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin-top: 15px;
+        margin-bottom: 15px;
+      }
+
+      .summary-table td {
+        border: 1px solid #000;
+        padding: 4px;
+        vertical-align: middle;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .text-right {
+        text-align: right;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .declaration-text {
+        font-size: 11px;
+        line-height: 1.6;
+        text-align: left;
+        margin-bottom: 10px;
+      }
+
+      .bank-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin-top: 10px;
+      }
+
+      .bank-table td {
+        border: 1px solid #000;
+        padding: 4px;
+        vertical-align: middle;
+      }
+
+      .return-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin-top: 15px;
+      }
+
+      .return-table th,
+      .return-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+        vertical-align: middle;
+      }
+      
+      .return-table th {
+        font-weight: bold;
+      }
+
+      .inline-field {
+        display: inline-block;
+        border-bottom: 1px dotted #000;
+        min-width: 60px;
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <table class="main-table">
+        <tr>
+          <td class="left-copy">
+            <div class="title">{{corporationName}}</div>
+            <div class="sub-title">माहे {{MONTHNAME}} {{YEAR}} पगार पत्रक</div>
+            <div>वजा अनुपस्थित वेतन खालील तपशीलाप्रमाणे परत केले</div>
+
+            <table class="summary-table">
+              <tr>
+                <td style="width: 30%; "></td>
+                <td style="width: 30%; "></td>
+                <td style="width: 28%;">पेन्शन फंडासह एकूण वेतन</td>
+                <td style="width: 12%;" class="text-right">{{netEarning}}</td>
+              </tr>
+              <tr>
+                <td ></td>
+                <td ></td>
+                <td>पेन्शन फंडासह एकूण वजा</td>
+                <td class="text-right">{{netDeduction}}</td>
+              </tr>
+              <tr>
+                <td class="bold">एकूण वजाबाकी</td>
+                <td class="text-right">{{netDeduction}}</td>
+                <td class="bold">देय निव्वळ एकूण</td>
+                <td class="bold text-right">{{netPayable}}</td>
+              </tr>
+            </table>
+
+            <div class="declaration-text">
+              संकीर्ण वसुली (जोडलेल्या विवरण पत्रातील तपशीलाप्रमाणे) प्रदानासाठी आवश्यक असलेली रक्कम रु. <br><br>
+              <span class="bold">अक्षरी रु</span> <span class="inline-field" style="width: 150px;">{{AMOUNTINWORDS}}</span> च्या नावाचा धनादेश क्र. <span class="inline-field" style="width: 70px;">{{CHEQUENO}}</span> दि <span class="inline-field" style="width: 80px;">{{CHEQUEDATE}}</span><br>
+              <span class="bold">क्रमांक</span> <span class="inline-field" style="width: 150px;"></span> <span class="bold">दिनांक</span> <span class="inline-field" style="width: 80px;"></span><br><br>
+              १) निकट पूर्वीच्या महिन्या त म्हणजेच ( <span class="inline-field" style="width: 60px;"></span> ) या महिन्यात काढण्यात आलेल्या बिलात समाविष्ट असलेल्या सर्व वेतन व स्थानापन्न वेतन हे (ज्यांची एकूण रक्कम या बिलात कपात करून परत करण्यात आली आहे अशा) खाली तपशीलवार दिलेल्या बाबी खेरीज करून यथोचित व्यक्तींना<br>
+              देण्यात आली असून माझ्या कार्यालयात फाईल केलेल्या पावती तक्त्यांमध्ये २० रुपयांपेक्षा अधिक<br>
+              प्रमाणातील प्रत्येक प्रदानासाठी रसिदी मुद्रांक यथोचितरित्या रद्द करून त्यांच्या पावत्या आणि सर्व रजा<br>
+              घेण्या बद्दल मी माझी खात्री करून घेतली आहे. आलेल्या व पदोन्नती इत्यादी गोष्टींसंबंधी<br>
+              व्यक्तींच्या सेवापुस्तकात नमूद करण्यात आल्या आहेत.<br><br>
+              <div style="text-align: center; font-weight: bold;">रुपये- {{netPayable}} यावेत.</div><br>
+              दिनांक - &nbsp;&nbsp;&nbsp;&nbsp;/ &nbsp;&nbsp;&nbsp;&nbsp;/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;तपासले आणि नोंदले.
+            </div>
+
+            <table style="width: 100%; margin-top: 40px; text-align: center; font-weight: bold;">
+              <tr>
+                <td>विभाग प्रमुख</td>
+                <td>मुख्य लेखाधिकारी</td>
+                <td>उपायुक्त</td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 20px; font-weight: bold;">तपासले आणि नोंदले</div>
+          </td>
+
+          <td class="right-copy">
+            <div class="right-title">महापालिका अतिरिक्त आयुक्त कार्यालय- 1</div>
+            <div class="sub-title">&nbsp;</div>
+            <div class="bold">वजाती</div>
+
+            <table class="summary-table">
+              <tr>
+                <td style="width: 30%; "></td>
+                <td style="width: 30%; "></td>
+                <td style="width: 28%;">पेन्शन फंडासह एकूण वेतन</td>
+                <td style="width: 12%;" class="text-right">{{netEarning}}</td>
+              </tr>
+              <tr>
+                <td ></td>
+                <td ></td>
+                <td>पेन्शन फंडासह एकूण वजा</td>
+                <td class="text-right">{{netDeduction}}</td>
+              </tr>
+              <tr>
+                <td class="bold">एकूण वजाती</td>
+                <td class="text-right">{{netDeduction}}</td>
+                <td class="bold">देय निव्वळ रक्कम</td>
+                <td class="bold text-right">{{netPayable}}</td>
+              </tr>
+            </table>
+
+            <div style="text-align: center; font-weight: bold; margin-top: 60px; margin-bottom: 40px; font-size: 13px;">
+              लेखापरीक्षक<br>
+              <span style="font-size: 11px; font-weight: normal;">{{corporationName}}</span>
+            </div>
+
+            <table class="bank-table">
+              <tr>
+                <td colspan="2">बँक चेक नं.</td>
+                <td colspan="2">{{BANKCHEQUE}}</td>
+              </tr>
+              <tr>
+                <td style="width: 40%;">पगार</td>
+                <td style="width: 35%;" class="text-right">{{netPayable}}</td>
+                <td style="width: 25%;" rowspan="2" class="text-center">एकूण</td>
+                <td style="width: 25%;" rowspan="2" class="text-right bold">{{netPayable}}</td>
+              </tr>
+              <tr>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-top: 25px;">
+        <div class="bold" style="margin-bottom: 5px;">अनुपस्थित व्यक्तीच्या परत केलेल्या वेतनाचा तपशील</div>
+        <table class="return-table">
+          <tr>
+            <th style="width: 35%;">आस्थापना</th>
+            <th style="width: 25%;">नांव</th>
+            <th style="width: 20%;">कालावधी</th>
+            <th style="width: 20%;">आकार<br>रु. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; पै.</th>
+          </tr>
+          
+          {{#if returnedSalary}} 
+            {{#each subDetail}}
+            <tr>
+              <td>{{BILLNO}}</td>
+              <td>{{PAYHEADS_ENAME}}</td>
+              <td>&nbsp;</td>
+              <td class="text-right">{{AMOUNT}}</td>
+            </tr>
+            {{/each}} 
+          {{else}}
+            <tr>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td class="text-right">0.00</td>
+            </tr>
+          {{/if}}
+        </table>
+      </div>
+
+      <table style="width: 100%; margin-top: 40px; font-weight: bold;">
+        <tr>
+          <td style="width: 50%;">मुख्य लेखाधिकारी</td>
+          <td style="width: 50%; text-align: left; padding-left: 100px;">उपायुक्त</td>
+        </tr>
+      </table>
+
+      <div style="margin-top: 20px; font-weight: bold;">{{corporationName}}</div>
+      <div style="margin-top: 5px; font-size: 10px;">प्रमाणक &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; सर्व .साधा.रोकड वही पान नं</div>
+    </div>
+  </body>
+</html>

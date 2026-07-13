@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bill Summary Report</title>
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 15mm 18mm;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Noto Sans Devanagari", "Mangal", Arial, sans-serif;
+        font-size: 11px;
+        color: #000;
+        line-height: 1.4;
+        background: #fff;
+      }
+
+      .page {
+        width: 100%;
+        position: relative;
+        page-break-after: always;
+      }
+      
+      .page:last-child {
+        page-break-after: avoid;
+      }
+
+      .text-center { text-align: center; }
+      .text-right { text-align: right; }
+      .text-left { text-align: left; }
+      .fw-bold { font-weight: bold; }
+      
+      .d-flex { display: flex; }
+      .justify-between { justify-content: space-between; }
+      
+      .mt-5 { margin-top: 5px; }
+      .mt-10 { margin-top: 10px; }
+      .mt-20 { margin-top: 20px; }
+      .mb-20 { margin-bottom: 20px; }
+
+      /* Top Header Section */
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        margin-bottom: 15px;
+      }
+
+      .header-left {
+        width: 55%;
+      }
+
+      .header-right {
+        width: 40%;
+        text-align: left;
+      }
+
+      .meta-info-row {
+        margin-top: 10px;
+        line-height: 1.6;
+      }
+
+      /* Main Data Table */
+      table.main-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      table.main-table th, 
+      table.main-table td {
+        border: 1px solid #000;
+        padding: 5px 6px;
+        vertical-align: top;
+      }
+
+      table.main-table th {
+        font-weight: bold;
+        text-align: center;
+        background: #fff;
+      }
+
+      /* Nested calculation table formatting */
+      .inner-calc-table {
+        width: 100%;
+        margin-top: 40px;
+        border-collapse: collapse;
+      }
+      .inner-calc-table td {
+        border: none !important;
+        padding: 2px 0 !important;
+      }
+
+      /* Bottom info boxes grid */
+      .grid-box-container {
+        display: flex;
+        width: 100%;
+        margin-top: 10px;
+        border: 1px solid #000;
+      }
+
+      .grid-box-left {
+        width: 55%;
+        border-right: 1px solid #000;
+      }
+
+      .grid-box-right {
+        width: 45%;
+        padding: 6px;
+        font-size: 10.5px;
+        line-height: 1.5;
+      }
+
+      .budget-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .budget-table td {
+        border-bottom: 1px solid #000;
+        border-right: 1px solid #000;
+        padding: 4px 6px;
+      }
+      .budget-table tr:last-child td {
+        border-bottom: none;
+      }
+      .budget-table td:last-child {
+        border-right: none;
+      }
+
+      /* Section Divider Lines */
+      .section-divider {
+        border-top: 1px solid #000;
+        margin: 15px 0;
+        width: 100%;
+      }
+
+      .dotted-line {
+        border-bottom: 1px dotted #000;
+        display: inline-block;
+        min-width: 120px;
+      }
+
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- =================================================== -->
+    <!-- PAGE 1: BILL ENTRY AND BALANCE STRUCTURE            -->
+    <!-- =================================================== -->
+    <div class="page">
+      <div class="header-container">
+        <div class="header-left">
+          <div class="fw-bold">अ.मू.स.को.नमुना २२ नियम ४२ ( १ )</div>
+          <div class="fw-bold" style="font-size: 12px; margin-top: 2px;">{{corporationName}}</div>
+        </div>
+        <div class="header-right">
+          <div>लेखा शिर्ष - <span class="dotted-line" style="min-width: 100px;"></span></div>
+          <div class="fw-bold" style="margin-top: 2px;">महानगरपालिका अतिरिक्त आयुक्त कार्यालय- १</div>
+          <div>व्होऊचर क्र. - <span class="dotted-line"></span></div>
+        </div>
+      </div>
+
+      <div class="meta-info-row">
+        <div><strong>खात्याचा बिल क्रमांक :-</strong> <span class="dotted-line" style="min-width: 150px;"></span> &nbsp;&nbsp;&nbsp;&nbsp; <strong>दिनांक :-</strong> <span class="dotted-line" style="min-width: 100px;"></span></div>
+        <div><strong>पैसे घेणाऱ्याचे नाव व पत्ता :-</strong> युनियन बँक ऑफ इंडीया, शाखा सांगली</div>
+        <div><strong>माल मोजणी पुस्तकाचा संदर्भ :-</strong> <span class="dotted-line" style="min-width: 200px;"></span></div>
+      </div>
+
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th style="width: 6%;">अनु.क्र</th>
+            <th style="width: 44%;">वस्तूंचा तपशिल</th>
+            <th style="width: 16%;">परिमाण संख्या वजन</th>
+            <th style="width: 10%;">दर</th>
+            <th style="width: 10%;">युनिट</th>
+            <th style="width: 14%;">रक्कम रुपये</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-center">1.</td>
+            <td>
+              महानगरपालिका अतिरिक्त आयुक्त कार्यालय- 1 कडील कायम कर्मचारी कर्मचाऱ्यांना माहे <strong>{{salaryMonth}}</strong> वेतन देऊ.
+              
+              <table class="inner-calc-table">
+                <tr>
+                  <td class="text-right fw-bold" style="width: 70%;">एकूण वेतन रुपये -</td>
+                  <td class="text-right" style="width: 30%;">{{netEarning}}</td>
+                </tr>
+                <tr>
+                  <td class="text-right fw-bold">कटाई रुपये -</td>
+                  <td class="text-right">{{netDeduction}}</td>
+                </tr>
+                <tr>
+                  <td class="text-right fw-bold">देय वेतन रुपये -</td>
+                  <td class="text-right">{{netPayable}}</td>
+                </tr>
+              </table>
+
+              <div style="margin-top: 40px;">
+                <div class="fw-bold">Passed for Payment Rs.</div>
+                <div style="margin-top: 5px; margin-left: 20px;">शून्य</div>
+                <div class="text-center fw-bold" style="margin-top: 30px;">Head of Department</div>
+              </div>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="text-right">
+              <div>0.00</div>
+              <div style="margin-top: 36px; text-align: right;">
+                <div>0.00</div>
+                <div style="margin-top: 2px;">0.00</div>
+                <div style="margin-top: 2px;">0.00</div>
+              </div>
+              <div style="margin-top: 42px;">0.00</div>
+            </td>
+          </tr>
+          <tr class="fw-bold">
+            <td colspan="5" class="text-right">एकूण</td>
+            <td class="text-right">0.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="fw-bold mt-10">एकूण रक्कम रुपये (अक्षरी) - शून्य</div>
+
+      <!-- Budgetary / Verification Grid Box -->
+      <div class="grid-box-container">
+        <div class="grid-box-left">
+          <table class="budget-table">
+            <tr>
+              <td style="width: 8%;" class="text-center fw-bold">1</td>
+              <td style="width: 67%;">मंजूर बजेट तरतूद रु.</td>
+              <td style="width: 25%;" class="text-right"></td>
+            </tr>
+            <tr>
+              <td class="text-center fw-bold">2</td>
+              <td>पूर्वीचा खर्च रु.</td>
+              <td class="text-right"></td>
+            </tr>
+            <tr>
+              <td class="text-center fw-bold">3</td>
+              <td>ह्या बिलात दाखविलेला खर्च रु.</td>
+              <td class="text-right">0.00</td>
+            </tr>
+            <tr>
+              <td class="text-center fw-bold">4</td>
+              <td>२ व ३ यांची बेरीज रु.</td>
+              <td class="text-right"></td>
+            </tr>
+            <tr>
+              <td colspan="2" class="fw-bold">उपलब्ध शिल्लक रुपये</td>
+              <td class="text-right"></td>
+            </tr>
+          </table>
+        </div>
+        <div class="grid-box-right">
+          प्रमाणित करण्यात येते की, ह्या बिलात दाखविलेले दर व परिमाणेही अचूक आहेत आणि सामग्री वस्तू चांगल्या स्थितीत मिळाल्या असून त्या <span class="dotted-line" style="min-width: 80px;"></span> पुराव्याशी संबधीत रेखांच्या समोरील पुरवठा नोंदवहीत नमूद करण्यात आल्या आहेत.<br>
+          दिनांक: &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; / २०२६
+          <div style="margin-top: 15px;" class="fw-bold">वस्तू घेणाऱ्या अधिकाऱ्याची सही</div>
+        </div>
+      </div>
+
+      <div class="text-center fw-bold" style="margin-top: 35px; font-size: 13px;">
+        विभाग प्रमुख
+        <div style="font-size: 11px; font-weight: normal; margin-top: 3px;">{{corporationName}}</div>
+      </div>
+      
+      <div class="section-divider" style="margin-top: 25px;"></div>
+    </div>
+
+    <!-- =================================================== -->
+    <!-- PAGE 2: AUTHORIZATION AND AUDIT SLIP                 -->
+    <!-- =================================================== -->
+    <div class="page">
+      <div class="d-flex justify-between">
+        <div>नगदी बिल नोंद नं. <span class="dotted-line" style="min-width: 80px;"></span></div>
+        <div>दिनांक &nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; / २०२६</div>
+        <div class="text-right">
+          Passed for Payment Rs. &nbsp;&nbsp;<strong>0.00</strong>
+          <div style="margin-top: 3px;">शून्य</div>
+        </div>
+      </div>
+
+      <div class="mt-20">खाते प्रमुखाने दर्शविलेप्रमाणे अंदाजपत्रकी तरतूद आहे / नाही.</div>
+
+      <div class="d-flex justify-between" style="margin-top: 25px;">
+        <div class="fw-bold">
+          मुख्य लेखाधिकारी
+          <div style="font-weight: normal; margin-top: 2px;">{{corporationName}}</div>
+        </div>
+        <div class="fw-bold" style="margin-right: 40px;">Head of Department</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Municipal Audit Section -->
+      <div class="fw-bold" style="font-size: 12px;">महानगरपालिका लेखापरिक्षण विभाग</div>
+      
+      <div style="margin-left: 45%; margin-top: 10px; line-height: 1.6;">
+        <div>मंजूरी नं. <span class="dotted-line"></span></div>
+        <div>नाव <span class="dotted-line"></span></div>
+        <div>रक्कम रुपये &nbsp;&nbsp;<strong>0.00</strong></div>
+        <div>अक्षरी &nbsp;&nbsp;<strong>शून्य</strong></div>
+        <div>अदा करावी.</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Payment Breakdown (बटवडा) Section -->
+      <div class="fw-bold">बटवडा</div>
+      <div class="d-flex" style="margin-top: 10px;">
+        <div style="width: 45%; margin-left: 10%;">
+          <table style="width: 100%; line-height: 1.6;">
+            <tr>
+              <td class="fw-bold">युनियन बँक ऑफ इंडीया</td>
+              <td class="text-right">0.00</td>
+            </tr>
+            <tr>
+              <td class="fw-bold">कटाई रुपये -</td>
+              <td class="text-right">0.00</td>
+            </tr>
+            <tr>
+              <td class="fw-bold">एकूण वेतन रुपये -</td>
+              <td class="text-right">0.00</td>
+            </tr>
+          </table>
+        </div>
+        <div style="width: 45%; margin-left: 10%; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div class="fw-bold text-center">मुख्य लेखाधिकारी<br><span style="font-size: 10px; font-weight: normal;">{{corporationName}}</span></div>
+          <div class="fw-bold text-center">अति. आयुक्त<br><span style="font-size: 10px; font-weight: normal;">{{corporationName}}</span></div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Cheque Details Section -->
+      <div class="fw-bold">धनादेश तपशिल</div>
+      <div class="text-center" style="margin-top: 10px; line-height: 2;">
+        ............................................................................................................... बँकेंवरील <br>
+        चेक नंबर ................................................. रुपये ................................................................
+      </div>
+
+      <div class="d-flex justify-between" style="margin-top: 25px; padding: 0 40px;">
+        <div class="fw-bold text-center">मुख्य लेखाधिकारी<br><span style="font-size: 10px; font-weight: normal;">सांगली मिरज कुपवाड महापालिका.</span></div>
+        <div class="fw-bold text-center">अति. आयुक्त</div>
+      </div>
+
+      <div style="margin-top: 20px; margin-left: 50%;">
+        प्रमाणक क्रमांक <span class="dotted-line" style="min-width: 100px;"></span> &nbsp;&nbsp; दिनांक &nbsp;&nbsp; / &nbsp;&nbsp; / २०२६
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Receipt Acknowledgment Slip (पोहोच पावती) -->
+      <div class="fw-bold">पोहोच पावती</div>
+      <div style="margin-top: 15px; text-align: center; line-height: 2.2;">
+        .............................................................................. बँकेंकडील &nbsp;&nbsp; चेक नं. .......................................... दिनांक &nbsp;&nbsp; / &nbsp;&nbsp; / २०२६ <br>
+        रुपये <span class="dotted-line" style="min-width: 80px;"></span> पैसे <span class="dotted-line" style="min-width: 80px;"></span> मात्रा मिळाल्या.
+      </div>
+      
+      <!-- System footer info -->
+      <div class="d-flex justify-between" style="margin-top: 40px; font-size: 10px; color: #555;">
+        <div>Generated On : {{generatedDate}}</div>
+        <div>Generated By : {{generatedBy}}</div>
+        <div>This is a computer generated report.</div>
+      </div>
+    </div>
+
+  </body>
+</html>

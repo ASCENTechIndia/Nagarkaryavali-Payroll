@@ -1,4 +1,8 @@
-import React from "react";
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,10 +12,75 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import ShadCNTable from "@/components/ui/table";
-import { useNavigate } from "react-router-dom";
+
 
 const FrmMonthlyBankDeductionAuthorizationList = () => {
-  const navigate = useNavigate();
+
+  const { user } = useAuth();
+
+const token = user?.token;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const [tableData, setTableData] = useState([]);
+
+const fetchAuthorizationList = async () => {
+  try {
+    Swal.fire({
+      title: "Loading...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    const res = await axios.get(
+      `${BASE_URL}/api/FrmMonthlyBankDeductionUploadAuth/list`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const rows =
+      res.data?.data?.map((item) => ({
+        select: (
+          <Button
+            variant="outline"
+            path="/Transactions/FrmMonthlyBankDeductionUploadAuthMst"
+            state={{ mainId: item.MAINID }}
+          >
+            Select
+          </Button>
+        ),
+
+        departmentName: item.DEPARTMENT,
+        salaryDate: item.SALARYDATE,
+        employeeCount: item.EMPLOYEECOUNT,
+        deductionAmount: item.BANKDEDUCTIONAMOUNT,
+
+        mainid: item.MAINID,
+        deptnamee: item.DEPARTMENT,
+        saldate: item.SALARYDATE,
+        empcount: item.EMPLOYEECOUNT,
+        bankdeductionamt: item.BANKDEDUCTIONAMOUNT,
+      })) || [];
+
+    setTableData(rows);
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      text: "Failed to load list.",
+    });
+  } finally {
+    Swal.close();
+  }
+};
+
+
+useEffect(() => {
+  if (token) {
+    fetchAuthorizationList();
+  }
+}, [token]);
 
   const tableHeaders = [
     "Select",
@@ -39,27 +108,6 @@ const FrmMonthlyBankDeductionAuthorizationList = () => {
     BANKDEDUCTIONAMT: "bankdeductionamt",
   };
 
-  const tableData = [
-    {
-      select: (
-        <Button
-          variant="outline"
-          path="/Transactions/FrmMonthlyBankDeductionUploadAuthMst"
-        >
-          Select
-        </Button>
-      ),
-      departmentName: "महापालिका आयुक्त कार्यालय",
-      salaryDate: "31/12/2025",
-      employeeCount: 3,
-      deductionAmount: 53010,
-      mainid: 350,
-      deptnamee: "महापालिका आयुक्त कार्यालय",
-      saldate: "31/12/2025",
-      empcount: 3,
-      bankdeductionamt: 53010,
-    },
-  ];
 
   return (
     <motion.div
