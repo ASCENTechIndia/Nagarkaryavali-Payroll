@@ -304,7 +304,11 @@ async function saveSalaryEditRepo(payload) {
         `,
         binds: {
             In_UserId: payload.userId,
-            In_Date: payload.date,
+            // In_Date: payload.date,
+            In_Date: {
+                val: new Date(payload.date),
+                type: oracledb.DATE
+            },
             In_empid: payload.empid,
             In_ParamStr: payload.paramStr,
             In_Earnings: payload.earnings,

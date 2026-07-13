@@ -68,6 +68,7 @@ app.use("/api/FrmDeptListMst", require("./modules/Master/FrmDeptListMst/FrmDeptL
 // app.use("/api/FrmBillGeneration", require("./modules/Master/FrmBillGeneration/FrmBillGeneration.route"));
 // app.use("/api/FrmEsevaReport", require("./modules/Master/FrmEsevaReport/FrmEsevaReport.route"));
 // app.use("/api/FrmLoanAndAdvancedReceived", require("./modules/Master/FrmLoanAndAdvancedReceived.route"));
+app.use("/api/FrmDeptSelect", require("./modules/Master/FrmDeptSelect/FrmDeptSelect.routes"));
 
 // Configuration
 app.use("/api/Branchconfi", require("./modules/ConfigurationP/FrmBranchConfiguration/FrmBranchConfig.route"))

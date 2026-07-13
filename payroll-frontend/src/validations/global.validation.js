@@ -237,3 +237,36 @@ export const FrmOtherEarningEntryValidationSchema = z.object({
     }),
 });
 
+export const FrmDeptOrderValidationSchema = z.object({
+  deptOrder: z.string()
+    .min(1, "Please enter the department order")
+    .regex(/^\d+$/, "Department order must be a valid number"),
+  designations: z.array(z.object({
+    DESIGNATIONID: z.number(),
+    DESIGNATIONNAME: z.string(),
+    DESIGORDER: z.union([z.string(), z.number(), z.null()]).transform((val) => {
+      // Convert to string or empty string
+      if (val === null || val === undefined) return "";
+      return String(val);
+    }),
+    IsChecked: z.number()
+  })).refine((data) => {
+    const checkedItems = data.filter(d => d.IsChecked === 1);
+    return checkedItems.length > 0;
+  }, {
+    message: "Please select at least one designation"
+  }).refine((data) => {
+    const checkedItems = data.filter(d => d.IsChecked === 1);
+    const emptyOrders = checkedItems.filter(d => !d.DESIGORDER || d.DESIGORDER === "");
+    return emptyOrders.length === 0;
+  }, {
+    message: "Please enter order number for all selected designations"
+  }).refine((data) => {
+    const checkedItems = data.filter(d => d.IsChecked === 1);
+    const orders = checkedItems.map(d => parseInt(String(d.DESIGORDER)));
+    const uniqueOrders = new Set(orders);
+    return orders.length === uniqueOrders.size;
+  }, {
+    message: "Each designation must have a unique order number"
+  })
+});
