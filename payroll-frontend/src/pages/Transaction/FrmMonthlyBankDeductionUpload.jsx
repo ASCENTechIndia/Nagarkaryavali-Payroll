@@ -372,6 +372,7 @@ const FrmMonthlyBankDeductionUpload = () => {
         setUploadedData([]);
         setExcelFile(null);
       });
+      navigate("/Transactions/FrmMonthlyBankDeductionUpload")
     } else {
       Swal.fire({
         text:
