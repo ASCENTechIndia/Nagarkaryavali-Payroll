@@ -25,41 +25,7 @@ import { Button } from "@/components/ui/button";
 
 import ShadCNTable from "@/components/ui/table";
 
-const initialData = [
-  {
-    srNo: 1,
-    empId: 715,
-    empName: "राजु बळकृष्ण चव्हाण",
-    checked: false,
-    earnedLeave: 18,
-    medicalLeave: 16,
-    halfPayLeave: 10,
-    casualLeave: 10,
-    total: 60,
-  },
-  {
-    srNo: 2,
-    empId: 2519,
-    empName: "संदीप रामचंद्र कोळी",
-    checked: false,
-    earnedLeave: 0,
-    medicalLeave: 0,
-    halfPayLeave: 0,
-    casualLeave: 0,
-    total: 0,
-  },
-  {
-    srNo: 3,
-    empId: 2969,
-    empName: "हुसेन अजीज कोरबु",
-    checked: false,
-    earnedLeave: 0,
-    medicalLeave: 0,
-    halfPayLeave: 0,
-    casualLeave: 0,
-    total: 0,
-  },
-];
+const initialData = [];
 
 const FrmEmpLeaveList = () => {
   const [tableData, setTableData] =
@@ -225,7 +191,7 @@ const FrmEmpLeaveList = () => {
 
               <SelectContent>
                 <SelectItem value="1">
-                  महापालिका अतिरिक्त आयुक्त कार्यालय - 1
+                 
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -248,7 +214,7 @@ const FrmEmpLeaveList = () => {
 
               <SelectContent>
                 <SelectItem value="1">
-                  Regular
+                 
                 </SelectItem>
               </SelectContent>
             </Select>
