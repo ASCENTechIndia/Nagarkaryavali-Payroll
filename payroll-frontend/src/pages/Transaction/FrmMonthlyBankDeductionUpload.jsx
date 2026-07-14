@@ -310,7 +310,7 @@ const FrmMonthlyBankDeductionUpload = () => {
   }, [token, mode, empId, empTransId]);
 
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values, resetForm) => {
   try {
     if (uploadedData.length === 0) {
       Swal.fire({
@@ -369,6 +369,7 @@ const FrmMonthlyBankDeductionUpload = () => {
           res.data.data?.errorMsg ||
           "Submitted Successfully",
       }).then(() => {
+        resetForm(); 
         setUploadedData([]);
         setExcelFile(null);
       });
@@ -397,7 +398,7 @@ const FrmMonthlyBankDeductionUpload = () => {
     <Formik
       initialValues={formInitialValues}
       enableReinitialize={true}
-      onSubmit={handleSubmit}
+      onSubmit={(values, { resetForm }) => handleSubmit(values, resetForm)}
     >
       {({ values, handleChange, setFieldValue }) => {
         return (
