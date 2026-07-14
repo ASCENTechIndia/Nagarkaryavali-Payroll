@@ -270,3 +270,37 @@ export const FrmDeptOrderValidationSchema = z.object({
     message: "Each designation must have a unique order number"
   })
 });
+
+export const FrmEmployeeRetireValidationSchema = z.object({
+  department: z.string()
+    .min(1, "Please select Department")
+    .refine((val) => val !== "" && val !== "0", {
+      message: "Please select Department",
+    }),
+  subDepartment: z.string().optional(),
+  employeeId: z.string()
+    .min(1, "Please select Employee")
+    .refine((val) => val !== "" && val !== "0", {
+      message: "Please select Employee",
+    }),
+  retirementReason: z.string()
+    .min(1, "Please select Retirement Reason")
+    .refine((val) => val !== "" && val !== "0", {
+      message: "Please select Retirement Reason",
+    }),
+  otherReason: z.string().optional(),
+  retireDate: z.date()
+    .nullable()
+    .refine((val) => val !== null && val !== undefined, {
+      message: "Please select Retirement Date",
+    }),
+  remark: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.retirementReason === "4" && (!data.otherReason || data.otherReason.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify Other Reason",
+      path: ["otherReason"],
+    });
+  }
+});

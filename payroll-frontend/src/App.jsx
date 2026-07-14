@@ -87,6 +87,7 @@ import FrmEmployeeTransfer from './pages/Transaction/FrmEmployeeTransfer';
 import FrmEmployeeDtls from './pages/Search/FrmEmployeeDtls'
 import FrmMonthlyBankDeductionUpload from './pages/Transaction/FrmMonthlyBankDeductionUpload';
 import FrmSalDeduction from './pages/Transaction/FrmSalDeduction';
+import FrmEmployeeRetire from './pages/Transaction/FrmEmployeeRetire';
 
 
 const Home = () => {
@@ -380,6 +381,10 @@ export const router = createBrowserRouter([
           path: "Transactions/FrmMonthlyBankDeductionUpload",
           element: <FrmMonthlyBankDeductionUpload />
         },
+      {
+        path: "Transactions/FrmEmployeeRetire",
+        element: <FrmEmployeeRetire />
+      },
 
 
 
