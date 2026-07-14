@@ -87,17 +87,14 @@
 
 const express = require("express");
 const router = express.Router();
-
+const  isValidToken  = require('./isValidToken');
 const controller = require("./auth.controller");
 
+router.post('/validate-token', isValidToken)
 router.post("/login-proc", controller.loginProc);
-
 router.post("/change-password", controller.changePassword);
-
 router.post("/refresh", controller.refresh);
-
 router.post("/logout", controller.logout);
-
 router.get("/me", controller.me);
 
 module.exports = router;

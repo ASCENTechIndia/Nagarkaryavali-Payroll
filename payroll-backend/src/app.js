@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 const { NODE_ENV } = require("./config/env");
 const errorMiddleware = require("./middlewares/error.middleware");
 const { rateLimitMiddleware } = require("./middlewares/rateLimit.middleware");
@@ -12,17 +13,36 @@ const tasksRoutes = require("./modules/tasks/tasks.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
 const healthRoutes = require("./routes/health.routes");
 const path = require("path");
+
 const app = express();
 
 // trust proxy (important for rate-limit & IP)
 app.set("trust proxy", 1);
 
 // security & parsing
-app.use(cors({ origin: NODE_ENV === "production" ? ["https://yourdomain.com"] : "*", credentials: true }));
+// app.use(cors({ origin: NODE_ENV === "production" ? ["https://yourdomain.com"] : "*", credentials: true }));
+const allowedOrigins = [
+  "https://accounts.nagarkaryavalinewuat.com",
+  "https://nagarkaryavalinewuat.com",
+  "http://localhost:5173"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json({ limit: "1mb" }));
 app.use(requestLogger);
-
+app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 
 // logging
@@ -90,6 +110,7 @@ app.use("/api/FrmEmpTransferApproval", require("./modules/Transaction/FrmEmpTran
 app.use("/api/FrmOtherEarnEntryList", require("./modules/Transaction/FrmOtherEarnEntryList/FrmOtherEarnEntryList.routes"))
 app.use("/api/FrmEmployeeTransfer", require("./modules/Transaction/FrmEmployeeTransfer/FrmEmployeeTransfer.route"))
 app.use("/api/FrmMonthlyBankDeductionUpload",require ("./modules/Transaction/FrmMonthlyBankDeductionUpload/FrmMonthlyBankDeductionUpload.routes"))
+app.use("/api/FrmMonthlyBankDeductionUploadAuth",require ("./modules/Transaction/FrmMonthlyBankDeductionUploadAuth/FrmMonthlyBankDeductionUploadAuth.routes"))
 app.use("/api/FrmSalDeduction", require("./modules/Transaction/FrmSalDeduction/FrmSalDeduction.routes"))
 app.use("/api/FrmEmployeeRetire", require("./modules/Transaction/FrmEmployeeRetire/FrmEmployeeRetire.routes"))
 app.use("/api/FrmBillGeneration", require("./modules/Transaction/FrmBillGeneration/FrmBillGeneration.route"));

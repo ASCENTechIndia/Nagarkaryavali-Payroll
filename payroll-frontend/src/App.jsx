@@ -366,45 +366,43 @@ export const router = createBrowserRouter([
         element: <FrmEmpTransferApproval />
       },
       {
-          path: "Transactions/FrmOtherEarnEntryList",
-          element: <FrmOtherEarnEntryList />
-        },
-        {
-          path: "Transactions/FrmOtherEarningEnrty",
-          element: <FrmOtherEarningEnrty />
-        },
-         {
-        path: "Transactions/FrmEmployeeTransfer",
-        element: <FrmEmployeeTransfer/>
+        path: "Transactions/FrmOtherEarnEntryList",
+        element: <FrmOtherEarnEntryList />
       },
       {
-          path: "Transactions/FrmSalDeduction",
-          element: <FrmSalDeduction />
-        },
-        {
-          path: "Transactions/FrmMonthlyBankDeductionUpload",
-          element: <FrmMonthlyBankDeductionUpload />
-        },
+        path: "Transactions/FrmOtherEarningEnrty",
+        element: <FrmOtherEarningEnrty />
+      },
+      {
+        path: "Transactions/FrmEmployeeTransfer",
+        element: <FrmEmployeeTransfer />
+      },
+      {
+        path: "Transactions/FrmSalDeduction",
+        element: <FrmSalDeduction />
+      },
+      {
+        path: "Transactions/FrmMonthlyBankDeductionUpload",
+        element: <FrmMonthlyBankDeductionUpload />
+      },
       {
         path: "Transactions/FrmEmployeeRetire",
         element: <FrmEmployeeRetire />
       },
+      {
+        path: "Transactions/FrmBillGeneration",
+        element: <FrmBillGeneration />
+      },
 
-      
-{
-          path: "Transactions/FrmBillGeneration",
-          element: <FrmBillGeneration/>
-        },
+      {
+        path: "Transactions/FrmMonthlyBankDeductionUploadAuthList",
+        element: <FrmMonthlyBankDeductionUploadAuthList />
+      },
 
-        {
-          path :"Transactions/FrmMonthlyBankDeductionUploadAuthList",
-          element: <FrmMonthlyBankDeductionUploadAuthList/>
-        },
-        
-        {
-          path :"Transactions/FrmMonthlyBankDeductionUploadAuthMst",
-          element: <FrmMonthlyBankDeductionUploadAuthMst/>
-        },
+      {
+        path: "Transactions/FrmMonthlyBankDeductionUploadAuthMst",
+        element: <FrmMonthlyBankDeductionUploadAuthMst />
+      },
 
 
       //Search
@@ -414,7 +412,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "Transactions/FrmEmployeeDtls",
-        element: <FrmEmployeeDtls/>
+        element: <FrmEmployeeDtls />
       },
 
 
@@ -502,8 +500,8 @@ export const router = createBrowserRouter([
 
       // Loan and Advance 
       {
-        path:"Masters/FrmBankLoanMst",
-        element:<FrmBankLoanMst/>
+        path: "Masters/FrmBankLoanMst",
+        element: <FrmBankLoanMst />
       }
 
     ]
