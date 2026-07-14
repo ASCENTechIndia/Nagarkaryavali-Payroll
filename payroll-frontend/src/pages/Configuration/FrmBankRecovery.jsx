@@ -39,7 +39,7 @@ const FrmBankRecovery = () => {
   const DEFAULT_CORPORATION_ID = "870";
 
   const tableHeaders = [
-    "Sr. No",
+    "Sr. No", 
     "ID",
     "Employee Name",
     "Bank Name",

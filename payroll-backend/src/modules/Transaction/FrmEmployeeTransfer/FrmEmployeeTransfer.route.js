@@ -10,9 +10,9 @@ router.get("/grade-list", controller.getGradeList);
 router.get("/transfer-types", controller.getTransferTypes);
 
 // ✅ NEW: Get all data for transfer dropdowns
-router.get("/transfer-departments", controller.getTransferDepartments);
-router.get("/transfer-designations", controller.getTransferDesignations);
-router.get("/transfer-grades", controller.getTransferGrades);
+//router.get("/transfer-departments", controller.getTransferDepartments);
+//router.get("/transfer-designations", controller.getTransferDesignations);
+//router.get("/transfer-grades", controller.getTransferGrades);
 
 // POST endpoints
 router.post("/search-employee", controller.searchEmployee);

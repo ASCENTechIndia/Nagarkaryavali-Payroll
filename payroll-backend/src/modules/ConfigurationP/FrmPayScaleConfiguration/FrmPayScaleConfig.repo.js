@@ -70,13 +70,11 @@ async function savePayScaleConfigurationRepo(data) {
       const res = await conn.execute(
 
         `BEGIN
-            aopr_payscaleconfig_ins(
+            aopr_PayScaleConfig_ins(
               :in_UserId,
-              :in_Orgid,
-              :in_str,
+              :in_ulbid,
+              :in_PayScaleStr,
               :in_Mode,
-              :in_ipaddress,
-              :in_source,
               :Out_errorCode,
               :Out_ErrorMsg
             );
@@ -84,23 +82,15 @@ async function savePayScaleConfigurationRepo(data) {
 
         {
 
-          in_UserId:
-            data.userId,
+          in_UserId: data.userId,
 
-          in_Orgid:
-            Number(data.orgId),
+          in_ulbid: Number(data.ulbId),  // Changed from in_Orgid to in_ulbid
 
-          in_str:
-            data.payScaleStr,
+          in_PayScaleStr: data.payScaleStr,  // Changed from in_str to in_PayScaleStr
 
-          in_Mode:
-            Number(data.mode),
+          in_Mode: Number(data.mode),
 
-          in_ipaddress:
-            data.ipAddress || "::1",
-
-          in_source:
-            data.source || "WEB",
+          // Removed in_ipaddress and in_source as they don't exist in the procedure
 
           Out_errorCode: {
             dir: oracledb.BIND_OUT,
@@ -131,10 +121,10 @@ async function savePayScaleConfigurationRepo(data) {
       success: true,
 
       errorCode:
-        result.Out_errorCode,
+        result.OUT_ERRORCODE,
 
       errorMsg:
-        result.Out_ErrorMsg
+        result.OUT_ERRMSG
 
     };
 

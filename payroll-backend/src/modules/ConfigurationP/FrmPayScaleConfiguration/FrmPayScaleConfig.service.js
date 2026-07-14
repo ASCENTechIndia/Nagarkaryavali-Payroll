@@ -46,14 +46,6 @@ async function savePayScaleConfigurationService(
     );
   }
 
-  if (!data.orgId) {
-
-    throw new AppError(
-      "Organization ID is required",
-      400
-    );
-  }
-
   if (!data.payScaleStr) {
 
     throw new AppError(

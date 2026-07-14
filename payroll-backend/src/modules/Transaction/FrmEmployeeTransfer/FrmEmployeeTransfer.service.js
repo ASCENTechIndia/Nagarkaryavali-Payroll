@@ -22,6 +22,7 @@ const getTransferTypesService = async () => {
   return await repo.getTransferTypesRepo();
 };
 
+{/*
 // ✅ NEW: Transfer Department Service
 const getTransferDepartmentsService = async (ulbId) => {
   console.log("🔧 Service: getTransferDepartmentsService", ulbId);
@@ -39,56 +40,32 @@ const getTransferGradesService = async (ulbId) => {
   console.log("🔧 Service: getTransferGradesService", ulbId);
   return await repo.getTransferGradesRepo(ulbId);
 };
+*/}
 
 const searchEmployeeService = async (body) => {
   console.log("🔧 Service: searchEmployeeService", body);
   const { empId, ulbId } = body;
-  
+
   const result = await repo.searchEmployeeRepo({ empId, ulbId });
-  
+
   if (!result || result.length === 0) {
     throw new Error("Record Not Found");
   }
-  
+
   return { success: true, data: result[0] };
 };
 
-const saveEmployeeTransferService = async (body) => {
-  console.log("🔧 Service: saveEmployeeTransferService", body);
-  
-  if (!body.userId) throw new Error("User ID is required");
-  if (!body.empId) throw new Error("Employee ID is required");
-  if (!body.newDeptId || body.newDeptId === "0") throw new Error("Please select New Department");
-  if (!body.newDesignId || body.newDesignId === "0") throw new Error("Please select New Designation");
-  if (!body.transTypeId || body.transTypeId === "0") throw new Error("Please select Transfer Type");
-  if (!body.newGradeId || body.newGradeId === "0") throw new Error("Please select Pay Grade");
-  if (!body.orderNo) throw new Error("Please enter Order Number");
-  if (!body.ulbId) throw new Error("ULB ID is required");
-  
-  const result = await repo.saveEmployeeTransferRepo(body);
-  
-  if (!result.success) {
-    throw new Error(result.error || result.errorMsg || "Failed to save transfer");
-  }
-  
-  return {
-    success: true,
-    message: result.errorMsg || "Transfer saved successfully",
-    transferId: result.transferId,
-  };
+const saveEmployeeTransferService = async (data) => {
+  const result = await repo.saveEmployeeTransferRepo(data);
+
+ // console.log("Service Result:", result);
+
+  return result;
 };
 
-const getTransferDetailsService = async (body) => {
-  console.log("🔧 Service: getTransferDetailsService", body);
-  const { transferId, ulbId } = body;
-  
-  const result = await repo.getTransferDetailsRepo({ transferId, ulbId });
-  
-  if (!result || result.length === 0) {
-    throw new Error("Transfer details not found");
-  }
-  
-  return { success: true, data: result[0] };
+
+const getTransferDetailsService = async (data) => {
+  return await repo.getTransferDetailsRepo(data);
 };
 
 module.exports = {
@@ -96,9 +73,9 @@ module.exports = {
   getDesignationListService,
   getGradeListService,
   getTransferTypesService,
-  getTransferDepartmentsService,
-  getTransferDesignationsService,
-  getTransferGradesService,
+  //getTransferDepartmentsService,
+  //getTransferDesignationsService,
+  //getTransferGradesService,
   searchEmployeeService,
   saveEmployeeTransferService,
   getTransferDetailsService,
