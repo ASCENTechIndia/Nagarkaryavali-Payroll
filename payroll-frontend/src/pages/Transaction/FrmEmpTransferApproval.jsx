@@ -45,13 +45,6 @@ const FrmEmpTransferApproval = () => {
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  console.log("console.log", {
-    mode,
-    empId,
-    empTransId,
-    ulbId,
-  });
-
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [designationOptions, setDesignationOptions] = useState([]);
   const [transferTypeOptions, setTransferTypeOptions] = useState([]);
@@ -174,8 +167,8 @@ useEffect(() => {
         `${BASE_URL}/api/FrmEmpTransferApproval/transfer-details`,
         {
           ulbid: ulbId,
-          empId: empTransId,
-          empTransId: empId,
+          empId: empId,
+          empTransId: empTransId,
         },
         {
           headers: {
@@ -244,13 +237,13 @@ const handleSubmit = async (values) => {
       userId: userId,
       empId: empId,
       empNumber: empId,
-      deptId: Number(values.department),          
-      desigId: Number(values.designation),        
+      deptId: 0,          
+      desigId: 0,        
       payBand: Number(values.payBand),           
       dateOfJoin: formatDate(values.joiningDate),
-      periodWithDept: values.periodWithDept || "0",
-      newDeptId: 0,
-      newDesigId: 0,
+      periodWithDept: 0,
+      newDeptId: Number(values.department),
+      newDesigId: Number(values.designation),
       transferTypeId: Number(values.transferType),
       newPayBandId: 0,
       orderDate: formatDate(values.orderDate),

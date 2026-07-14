@@ -19,7 +19,7 @@ async function getEmpTransferListRepo(ulbid) {
         INNER JOIN aopr_deptmst_def newd ON newd.num_deptmst_deptid = num_emptrans_newdeptid
         INNER JOIN aopr_designationmst_def oldg ON oldg.num_desigmst_designationid = num_emptrans_desigid
         INNER JOIN aopr_designationmst_def newg ON newg.num_desigmst_designationid = num_emptrans_newdesigid
-        WHERE var_emptrans_status = 'A' AND num_emptrans_ulbid = :ulbid
+        WHERE var_emptrans_status = 'P' AND num_emptrans_ulbid = :ulbid
     `;
     return (await executeQuery(sql, { ulbid })).rows;
 }
