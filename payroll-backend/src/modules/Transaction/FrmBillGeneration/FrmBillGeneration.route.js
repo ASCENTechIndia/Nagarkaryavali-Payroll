@@ -9,20 +9,20 @@ const controller = require("./FrmBillGeneration.controller");
 
 router.post(
     "/detail-report",
-    // auth(),
+    auth(),
     controller.downloadDetailReport
 );
 
 router.post(
     "/summary-report",
-    // auth(),
+    auth(),
     controller.downloadSummaryReport
 );
 
 
 router.post(
     "/generate-bill",
-    // auth(),
+    auth(),
     controller.generateBill
 );
 

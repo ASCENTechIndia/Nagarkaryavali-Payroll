@@ -3,6 +3,34 @@ const { executeQuery } = require("../../../db/queryExecutor");
 const oracledb = require("oracledb");
 const { executeProcedure } = require("../../../db/procedureExecutor");
 
+
+const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11,
+};
+
+function oracleDate(dateString) {
+    const [day, month, year] = dateString.split("-");
+
+    return {
+        val: new Date(
+            Number(year),
+            monthMap[month],
+            Number(day)
+        ),
+        type: oracledb.DATE,
+    };
+}
 /**
  * ==========================================================
  * Execute Query Helper
@@ -63,11 +91,12 @@ async function getEarningData({ salDate, ulbid, deptid }) {
         ORDER BY BILLNO
     `;
 
-    return await runQuery(sql, {
-        salDate,
-        ulbid,
-        deptid
-    });
+   return await runQuery(sql, {
+    salDate: oracleDate(salDate),
+    ulbid,
+    deptid
+});
+
 }
 
 /**
@@ -115,11 +144,11 @@ async function getDeductionData({ salDate, ulbid, deptid }) {
         ORDER BY BILLNO
     `;
 
-    return await runQuery(sql, {
-        salDate,
-        ulbid,
-        deptid
-    });
+   return await runQuery(sql, {
+    salDate: oracleDate(salDate),
+    ulbid,
+    deptid
+});
 }
 
 /**
@@ -191,7 +220,7 @@ async function getPensionTotals({ salDate, ulbid, deptid }) {
     `;
 
     const rows = await runQuery(sql, {
-        salDate,
+        salDate: oracleDate(salDate),
         ulbid,
         deptid
     });
@@ -320,11 +349,11 @@ async function getSubDetailData({ salDate, ulbid, deptid }) {
             var_payheads_shortname
     `;
 
-    return await runQuery(sql, {
-        salDate,
-        ulbid,
-        deptid
-    });
+   return await runQuery(sql, {
+    salDate: oracleDate(salDate),
+    ulbid,
+    deptid
+});
 }
 
 async function getDetailReportRepo(payload) {
@@ -499,20 +528,35 @@ async function generateBillRepo(payload) {
 }
 
 async function insertBillRepo(payload) {
-    const [year, month, day] = payload.salDate.split("-");
+   const [day, month, year] = payload.salDate.split("-");
 
-    const salaryDate = new Date(
-        Number(year),
-        Number(month) - 1,
-        Number(day)
-    );
+const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11,
+};
+
+const salaryDate = new Date(
+    Number(year),
+    monthMap[month],
+    Number(day)
+);
 
     console.log("========== BILL INPUT ==========");
-    console.log("User :", payload.userId);
-    console.log("Input Date :", payload.salDate);
-    console.log("Salary Date :", salaryDate);
-    console.log("Dept :", payload.deptid);
-    console.log("ULB :", payload.ulbid);
+    console.log("User        :", payload.userId);
+    console.log("Input Date  :", payload.salDate);
+    console.log("Salary Date :", salaryDate.toDateString());
+    console.log("Dept        :", payload.deptid);
+    console.log("ULB         :", payload.ulbid);
     console.log("===============================");
 
     const result = await executeProcedure({
@@ -530,21 +574,16 @@ async function insertBillRepo(payload) {
         `,
         binds: {
             in_UserId: payload.userId,
-
             in_Date: {
                 val: salaryDate,
                 type: oracledb.DATE
             },
-
             in_dept: Number(payload.deptid),
-
             in_UlbID: Number(payload.ulbid),
-
             out_ErrorCode: {
                 dir: oracledb.BIND_OUT,
                 type: oracledb.NUMBER
             },
-
             out_ErrorMsg: {
                 dir: oracledb.BIND_OUT,
                 type: oracledb.STRING,
