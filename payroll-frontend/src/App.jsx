@@ -88,6 +88,10 @@ import FrmEmployeeDtls from './pages/Search/FrmEmployeeDtls'
 import FrmMonthlyBankDeductionUpload from './pages/Transaction/FrmMonthlyBankDeductionUpload';
 import FrmSalDeduction from './pages/Transaction/FrmSalDeduction';
 import FrmEmployeeRetire from './pages/Transaction/FrmEmployeeRetire';
+import FrmBillGeneration from './pages/Transaction/FrmBillGeneration';
+import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthList"
+import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
+
 
 
 const Home = () => {
@@ -386,7 +390,21 @@ export const router = createBrowserRouter([
         element: <FrmEmployeeRetire />
       },
 
+      
+{
+          path: "Transactions/FrmBillGeneration",
+          element: <FrmBillGeneration/>
+        },
 
+        {
+          path :"Transactions/FrmMonthlyBankDeductionUploadAuthList",
+          element: <FrmMonthlyBankDeductionUploadAuthList/>
+        },
+        
+        {
+          path :"Transactions/FrmMonthlyBankDeductionUploadAuthMst",
+          element: <FrmMonthlyBankDeductionUploadAuthMst/>
+        },
 
 
       //Search
