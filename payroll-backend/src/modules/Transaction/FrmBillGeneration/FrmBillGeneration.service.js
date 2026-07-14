@@ -17,16 +17,26 @@ async function generateBillService(payload) {
  * ==========================================================
  */
 async function getDetailReportService(payload) {
-    console.log("📥 Service : Detail Report");
 
     const report = await repo.getDetailReportRepo(payload);
 
     return {
         success: true,
+
+        salDate: payload.salDate,
+
+        department: report.department || "",
+
+        billNo: report.billNo || report.subDetail?.[0]?.BILLNO || "",
+
         detail: report.detail,
+
         subDetail: report.subDetail,
+
         netEarning: report.netEarning,
+
         netDeduction: report.netDeduction,
+
         netPayable: report.netPayable
     };
 }
@@ -43,9 +53,19 @@ async function getSummaryReportService(payload) {
 
     return {
         success: true,
+
+        salDate: payload.salDate,
+
+        department: report.department || payload.deptid,
+
+        billNo: report.billNo || report.summary?.[0]?.BILLNO || "",
+
         summary: report.summary,
+
         netEarning: report.netEarning,
+
         netDeduction: report.netDeduction,
+
         netPayable: report.netPayable
     };
 }

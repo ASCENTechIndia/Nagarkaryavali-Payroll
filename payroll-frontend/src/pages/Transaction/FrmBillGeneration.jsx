@@ -6,12 +6,7 @@ import Swal from "sweetalert2";
 
 import { useAuth } from "@/context/AuthContext";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -73,11 +68,11 @@ const FrmBillGeneration = () => {
         axios.post(
           `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/department-list`,
           payload,
-          config
+          config,
         ),
         axios.get(
           `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/year-list`,
-          config
+          config,
         ),
       ]);
 
@@ -101,92 +96,123 @@ const FrmBillGeneration = () => {
     }
   }, [token, ulbId]);
 
-
   const handleBillProcess = async (values) => {
-  try {
-    Swal.fire({
-      title: "Please Wait...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
+    debugger;
+    try {
+      Swal.fire({
+        title: "Please Wait...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
 
-    // Last day of selected month
-    const lastDate = new Date(
-      Number(values.year),
-      Number(values.month),
-      0
-    );
+      const month = Number(values.month);
+      const year = Number(values.year);
 
-    const dd = String(lastDate.getDate()).padStart(2, "0");
-    const mm = String(lastDate.getMonth() + 1).padStart(2, "0");
-    const yyyy = lastDate.getFullYear();
+      const lastDay = new Date(year, month, 0).getDate();
 
-    // Generate Bill payload
-    const generatePayload = {
-      userId: user.userId,
-      salDate: `${yyyy}-${mm}-${dd}`,
-      deptid: Number(values.department),
-      ulbid: ulbId,
-    };
+      const monthName = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ][month - 1];
 
-    // Report payload
-    const reportPayload = {
-      salDate: `${dd}-${mm}-${yyyy}`,
-      deptid: Number(values.department),
-      ulbid: ulbId,
-    };
+      const salaryDate = `${String(lastDay).padStart(2, "0")}-${monthName}-${year}`;
 
-    // Generate Bill
-    if (values.type === "generate") {
-      await axios.post(
-        `${BASE_URL}/api/FrmBillGeneration/generate-bill`,
-        generatePayload,
-        config
+      const generatePayload = {
+        userId: user.userId,
+        salDate: salaryDate,
+        deptid: Number(values.department),
+        ulbid: Number(ulbId),
+      };
+
+      const reportPayload = {
+        salDate: salaryDate,
+        deptid: Number(values.department),
+        ulbid: Number(ulbId),
+      };
+
+      // Generate Bill
+      if (values.type === "generate") {
+        const generateRes = await axios.post(
+          `${BASE_URL}/api/FrmBillGeneration/generate-bill`,
+          generatePayload,
+          config,
+        );
+
+        Swal.close();
+
+        await Swal.fire({
+          icon: "success",
+          title: "Success",
+          text:
+            generateRes.data?.data?.message || "Bill Generated Successfully",
+          confirmButtonText: "OK",
+        });
+      }
+
+      // Show loader again while generating PDFs
+      Swal.fire({
+        title: "Generating Reports...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      // Detail Report
+      const detailRes = await axios.post(
+        `${BASE_URL}/api/FrmBillGeneration/detail-report`,
+        reportPayload,
+        config,
       );
-    }
 
-    // Detail Report
-    const detailRes = await axios.post(
-      `${BASE_URL}/api/FrmBillGeneration/detail-report`,
-      reportPayload,
-      config
-    );
+      // Summary Report
+      const summaryRes = await axios.post(
+        `${BASE_URL}/api/FrmBillGeneration/summary-report`,
+        reportPayload,
+        config,
+      );
 
-    // Summary Report
-    const summaryRes = await axios.post(
-      `${BASE_URL}/api/FrmBillGeneration/summary-report`,
-      reportPayload,
-      config
-    );
+      Swal.close();
 
-    Swal.close();
+      // Open PDFs
+      if (detailRes.data?.pdfUrl) {
+        window.open(detailRes.data.pdfUrl, "_blank");
+      }
 
-    if (detailRes.data?.pdfUrl) {
-      window.open(detailRes.data.pdfUrl, "_blank");
-    }
+      if (summaryRes.data?.pdfUrl) {
+        window.open(summaryRes.data.pdfUrl, "_blank");
+      }
+    } catch (error) {
+      Swal.close();
 
-    if (summaryRes.data?.pdfUrl) {
-      window.open(summaryRes.data.pdfUrl, "_blank");
-    }
-  } catch (error) {
-    Swal.close();
-
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text:
+      const errorMessage =
+        error.response?.data?.error ||
         error.response?.data?.message ||
+        error.response?.data?.data?.message ||
         error.message ||
-        "Something went wrong.",
-    });
-  }
-};
+        "Something went wrong.";
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: errorMessage,
+      });
+    }
+  };
 
   return (
     <Formik
@@ -196,7 +222,7 @@ const FrmBillGeneration = () => {
         department: "",
         type: "print",
       }}
-     onSubmit={handleBillProcess}
+      onSubmit={handleBillProcess}
     >
       {({ values, setFieldValue }) => (
         <Form>
@@ -222,9 +248,7 @@ const FrmBillGeneration = () => {
                     <div className="flex gap-3">
                       <Select
                         value={values.month}
-                        onValueChange={(value) =>
-                          setFieldValue("month", value)
-                        }
+                        onValueChange={(value) => setFieldValue("month", value)}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Month" />
@@ -232,10 +256,7 @@ const FrmBillGeneration = () => {
 
                         <SelectContent>
                           {months.map((item) => (
-                            <SelectItem
-                              key={item.value}
-                              value={item.value}
-                            >
+                            <SelectItem key={item.value} value={item.value}>
                               {item.label}
                             </SelectItem>
                           ))}
@@ -244,9 +265,7 @@ const FrmBillGeneration = () => {
 
                       <Select
                         value={values.year}
-                        onValueChange={(value) =>
-                          setFieldValue("year", value)
-                        }
+                        onValueChange={(value) => setFieldValue("year", value)}
                       >
                         <SelectTrigger className="w-[140px]">
                           <SelectValue placeholder="Year" />
@@ -256,7 +275,7 @@ const FrmBillGeneration = () => {
                           {yearList.map((item) => (
                             <SelectItem
                               key={item.VALUE}
-                              value={String(item.VALUE)}
+                              value={item.LABEL} // <-- use LABEL instead of VALUE
                             >
                               {item.LABEL}
                             </SelectItem>
@@ -282,9 +301,7 @@ const FrmBillGeneration = () => {
                       </SelectTrigger>
 
                       <SelectContent>
-                        <SelectItem value="all">
-                          -- ALL --
-                        </SelectItem>
+                        <SelectItem value="all">-- ALL --</SelectItem>
 
                         {departmentList.map((item) => (
                           <SelectItem
@@ -308,9 +325,7 @@ const FrmBillGeneration = () => {
                         <Input
                           type="radio"
                           checked={values.type === "generate"}
-                          onChange={() =>
-                            setFieldValue("type", "generate")
-                          }
+                          onChange={() => setFieldValue("type", "generate")}
                         />
                         <span>Generate</span>
                       </label>
@@ -319,9 +334,7 @@ const FrmBillGeneration = () => {
                         <Input
                           type="radio"
                           checked={values.type === "print"}
-                          onChange={() =>
-                            setFieldValue("type", "print")
-                          }
+                          onChange={() => setFieldValue("type", "print")}
                         />
                         <span>Print</span>
                       </label>
@@ -332,14 +345,9 @@ const FrmBillGeneration = () => {
                 {/* Buttons */}
 
                 <div className="flex justify-center gap-4 mt-12">
-                  <Button type="submit">
-                    Print
-                  </Button>
+                  <Button type="submit">Print</Button>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                  >
+                  <Button type="button" variant="outline">
                     Back
                   </Button>
                 </div>

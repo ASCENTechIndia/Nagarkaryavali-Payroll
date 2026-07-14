@@ -12,8 +12,15 @@ const BillGenerationPDFHelper = async ({
   reportType,
   reportData,
   ulbInfo,
-}) => {
 
+  salDate,
+
+  department,
+
+  billNo,
+
+  generatedBy,
+}) => {
   /**
    * ==========================================
    * Template
@@ -24,20 +31,13 @@ const BillGenerationPDFHelper = async ({
       ? "FrmBillGenbillDetail.html"
       : "FrmBillGenbillSummary.html";
 
-  const templatePath = path.resolve(
-    __dirname,
-    "../../templates",
-    templateName
-  );
+  const templatePath = path.resolve(__dirname, "../../templates", templateName);
 
   if (!fs.existsSync(templatePath)) {
     throw new Error(`Template not found : ${templateName}`);
   }
 
-  const htmlFile = fs.readFileSync(
-    templatePath,
-    "utf8"
-  );
+  const htmlFile = fs.readFileSync(templatePath, "utf8");
 
   const template = Handlebars.compile(htmlFile);
 
@@ -47,35 +47,24 @@ const BillGenerationPDFHelper = async ({
    * ==========================================
    */
 
-  const detailRows =
-    (reportData.detail || []).map((row, index) => ({
+  const reportRows = (
+    reportType === "DETAIL" ? reportData.detail || [] : reportData.summary || []
+  ).map((row, index) => ({
+    SRNO: index + 1,
 
-      SRNO: index + 1,
+    Earning_Head: row.Earning_Head || "",
 
-      Earning_Head:
-        row.Earning_Head || "",
+    Earning_Amount: Number(row.Earning_Amount || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    }),
 
-      Earning_Amount:
-        Number(row.Earning_Amount || 0).toLocaleString(
-          "en-IN",
-          {
-            minimumFractionDigits: 2,
-          }
-        ),
+    Deduction_Head: row.Deduction_Head || "",
 
-      Deduction_Head:
-        row.Deduction_Head || "",
-
-      Deduction_Amount:
-        Number(row.Deduction_Amount || 0).toLocaleString(
-          "en-IN",
-          {
-            minimumFractionDigits: 2,
-          }
-        ),
-
-    }));
-
+    Deduction_Amount: Number(row.Deduction_Amount || 0).toLocaleString(
+      "en-IN",
+      { minimumFractionDigits: 2 },
+    ),
+  }));
 
   /**
    * ==========================================
@@ -83,27 +72,17 @@ const BillGenerationPDFHelper = async ({
    * ==========================================
    */
 
-  const subDetailRows =
-    (reportData.subDetail || []).map((row, index) => ({
+  const subDetailRows = (reportData.subDetail || []).map((row, index) => ({
+    SRNO: index + 1,
 
-      SRNO: index + 1,
+    BILLNO: row.BILLNO || "",
 
-      BILLNO:
-        row.BILLNO || "",
+    PAYHEADS_ENAME: row.PAYHEADS_ENAME || "",
 
-      PAYHEADS_ENAME:
-        row.PAYHEADS_ENAME || "",
-
-      AMOUNT:
-        Number(row.AMOUNT || 0).toLocaleString(
-          "en-IN",
-          {
-            minimumFractionDigits: 2,
-          }
-        ),
-
-    }));
-
+    AMOUNT: Number(row.AMOUNT || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    }),
+  }));
 
   /**
    * ==========================================
@@ -111,46 +90,69 @@ const BillGenerationPDFHelper = async ({
    * ==========================================
    */
 
-const html = template({
+  const salaryMonth = (() => {
+    if (!salDate) return "";
 
-    corporationName:
-        ulbInfo?.ABC_MUNICIPAL_TEXT || "नगर परिषद",
+    const [, mon, year] = salDate.split("-");
 
-    logo:
-        ulbInfo?.ULBLOGO || "",
+    const months = {
+      Jan: "January",
+      Feb: "February",
+      Mar: "March",
+      Apr: "April",
+      May: "May",
+      Jun: "June",
+      Jul: "July",
+      Aug: "August",
+      Sep: "September",
+      Oct: "October",
+      Nov: "November",
+      Dec: "December",
+    };
 
-    generatedDate:
-        new Date().toLocaleDateString("en-GB"),
+    return `${months[mon]} ${year}`;
+  })();
 
-    detail: detailRows,
+  const html = template({
+    corporationName: ulbInfo?.ABC_MUNICIPAL_TEXT || "नगर परिषद",
+
+    logo: ulbInfo?.ULBLOGO || "",
+
+    generatedDate: salDate,
+
+    generatedBy: generatedBy,
+
+    salaryMonth: salaryMonth,
+
+    department: department,
+
+    BILLNO: billNo,
+
+    detail: reportRows,
 
     subDetail: subDetailRows,
 
-    netEarning:
-        Number(reportData.netEarning || 0).toLocaleString("en-IN",{
-            minimumFractionDigits:2
-        }),
+    netEarning: Number(reportData.netEarning || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    }),
 
-    netDeduction:
-        Number(reportData.netDeduction || 0).toLocaleString("en-IN",{
-            minimumFractionDigits:2
-        }),
+    netDeduction: Number(reportData.netDeduction || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    }),
 
-    netPayable:
-        Number(reportData.netPayable || 0).toLocaleString("en-IN",{
-            minimumFractionDigits:2
-        })
+    netPayable: Number(reportData.netPayable || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    }),
+  });
 
-});
-
-    /**
+  /**
    * ==========================================================
    * Chrome Path
    * ==========================================================
    */
   const chromePath = path.resolve(
     __dirname,
-    "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe"
+    "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe",
   );
 
   const launchOptions = {
@@ -174,7 +176,6 @@ const html = template({
   const browser = await puppeteer.launch(launchOptions);
 
   try {
-
     const page = await browser.newPage();
 
     await page.setContent(html, {
@@ -190,7 +191,6 @@ const html = template({
      * ======================================================
      */
     const pdfBuffer = await page.pdf({
-
       format: "A4",
 
       landscape: reportType === "SUMMARY",
@@ -207,7 +207,6 @@ const html = template({
       },
 
       preferCSSPageSize: true,
-
     });
 
     /**
@@ -215,10 +214,7 @@ const html = template({
      * Output Directory
      * ======================================================
      */
-    const outputDir = path.resolve(
-      __dirname,
-      "../../../public/pdf"
-    );
+    const outputDir = path.resolve(__dirname, "../../../public/pdf");
 
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, {
@@ -232,37 +228,22 @@ const html = template({
      * ======================================================
      */
     const prefix =
-      reportType === "DETAIL"
-        ? "Bill_Detail_Report"
-        : "Bill_Summary_Report";
+      reportType === "DETAIL" ? "Bill_Detail_Report" : "Bill_Summary_Report";
 
-    const fileName =
-      `${prefix}_${Date.now()}.pdf`;
+    const fileName = `${prefix}_${Date.now()}.pdf`;
 
-    const filePath = path.join(
-      outputDir,
-      fileName
-    );
+    const filePath = path.join(outputDir, fileName);
 
-    fs.writeFileSync(
-      filePath,
-      pdfBuffer
-    );
+    fs.writeFileSync(filePath, pdfBuffer);
 
     return {
-
       fileName,
 
       filePath,
-
     };
-
   } finally {
-
     await browser.close();
-
   }
-
 };
 
 module.exports = {

@@ -65,12 +65,21 @@ exports.downloadDetailReport = asyncHandler(async (req, res) => {
     };
   }
 
-  const pdf =
-    await BillGenerationPDFHelper({
-      reportType: "DETAIL",
-      reportData: report,
-      ulbInfo,
-    });
+ const pdf = await BillGenerationPDFHelper({
+    reportType: "DETAIL",
+
+    reportData: report,
+
+    ulbInfo,
+
+    salDate: payload.salDate,
+
+    department: report.department,
+
+    billNo: report.billNo,
+
+    generatedBy: req.user?.userId || "SYSTEM"
+});
 
   const baseUrl =
     `${req.protocol}://${req.get("host")}`;
@@ -113,12 +122,21 @@ exports.downloadSummaryReport = asyncHandler(async (req, res) => {
     };
   }
 
-  const pdf =
-    await BillGenerationPDFHelper({
-      reportType: "SUMMARY",
-      reportData: report,
-      ulbInfo,
-    });
+const pdf = await BillGenerationPDFHelper({
+    reportType: "SUMMARY",
+
+    reportData: report,
+
+    ulbInfo,
+
+    salDate: report.salDate,
+
+    department: report.department,
+
+    billNo: report.billNo,
+
+    generatedBy: req.user?.userId || "SYSTEM"
+});
 
   const baseUrl =
     `${req.protocol}://${req.get("host")}`;
