@@ -105,8 +105,8 @@ const FrmEmpTransferApprList = () => {
                                 {
                                     state: {
                                         mode: 2,
-                                        empId: item.EMPID,
-                                        empTransId: item.EMPTRANSID
+                                        empId: item.EMPTRANSID,
+                                        empTransId: item.EMPID
                                     },
                                 }
                             )
