@@ -38,7 +38,6 @@ const FrmLoansAndAdvancesRpt = () => {
     employeeId: "0",
   };
 
-  // Helper function to check if ULB requires special handling
   const isSpecialUlb = () => {
     return ulbId === "770" || ulbId === "1750";
   };
@@ -206,7 +205,6 @@ const FrmLoansAndAdvancesRpt = () => {
     }
   }, [ulbId]);
 
-  // Define headers based on ULB (hide certain columns for non-special ULBs)
   const getHeaders = () => {
     const baseHeaders = [
       "Bank Loan ID",
@@ -232,16 +230,13 @@ const FrmLoansAndAdvancesRpt = () => {
       "Bill No",
     ];
 
-    // For ULBs 770 and 1750, show additional columns
     if (isSpecialUlb()) {
       return baseHeaders;
     } else {
-      // Hide Emp ID and Employee Name columns (index 1 and 2 in C# code)
       return baseHeaders;
     }
   };
 
-  // Format date helper
   const formatDate = (dateString) => {
     if (!dateString) return "";
     try {
@@ -251,7 +246,6 @@ const FrmLoansAndAdvancesRpt = () => {
     }
   };
 
-  // Prepare table rows
   const tableRows = filteredData.map((row) => ({
     bankLoanId: row.BANKLOANID,
     empId: row.EMPID,
@@ -276,7 +270,6 @@ const FrmLoansAndAdvancesRpt = () => {
     billNo: row.BILLNO,
   }));
 
-  // Key mapping for ShadCNTable
   const keyMapping = {
     bankLoanId: "Bank Loan ID",
     empId: "Emp ID",
@@ -417,6 +410,7 @@ const FrmLoansAndAdvancesRpt = () => {
                     <Button type="submit" disabled={isSubmitting || loading}>
                       {loading ? "Searching..." : "Search"}
                     </Button>
+                    {/*
                     <Button 
                       type="button" 
                       variant="outline"
@@ -428,7 +422,7 @@ const FrmLoansAndAdvancesRpt = () => {
                       }}
                     >
                       Reset
-                    </Button>
+                    </Button>*/}
                   </div>
 
                   <div>
