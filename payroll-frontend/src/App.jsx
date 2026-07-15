@@ -75,7 +75,7 @@ import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 import FrmGenericSearch from './pages/Search/FrmGenericSearch';
 
-import FrmBankLoanMst from './pages/LoanAndAdv/FrmBankLoanMst';
+import FrmBankLoanMst from './pages/Loan/FrmBankLoanMst';
 import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
 import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
 import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
