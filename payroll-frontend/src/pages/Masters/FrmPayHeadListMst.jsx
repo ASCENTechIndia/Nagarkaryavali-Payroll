@@ -159,8 +159,6 @@ const FrmPayHeadListMst = () => {
                             headers={tableHeaders}
                             data={tableData}
                             keyMapping={keyMapping}
-                            pagination={true}
-                            rowsPerPage={10}
                             className="min-w-[900px] lg:min-w-full"
                         />
                     </div>

@@ -16,6 +16,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useRef } from "react";
+
+
 
 const initialValues = {
     payHead: "",
@@ -34,6 +37,7 @@ const FrmPayHeadMst = () => {
     const userId = user?.userId;
     const navigate = useNavigate();
     const location = useLocation();
+    const formikRef = useRef(null);
 
     const mode = location.state?.mode;
     const headId = location.state?.headId;
@@ -42,7 +46,7 @@ const FrmPayHeadMst = () => {
 
     const [payHeadOptions, setPayHeadOptions] = useState([]);
     const [mergeInOptions, setMergeInOptions] = useState([]);
-    const [formInitialValues, setFormInitialValues] = useState(initialValues);
+    const [pendingMergeId, setPendingMergeId] = useState("");
 
 
     const fetchPayHeads = async () => {
@@ -92,11 +96,6 @@ const FrmPayHeadMst = () => {
         }
     };
 
-    useEffect(() => {
-        if (token) {
-            fetchPayHeads();
-        }
-    }, [token]);
 
 
     const fetchPayHeadDetails = async () => {
@@ -125,22 +124,16 @@ const FrmPayHeadMst = () => {
             const data = res.data?.rows?.[0];
 
             if (data) {
-                const updatedValues = {
-                    payHead: data.SUBPAYID?.toString() || "",
-                    payHeadId: data.PAYID?.toString() || "",
-                    englishName: data.NAMEE || "",
-                    marathiName: data.NAMEM || "",
-                    paySheetOrder:
-                        data.NUM_PAYHEADS_ORDERNO?.toString() || "",
-                    mergeIn:
-                        data.NUM_PAYHEADS_MERGEID?.toString() || "",
-                };
-
-                setFormInitialValues(updatedValues);
 
                 if (data.SUBPAYID) {
                     await fetchMergeInOptions(data.SUBPAYID);
                 }
+                formikRef.current?.setFieldValue("payHead", data.SUBPAYID?.toString() || "");
+                formikRef.current?.setFieldValue("payHeadId", data.PAYID?.toString() || "");
+                formikRef.current?.setFieldValue("englishName", data.NAMEE || "");
+                formikRef.current?.setFieldValue("marathiName", data.NAMEM || "");
+                formikRef.current?.setFieldValue("paySheetOrder", data.NUM_PAYHEADS_ORDERNO?.toString() || "");
+                setPendingMergeId(data.NUM_PAYHEADS_MERGEID?.toString() || "");
             }
 
         } catch (error) {
@@ -151,14 +144,28 @@ const FrmPayHeadMst = () => {
     };
 
     useEffect(() => {
+        const load = async () => {
+            if (!token) return;
+
+            await fetchPayHeads();
+
+            if (mode == 2 && headId) {
+                await fetchPayHeadDetails();
+            }
+        };
+
+        load();
+    }, [token, mode, headId]);
+
+    useEffect(() => {
         if (
-            mode == 2 &&
-            headId &&
-            token
+            mergeInOptions.length > 0 &&
+            pendingMergeId &&
+            formikRef.current
         ) {
-            fetchPayHeadDetails();
+            formikRef.current.setFieldValue("mergeIn",pendingMergeId);
         }
-    }, [mode, headId, token]);
+    }, [mergeInOptions, pendingMergeId]);
 
     const handleSubmit = async (values) => {
         try {
@@ -219,7 +226,7 @@ const FrmPayHeadMst = () => {
 
 
     return (
-        <Formik initialValues={formInitialValues} enableReinitialize={true} onSubmit={handleSubmit}>
+        <Formik innerRef={formikRef} initialValues={initialValues} onSubmit={handleSubmit}>
             {({ values, handleChange, setFieldValue }) => {
 
                 return (
