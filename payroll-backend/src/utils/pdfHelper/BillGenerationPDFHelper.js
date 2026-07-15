@@ -113,6 +113,21 @@ const BillGenerationPDFHelper = async ({
     return `${months[mon]} ${year}`;
   })();
 
+  console.log("========== REPORT DATA ==========");
+  console.log(JSON.stringify(reportData, null, 2));
+
+  if (!reportData) {
+    throw new Error("reportData is undefined.");
+  }
+
+  if (reportType === "DETAIL" && !Array.isArray(reportData.detail)) {
+    throw new Error("Detail report data is missing.");
+  }
+
+  if (reportType === "SUMMARY" && !Array.isArray(reportData.summary)) {
+    throw new Error("Summary report data is missing.");
+  }
+
   const html = template({
     corporationName: ulbInfo?.ABC_MUNICIPAL_TEXT || "नगर परिषद",
 
@@ -150,32 +165,37 @@ const BillGenerationPDFHelper = async ({
    * Chrome Path
    * ==========================================================
    */
+  const launchOptions = {
+    headless: "new",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-extensions",
+    ],
+  };
+
   const chromePath = path.resolve(
     __dirname,
     "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe",
   );
 
-  const launchOptions = {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-    ],
-  };
-
   if (fs.existsSync(chromePath)) {
     launchOptions.executablePath = chromePath;
   }
 
-  /**
-   * ==========================================================
-   * Launch Browser
-   * ==========================================================
-   */
-  const browser = await puppeteer.launch(launchOptions);
+  console.log("Launching Chrome...");
+  console.log(
+    "Chrome Path:",
+    launchOptions.executablePath || "Default Puppeteer Chrome",
+  );
+
+  let browser;
 
   try {
+    browser = await puppeteer.launch(launchOptions);
+
     const page = await browser.newPage();
 
     await page.setContent(html, {
@@ -185,48 +205,26 @@ const BillGenerationPDFHelper = async ({
 
     await page.emulateMediaType("screen");
 
-    /**
-     * ======================================================
-     * PDF Options
-     * ======================================================
-     */
     const pdfBuffer = await page.pdf({
       format: "A4",
-
       landscape: reportType === "SUMMARY",
-
       printBackground: true,
-
       displayHeaderFooter: false,
-
+      preferCSSPageSize: true,
       margin: {
         top: "12mm",
         bottom: "12mm",
         left: "10mm",
         right: "10mm",
       },
-
-      preferCSSPageSize: true,
     });
 
-    /**
-     * ======================================================
-     * Output Directory
-     * ======================================================
-     */
     const outputDir = path.resolve(__dirname, "../../../public/pdf");
 
     if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, {
-        recursive: true,
-      });
+      fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    /**
-     * ======================================================
-     * File Name
-     * ======================================================
-     */
     const prefix =
       reportType === "DETAIL" ? "Bill_Detail_Report" : "Bill_Summary_Report";
 
@@ -238,11 +236,16 @@ const BillGenerationPDFHelper = async ({
 
     return {
       fileName,
-
       filePath,
     };
+  } catch (err) {
+    console.error("========== PDF GENERATION ERROR ==========");
+    console.error(err);
+    throw err;
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 
