@@ -91,6 +91,7 @@ import FrmEmployeeRetire from './pages/Transaction/FrmEmployeeRetire';
 import FrmBillGeneration from './pages/Transaction/FrmBillGeneration';
 import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthList"
 import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
+import FrmDashboard from './pages/FrmHomePage';
 
 
 
@@ -118,6 +119,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Home />
+      },
+      {
+        path: "/HomePage/FrmHomePage",
+        element: <FrmDashboard />,
       },
       {
         path: "Masters/FrmCastListMst",

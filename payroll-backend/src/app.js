@@ -67,6 +67,9 @@ app.use("/api/tasks", tasksRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
 
+app.use("/api/FrmHomepage", require("./modules/Homepage/FrmHomepage.routes"));
+
+
 //MASTER
 app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
 app.use("/api/FrmEmployeeMstNewTest", require("./modules/Master/FrmEmployeeMstNewTest/FrmEmployeeMstNewTest.route"));
