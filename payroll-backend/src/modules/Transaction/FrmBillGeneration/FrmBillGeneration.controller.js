@@ -41,7 +41,14 @@ function validate(body) {
  * ==========================================================
  */
 exports.downloadDetailReport = asyncHandler(async (req, res) => {
+
+   console.log("=========== DETAIL REPORT ===========");
+  console.log("BODY:", req.body);
+
   const payload = validate(req.body);
+
+  console.log("PAYLOAD:", payload);
+
 
   const report = await service.getDetailReportService(payload);
 
@@ -74,10 +81,17 @@ exports.downloadDetailReport = asyncHandler(async (req, res) => {
       generatedBy: req.user?.userId || "SYSTEM",
     });
   } catch (err) {
-    console.error("PDF ERROR");
-    console.error(err);
-    throw err;
-  }
+  console.error("========== PDF ERROR ==========");
+  console.error("Message :", err.message);
+  console.error("Stack :");
+  console.error(err.stack);
+
+  return res.status(500).json({
+    ok: false,
+    error: err.message,
+    stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
+  });
+}
 
   const baseUrl = `${req.protocol}://${req.get("host")}`;
 

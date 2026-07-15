@@ -146,7 +146,7 @@ const FrmBillGeneration = () => {
         deptid: Number(values.department),
         ulbid: Number(ulbId),
       };
-
+console.log("pdf payload:", reportPayload)
       // Generate Bill
       if (values.type === "generate") {
         const generateRes = await axios.post(
