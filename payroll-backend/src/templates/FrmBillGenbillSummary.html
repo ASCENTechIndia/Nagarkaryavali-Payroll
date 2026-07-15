@@ -166,16 +166,16 @@
           <div class="fw-bold" style="font-size: 12px; margin-top: 2px;">{{corporationName}}</div>
         </div>
         <div class="header-right">
-          <div>लेखा शिर्ष - <span class="dotted-line" style="min-width: 100px;"></span></div>
+          <div>लेखा शिर्ष - </div>
           <div class="fw-bold" style="margin-top: 2px;">महानगरपालिका अतिरिक्त आयुक्त कार्यालय- १</div>
-          <div>व्होऊचर क्र. - <span class="dotted-line"></span></div>
+          
         </div>
       </div>
 
       <div class="meta-info-row">
-        <div><strong>खात्याचा बिल क्रमांक :-</strong>{{BILLNO}}<span class="dotted-line" style="min-width: 150px;"></span> &nbsp;&nbsp;&nbsp;&nbsp; <strong>दिनांक :- {{generatedDate}}</strong> <span class="dotted-line" style="min-width: 100px;"></span></div>
+        <div><strong>खात्याचा बिल क्रमांक :- &nbsp;&nbsp;&nbsp;&nbsp; <strong>दिनांक :- {{generatedDate}}</strong> </div>
         <div><strong>पैसे घेणाऱ्याचे नाव व पत्ता :-</strong></div>
-        <div><strong>माल मोजणी पुस्तकाचा संदर्भ :-</strong> <span class="dotted-line" style="min-width: 200px;"></span></div>
+        <div><strong>माल मोजणी पुस्तकाचा संदर्भ :-</strong> </div>
       </div>
 
       <table class="main-table">
@@ -211,8 +211,8 @@
               </table>
 
               <div style="margin-top: 40px;">
-                <div class="fw-bold">Passed for Payment Rs.</div>
-                <div style="margin-top: 5px; margin-left: 20px;">शून्य</div>
+                <div class="fw-bold">Passed for Payment Rs.{{netEarning}}</div>
+               
                 <div class="text-center fw-bold" style="margin-top: 30px;">Head of Department</div>
               </div>
             </td>
@@ -220,18 +220,18 @@
             <td></td>
             <td></td>
             <td class="text-right">
-              <div>0.00</div>
-              <div style="margin-top: 36px; text-align: right;">
+              <div>{{netEarning}}</div>
+              <!-- <div style="margin-top: 36px; text-align: right;">
                 <div>0.00</div>
                 <div style="margin-top: 2px;">0.00</div>
                 <div style="margin-top: 2px;">0.00</div>
               </div>
-              <div style="margin-top: 42px;">0.00</div>
+              <div style="margin-top: 42px;">0.00</div> -->
             </td>
           </tr>
           <tr class="fw-bold">
             <td colspan="5" class="text-right">एकूण</td>
-            <td class="text-right">0.00</td>
+            <td class="text-right">{{netEarning}}</td>
           </tr>
         </tbody>
       </table>
@@ -255,7 +255,8 @@
             <tr>
               <td class="text-center fw-bold">3</td>
               <td>ह्या बिलात दाखविलेला खर्च रु.</td>
-              <td class="text-right">0.00</td>
+              <td class="text-right">{{netEarning}}</td>
+              
             </tr>
             <tr>
               <td class="text-center fw-bold">4</td>
@@ -270,7 +271,7 @@
         </div>
         <div class="grid-box-right">
           प्रमाणित करण्यात येते की, ह्या बिलात दाखविलेले दर व परिमाणेही अचूक आहेत आणि सामग्री वस्तू चांगल्या स्थितीत मिळाल्या असून त्या <span class="dotted-line" style="min-width: 80px;"></span> पुराव्याशी संबधीत रेखांच्या समोरील पुरवठा नोंदवहीत नमूद करण्यात आल्या आहेत.<br>
-          दिनांक :- {{generatedDate}}
+          दिनांक :-   &nbsp;/&nbsp;/   
           <div style="margin-top: 15px;" class="fw-bold">वस्तू घेणाऱ्या अधिकाऱ्याची सही</div>
         </div>
       </div>

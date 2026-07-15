@@ -141,6 +141,7 @@ const FrmBillGeneration = () => {
       };
 
       const reportPayload = {
+        userId: user.userId,
         salDate: salaryDate,
         deptid: Number(values.department),
         ulbid: Number(ulbId),
