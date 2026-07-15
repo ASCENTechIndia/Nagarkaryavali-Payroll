@@ -1,22 +1,27 @@
-import React from "react";
-
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
-
 import ShadCNTable from "@/components/ui/table";
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
+import Swal from "sweetalert2";
 
 const FrmLeaveApprovalList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const token = user?.token;
+  const ulbId = user?.ulbId;
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  // ✅ Table Headers
+  const [loading, setLoading] = useState(true);
+  const [leaveList, setLeaveList] = useState([]);
+
   const headers = [
     "Employee Code",
     "Employee Name",
@@ -27,7 +32,6 @@ const FrmLeaveApprovalList = () => {
     "Action",
   ];
 
-  // ✅ Key Mapping
   const keyMapping = {
     "Employee Code": "empCode",
     "Employee Name": "empName",
@@ -38,79 +42,67 @@ const FrmLeaveApprovalList = () => {
     Action: "action",
   };
 
-  // ✅ Hardcoded Leave Data
-  const leaveList = [
-    {
-      id: 1,
-      empCode: "3126",
-      empName: "प्रद्युम्न प्रसाद जोशी",
-      department:
-        "महानगरपालिका माहिती व तंत्रज्ञान विभाग",
-      designation: "वरिष्ठ लिपिक",
-      leaveType: "अर्जित रजा",
-      fromDate: new Date("2026-04-06"),
-      toDate: new Date("2026-04-06"),
-      totalDays: "1",
-      halfDay: false,
-      reason: "Casual Leave",
-      contact: "8055164143",
-      leaveStatus: "Pending",
-      remark: "",
-    },
+  const fetchPendingLeaves = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${BASE_URL}/api/LeaveApproval/pendingleavelist`,
+        { ulbId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    {
-      id: 2,
-      empCode: "4102",
-      empName: "संदीप पाटील",
-      department: "लेखा विभाग",
-      designation: "कनिष्ठ लिपिक",
-      leaveType: "Casual Leave",
-      fromDate: new Date("2026-05-10"),
-      toDate: new Date("2026-05-12"),
-      totalDays: "3",
-      halfDay: true,
-      reason: "Family Function",
-      contact: "9876543210",
-      leaveStatus: "Pending",
-      remark: "",
-    },
-  ];
+      if (response.data?.data?.data) {
+        setLeaveList(response.data.data.data);
+      } else {
+        setLeaveList([]);
+      }
+    } catch (err) {
+      console.error("Error fetching pending leaves:", err);
+      Swal.fire({
+        text: err.response?.data?.message || "Failed to load pending leave list",
+        confirmButtonColor: "#1e3a8a",
+      });
+      setLeaveList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // ✅ Table Data
-  const formattedTableData = leaveList.map(
-    (item) => ({
-      empCode: item.empCode,
+  useEffect(() => {
+    if (ulbId) {
+      fetchPendingLeaves();
+    }
+  }, [ulbId]);
 
-      empName: item.empName,
+  const handleSelectLeave = (item) => {
+    navigate("/Masters/FrmLeaveApprove", {
+      state: {
+        data: {
+          leaveId: item.LEAVEID,
+          empCode: item.EMPCODE,
+        },
+      },
+    });
+  };
 
-      department: item.department,
-
-      leaveType: item.leaveType,
-
-      totalDays: item.totalDays,
-
-      leaveStatus: item.leaveStatus,
-
-      action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            localStorage.setItem(
-              "selectedLeaveData",
-              JSON.stringify(item)
-            );
-
-            navigate(
-              "/Masters/FrmLeaveApprove"
-            );
-          }}
-        >
-          Select
-        </Button>
-      ),
-    })
-  );
+  const formattedTableData = leaveList.map((item) => ({
+    empCode: item.EMPCODE || "",
+    empName: item.EMPNAME || "",
+    department: item.DEPARTMENT || "",
+    leaveType: item.LEAVENAME || item.LEAVETYPE || "",
+    totalDays: item.TOTALDAYS || "",
+    leaveStatus: item.LEAVESTATUS || "Pending",
+    action: (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleSelectLeave(item)}
+        className="text-blue-700 font-medium px-0 cursor-pointer hover:text-blue-900"
+      >
+        Select
+      </Button>
+    ),
+  }));
 
   return (
     <Card className="mt-5 shadow-sm border">
@@ -121,13 +113,20 @@ const FrmLeaveApprovalList = () => {
       </CardHeader>
 
       <CardContent>
-        <ShadCNTable
-          headers={headers}
-          data={formattedTableData}
-          keyMapping={keyMapping}
-          pagination
-          rowsPerPage={10}
-        />
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            <span className="ml-3 text-gray-600">Loading pending leaves...</span>
+          </div>
+        ) : (
+          <ShadCNTable
+            headers={headers}
+            data={formattedTableData}
+            keyMapping={keyMapping}
+            pagination
+            rowsPerPage={10}
+          />
+        )}
       </CardContent>
     </Card>
   );

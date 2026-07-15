@@ -21,4 +21,6 @@ router.post(
   controller.getLeaveApprovalDetails
 );
 
+router.post("/save", auth(), controller.saveLeaveApproval);
+
 module.exports = router;
