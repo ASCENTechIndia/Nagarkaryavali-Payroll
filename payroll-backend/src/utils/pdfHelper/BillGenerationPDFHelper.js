@@ -32,23 +32,17 @@ const BillGenerationPDFHelper = async ({
       throw new Error("Report data is missing.");
     }
 
-    if (
-      reportType === "DETAIL" &&
-      !Array.isArray(reportData.detail)
-    ) {
+    if (reportType === "DETAIL" && !Array.isArray(reportData.detail)) {
       throw new Error("Detail report data is missing.");
     }
 
-    if (
-      reportType === "SUMMARY" &&
-      !Array.isArray(reportData.summary)
-    ) {
+    if (reportType === "SUMMARY" && !Array.isArray(reportData.summary)) {
       throw new Error("Summary report data is missing.");
     }
 
     /**
      * ======================================================
-     * Template
+     * Load HTML Template
      * ======================================================
      */
 
@@ -60,10 +54,10 @@ const BillGenerationPDFHelper = async ({
     const templatePath = path.resolve(
       __dirname,
       "../../templates",
-      templateName
+      templateName,
     );
 
-    console.log("Template :", templatePath);
+    console.log("Template Path :", templatePath);
 
     if (!fs.existsSync(templatePath)) {
       throw new Error(`Template not found : ${templatePath}`);
@@ -83,91 +77,93 @@ const BillGenerationPDFHelper = async ({
     let year = "";
 
     if (salDate) {
-      const [, mon, yr] = salDate.split("-");
+      const parts = salDate.split("-");
 
-      year = yr;
+      if (parts.length === 3) {
+        const mon = parts[1];
+        year = parts[2];
 
-      const months = {
-        Jan: "January",
-        Feb: "February",
-        Mar: "March",
-        Apr: "April",
-        May: "May",
-        Jun: "June",
-        Jul: "July",
-        Aug: "August",
-        Sep: "September",
-        Oct: "October",
-        Nov: "November",
-        Dec: "December",
-      };
+        const months = {
+          Jan: "January",
+          Feb: "February",
+          Mar: "March",
+          Apr: "April",
+          May: "May",
+          Jun: "June",
+          Jul: "July",
+          Aug: "August",
+          Sep: "September",
+          Oct: "October",
+          Nov: "November",
+          Dec: "December",
+        };
 
-      monthName = months[mon] || mon;
+        monthName = months[mon] || mon;
+      }
     }
 
     /**
      * ======================================================
-     * Detail Rows
+     * Report Rows
      * ======================================================
      */
 
     const reportRows =
-      (
-        reportType === "DETAIL"
-          ? reportData.detail
-          : reportData.summary
-      ) || [];
+      reportType === "DETAIL"
+        ? reportData.detail || []
+        : reportData.summary || [];
 
     const detailRows = reportRows.map((row, index) => ({
       SRNO: index + 1,
 
       Earning_Head: row.Earning_Head || "",
 
-      Earning_Amount: Number(
-        row.Earning_Amount || 0
-      ).toLocaleString("en-IN", {
+      Earning_Amount: Number(row.Earning_Amount || 0).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       }),
 
       Deduction_Head: row.Deduction_Head || "",
 
-      Deduction_Amount: Number(
-        row.Deduction_Amount || 0
-      ).toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-      }),
+      Deduction_Amount: Number(row.Deduction_Amount || 0).toLocaleString(
+        "en-IN",
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      ),
     }));
 
     /**
      * ======================================================
-     * Sub Detail
+     * Returned Salary Details
      * ======================================================
      */
 
-    const subDetailRows = (reportData.subDetail || []).map(
-      (row, index) => ({
-        SRNO: index + 1,
+    const subDetailRows = (reportData.subDetail || []).map((row, index) => ({
+      SRNO: index + 1,
 
-        BILLNO: row.BILLNO || "",
+      BILLNO: row.BILLNO || "",
 
-        PAYHEADS_ENAME:
-          row.PAYHEADS_ENAME || "",
+      PAYHEADS_ENAME: row.PAYHEADS_ENAME || "",
 
-        AMOUNT: Number(
-          row.AMOUNT || 0
-        ).toLocaleString("en-IN", {
-          minimumFractionDigits: 2,
-        }),
-      })
-    );
+      AMOUNT: Number(row.AMOUNT || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    }));
 
     console.log("Detail Rows :", detailRows.length);
-    console.log("Sub Detail :", subDetailRows.length);
+    console.log("Sub Detail Rows :", subDetailRows.length);
 
-   
-         const html = template({
-      corporationName:
-        ulbInfo?.ABC_MUNICIPAL_TEXT || "नगर परिषद",
+    /**
+     * ======================================================
+     * Generate HTML
+     * ======================================================
+     */
+
+    const html = template({
+      corporationName: ulbInfo?.ABC_MUNICIPAL_TEXT || "नगर परिषद",
 
       logo: ulbInfo?.ULBLOGO || "",
 
@@ -197,28 +193,37 @@ const BillGenerationPDFHelper = async ({
 
       CHEQUEDATE: "",
 
-      netEarning: Number(
-        reportData.netEarning || 0
-      ).toLocaleString("en-IN", {
+      netEarning: Number(reportData.netEarning || 0).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       }),
 
-      netDeduction: Number(
-        reportData.netDeduction || 0
-      ).toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-      }),
+      netDeduction: Number(reportData.netDeduction || 0).toLocaleString(
+        "en-IN",
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      ),
 
-      netPayable: Number(
-        reportData.netPayable || 0
-      ).toLocaleString("en-IN", {
+      netPayable: Number(reportData.netPayable || 0).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       }),
     });
 
-    console.log("HTML Generated");
+    console.log("HTML Generated Successfully");
 
-  
+    /**
+     * ======================================================
+     * Launch Browser
+     * ======================================================
+     */
+
+    const chromePath = path.resolve(
+      __dirname,
+      "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe",
+    );
 
     const launchOptions = {
       headless: true,
@@ -227,27 +232,19 @@ const BillGenerationPDFHelper = async ({
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
-        "--disable-extensions",
       ],
     };
 
-    const chromePath = path.resolve(
-      __dirname,
-      "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe"
-    );
-
     if (fs.existsSync(chromePath)) {
       launchOptions.executablePath = chromePath;
+      console.log("Using Chrome :", chromePath);
+    } else {
+      console.log("Chrome executable not found at :", chromePath);
     }
-
-    console.log(
-      "Chrome :",
-      launchOptions.executablePath || "Default"
-    );
 
     browser = await puppeteer.launch(launchOptions);
 
-    console.log("Chrome Started");
+    console.log("Chrome Started Successfully");
 
     const page = await browser.newPage();
 
@@ -268,8 +265,7 @@ const BillGenerationPDFHelper = async ({
     const pdfBuffer = await page.pdf({
       format: "A4",
 
-      landscape:
-        reportType === "SUMMARY",
+      landscape: reportType === "SUMMARY",
 
       printBackground: true,
 
@@ -285,16 +281,15 @@ const BillGenerationPDFHelper = async ({
       },
     });
 
+    console.log("PDF Generated Successfully");
+
     /**
      * ======================================================
      * Save PDF
      * ======================================================
      */
 
-    const outputDir = path.resolve(
-      __dirname,
-      "../../../public/pdf"
-    );
+    const outputDir = path.resolve(__dirname, "../../../public/pdf");
 
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, {
@@ -303,57 +298,40 @@ const BillGenerationPDFHelper = async ({
     }
 
     const prefix =
-      reportType === "DETAIL"
-        ? "Bill_Detail_Report"
-        : "Bill_Summary_Report";
+      reportType === "DETAIL" ? "Bill_Detail_Report" : "Bill_Summary_Report";
 
-    const fileName =
-      `${prefix}_${Date.now()}.pdf`;
+    const fileName = `${prefix}_${Date.now()}.pdf`;
 
-    const filePath = path.join(
-      outputDir,
-      fileName
-    );
+    const filePath = path.join(outputDir, fileName);
 
-    fs.writeFileSync(
-      filePath,
-      pdfBuffer
-    );
+    fs.writeFileSync(filePath, pdfBuffer);
 
-    console.log(
-      "PDF Saved :",
-      filePath
-    );
+    console.log("==================================");
+    console.log("PDF Saved Successfully");
+    console.log("File :", filePath);
+    console.log("==================================");
 
     return {
       fileName,
       filePath,
     };
-
   } catch (err) {
-
-    console.error(
-      "========== BILL PDF ERROR =========="
-    );
-
-    console.error(
-      "Message :",
-      err.message
-    );
-
+    console.error("========== BILL PDF ERROR ==========");
+    console.error("Message :", err.message);
     console.error(err.stack);
 
     throw err;
-
   } finally {
-
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+        console.log("Chrome Closed");
+      } catch (closeError) {
+        console.error("Error Closing Chrome :", closeError.message);
+      }
     }
 
-    console.log(
-      "========== BILL PDF END =========="
-    );
+    console.log("========== BILL PDF END ==========");
   }
 };
 

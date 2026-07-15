@@ -240,108 +240,101 @@ console.log("pdf payload:", reportPayload)
               </CardHeader>
 
               <CardContent className="pt-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Month & Year */}
+               <div className="flex flex-wrap items-center gap-6">
 
-                  <div className="space-y-2">
-                    <Label required text="Date" />
+  {/* Date */}
+  <div className="flex items-center gap-2">
+    <Label required text="Date" />
+    <span>:</span>
 
-                    <div className="flex gap-3">
-                      <Select
-                        value={values.month}
-                        onValueChange={(value) => setFieldValue("month", value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Month" />
-                        </SelectTrigger>
+    <Select
+      value={values.month}
+      onValueChange={(value) => setFieldValue("month", value)}
+    >
+      <SelectTrigger className="w-36">
+        <SelectValue placeholder="Month" />
+      </SelectTrigger>
 
-                        <SelectContent>
-                          {months.map((item) => (
-                            <SelectItem key={item.value} value={item.value}>
-                              {item.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+      <SelectContent>
+        {months.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
 
-                      <Select
-                        value={values.year}
-                        onValueChange={(value) => setFieldValue("year", value)}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
+    <Select
+      value={values.year}
+      onValueChange={(value) => setFieldValue("year", value)}
+    >
+      <SelectTrigger className="w-28">
+        <SelectValue placeholder="Year" />
+      </SelectTrigger>
 
-                        <SelectContent>
-                          {yearList.map((item) => (
-                            <SelectItem
-                              key={item.VALUE}
-                              value={item.LABEL} // <-- use LABEL instead of VALUE
-                            >
-                              {item.LABEL}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+      <SelectContent>
+        {yearList.map((item) => (
+          <SelectItem key={item.VALUE} value={item.LABEL}>
+            {item.LABEL}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
 
-                  {/* Department */}
+  {/* Department */}
+  <div className="flex items-center gap-2">
+    <Label required text="Department" />
+    <span>:</span>
 
-                  <div className="space-y-2">
-                    <Label required text="Department" />
+    <Select
+      value={values.department}
+      onValueChange={(value) => setFieldValue("department", value)}
+    >
+      <SelectTrigger className="w-72">
+        <SelectValue placeholder="Select Department" />
+      </SelectTrigger>
 
-                    <Select
-                      value={values.department}
-                      onValueChange={(value) =>
-                        setFieldValue("department", value)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Department" />
-                      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">-- ALL --</SelectItem>
 
-                      <SelectContent>
-                        <SelectItem value="all">-- ALL --</SelectItem>
+        {departmentList.map((item) => (
+          <SelectItem
+            key={item.VALUE}
+            value={String(item.VALUE)}
+          >
+            {item.LABEL}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
 
-                        {departmentList.map((item) => (
-                          <SelectItem
-                            key={item.VALUE}
-                            value={String(item.VALUE)}
-                          >
-                            {item.LABEL}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+  {/* Type */}
+  <div className="flex items-center gap-2">
+    <Label text="Type" />
+    <span>:</span>
 
-                  {/* Type */}
+    <label className="flex items-center gap-2">
+      <Input
+        type="radio"
+        checked={values.type === "generate"}
+        onChange={() => setFieldValue("type", "generate")}
+      />
+      Generate
+    </label>
 
-                  <div className="space-y-2">
-                    <Label text="Type" />
+    <label className="flex items-center gap-2">
+      <Input
+        type="radio"
+        checked={values.type === "print"}
+        onChange={() => setFieldValue("type", "print")}
+      />
+      Print
+    </label>
+  </div>
 
-                    <div className="flex items-center gap-6 pt-2">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <Input
-                          type="radio"
-                          checked={values.type === "generate"}
-                          onChange={() => setFieldValue("type", "generate")}
-                        />
-                        <span>Generate</span>
-                      </label>
-
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <Input
-                          type="radio"
-                          checked={values.type === "print"}
-                          onChange={() => setFieldValue("type", "print")}
-                        />
-                        <span>Print</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+</div>
 
                 {/* Buttons */}
 
