@@ -1,18 +1,10 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form } from "formik";
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
+import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-
 import {
   Select,
   SelectContent,
@@ -20,321 +12,742 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Button } from "@/components/ui/button";
+import Swal from "sweetalert2";
 
-const initialValues = {
-  corporation: "",
-  department: "",
-  subDepartment: "",
-  employeeName: "",
-  deductionType: "",
-  recoveryAmount: "",
-  isWorking: true,
-  fromYear: "",
-  toYear: "",
-  fromMonth: "",
-  toMonth: "",
-  remark: "",
-};
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const FrmRecoveryUpload = () => {
-  const handleSubmit = (values) => {
-    console.log(values);
+  const { user } = useAuth();
+  const ulbId = user?.ulbId;
+  const token = user?.token;
+
+  const [corporationOptions, setCorporationOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [subDepartmentOptions, setSubDepartmentOptions] = useState([]);
+  const [employeeOptions, setEmployeeOptions] = useState([]);
+  const [deductionTypeOptions, setDeductionTypeOptions] = useState([]);
+  const [monthOptions, setMonthOptions] = useState([]);
+  const [yearOptions, setYearOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [defaultCorporationId, setDefaultCorporationId] = useState("");
+
+  useEffect(() => {
+    if (ulbId && token) {
+      fetchCorporation();
+      fetchDepartments();
+      fetchEmployees();
+      fetchDeductionTypes();
+      fetchMonths();
+      fetchYears();
+    }
+  }, [ulbId, token]);
+
+  const fetchCorporation = async () => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/Branchconfi/corporationlist`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const apiData = res.data?.data?.data || res.data?.data || [];
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: item.DISPLAY_TEXT || item.CORPORATION_NAME || item.corporationName || item.name,
+          value: String(item.ID_VALUE || item.CORPORATION_ID || item.corporationId || item.id),
+        }));
+        setCorporationOptions(formatted);
+
+        const defaultCorp = formatted.find(
+          (item) => item.value === String(ulbId)
+        );
+        
+        if (defaultCorp) {
+          setDefaultCorporationId(defaultCorp.value);
+        } else if (formatted.length > 0) {
+          setDefaultCorporationId(formatted[0].value);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching corporation:", err);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/LeaveApplication/departmentlist`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      let apiData = [];
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        apiData = res.data.data.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        apiData = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        apiData = res.data;
+      }
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: item.DISPLAY_TEXT || item.display_text || item.DEPTNAME || item.deptname || `Department ${item.ID_VALUE || item.id_value}`,
+          value: String(item.ID_VALUE || item.id_value || item.DEPTID || item.deptid),
+        }));
+        setDepartmentOptions(formatted);
+      }
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+    }
+  };
+
+  const fetchSubDepartments = async (departmentId) => {
+    if (!departmentId) {
+      setSubDepartmentOptions([]);
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmEmployeeMstList/subdepartment-list`,
+        {
+          deptId: Number(departmentId),
+          ulbid: Number(ulbId)
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      let apiData = [];
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        apiData = res.data.data.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        apiData = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        apiData = res.data;
+      }
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: item.VAR_DEPTSUB_SDEPTNAMEE || item.var_deptsub_sdeptnamee || item.SUB_DEPT_NAME || item.subDeptName || `Sub Dept ${item.NUM_DEPTSUB_ID || item.num_deptsub_id}`,
+          value: String(item.NUM_DEPTSUB_ID || item.num_deptsub_id || ""),
+        }));
+        setSubDepartmentOptions(formatted);
+      } else {
+        setSubDepartmentOptions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching sub-departments:", err);
+      setSubDepartmentOptions([]);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/LeaveApplication/employeelist`,
+        {
+          ulbId: Number(ulbId)
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      let apiData = [];
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        apiData = res.data.data.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        apiData = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        apiData = res.data;
+      }
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: item.EMPNAME || item.EmpName || `Employee ${item.NUM_EMPLOYEE_EMPID || item.num_employee_empid}`,
+          value: String(item.NUM_EMPLOYEE_EMPID || item.num_employee_empid || ""),
+        }));
+        setEmployeeOptions(formatted);
+      }
+    } catch (err) {
+      console.error("Error fetching employees:", err);
+    }
+  };
+
+  const fetchDeductionTypes = async () => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/FrmRecoveryUpload/deduction-type-list`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      let apiData = [];
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        apiData = res.data.data.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        apiData = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        apiData = res.data;
+      }
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: item.VAR_DEDUCTIONTYPE_NAME || item.var_deductiontype_name || item.deductionTypeName || `Deduction ${item.NUM_DEDUCTIONTYPE_ID || item.num_deductiontype_id}`,
+          value: String(item.NUM_DEDUCTIONTYPE_ID || item.num_deductiontype_id || item.deductionTypeId),
+        }));
+        setDeductionTypeOptions(formatted);
+      } else {
+        console.log("No deduction type data received");
+        setDeductionTypeOptions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching deduction types:", err);
+      setDeductionTypeOptions([]);
+    }
+  };
+
+  const fetchMonths = async () => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/FrmBankRecovery/month-list`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      let apiData = [];
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        apiData = res.data.data.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        apiData = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        apiData = res.data;
+      }
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: item.VAR_MONTH_NAME || item.var_month_name || item.monthName || `Month ${item.NUM_MONTH_ID || item.num_month_id}`,
+          value: String(item.NUM_MONTH_ID || item.num_month_id || item.monthId),
+        }));
+        setMonthOptions(formatted);
+      } else {
+        console.log("No month data received");
+        setMonthOptions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching months:", err);
+      setMonthOptions([]);
+    }
+  };
+
+  const fetchYears = async () => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/FrmBankRecovery/year-list`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      let apiData = [];
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        apiData = res.data.data.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        apiData = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        apiData = res.data;
+      }
+
+      if (apiData.length > 0) {
+        const formatted = apiData.map((item) => ({
+          label: String(item.VAR_YEAR || item.var_year || item.year || ''),
+          value: String(item.NUM_YEAR_ID || item.num_year_id || item.yearId || item.VAR_YEAR || item.var_year || item.year),
+        }));
+        setYearOptions(formatted);
+      } else {
+        console.log("No year data received");
+        setYearOptions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching years:", err);
+      setYearOptions([]);
+    }
+  };
+
+  const initialValues = {
+    corporation: "",
+    department: "",
+    subDepartment: "",
+    employee: "",
+    deductionType: "",
+    recoveryAmount: "",
+    isWorking: true,
+    fromYear: "",
+    toYear: "",
+    fromMonth: "",
+    toMonth: "",
+    remark: "",
+  };
+
+  const handleSubmit = async (values, { resetForm, setFieldValue }) => {
+    if (!values.department) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please select Department",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!values.employee) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please select Employee",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!values.recoveryAmount) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please enter Recovery Amount",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!values.fromYear) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please select From Year",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!values.toYear) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please select To Year",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!values.fromMonth) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please select From Month",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!values.toMonth) {
+      Swal.fire({
+        title: 'Required Field',
+        text: "Please select To Month",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        userId: user?.userId || localStorage.getItem("UserId"),
+        empId: Number(values.employee),
+        deptId: Number(values.department),
+        subDeptId: values.subDepartment ? Number(values.subDepartment) : null,
+        deductionId: values.deductionType ? Number(values.deductionType) : null,
+        isWorking: values.isWorking ? 'Y' : 'N',
+        recovAmount: Number(values.recoveryAmount),
+        fromYear: values.fromYear,
+        fromMonth: values.fromMonth,
+        toYear: values.toYear,
+        toMonth: values.toMonth,
+        remark: values.remark || '',
+        ulbId: Number(ulbId),
+      };
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmRecoveryUpload/insert-recovery`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Check if the response indicates success
+      const { success, errorCode, errorMsg } = res.data || {};
+      const isSuccess = success === true || 
+                        errorCode === -100 || 
+                        errorCode === 9999 || 
+                        errorCode === 0 ||
+                        (errorMsg && (
+                          errorMsg.includes("Inserted Successfully") ||
+                          errorMsg.includes("Successfully") ||
+                          errorMsg.includes("success") ||
+                          errorMsg.includes("saved")
+                        ));
+
+      if (isSuccess) {
+        Swal.fire({
+          title: 'Success',
+          text: errorMsg || "Recovery data saved successfully!",
+          confirmButtonText: 'OK'
+        });
+
+        const currentCorporation = values.corporation;
+        resetForm();
+        setFieldValue("corporation", currentCorporation);
+        
+      } else {
+        throw new Error(errorMsg || res.data?.error || "Failed to save data");
+      }
+    } catch (error) {
+      console.error("Submit Error", error);
+      Swal.fire({
+        title: 'Error',
+        text: error.response?.data?.message || error.message || "Failed to save recovery data",
+        confirmButtonText: 'OK'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Formik
-      initialValues={initialValues}
+    <Formik 
+      initialValues={initialValues} 
       onSubmit={handleSubmit}
+      enableReinitialize={true}
     >
-      {({
-        values,
-        handleChange,
-        setFieldValue,
-        resetForm,
-      }) => (
-        <Form>
-          <Card>
-            <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-2xl font-bold">
-                Recovery Upload
-              </CardTitle>
-            </CardHeader>
+      {({ values, setFieldValue, resetForm }) => {
+        // Set default corporation when options are loaded
+        useEffect(() => {
+          if (defaultCorporationId && !values.corporation) {
+            setFieldValue("corporation", defaultCorporationId);
+          }
+        }, [defaultCorporationId, values.corporation, setFieldValue]);
 
-            <CardContent className="pt-6">
+        return (
+          <Form>
+            <Card className="shadow-sm border">
+              <CardHeader className="border-b pb-3">
+                <CardTitle className="text-2xl font-semibold">
+                  Recovery Upload
+                </CardTitle>
+              </CardHeader>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-6">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* Corporation - Preselected */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Corporation Name
+                    </Label>
+                    <Select
+                      value={values.corporation}
+                      onValueChange={(value) => {
+                        setFieldValue("corporation", value);
+                        setFieldValue("employee", "");
+                        setFieldValue("department", "");
+                      }}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {corporationOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Corporation */}
-                <div className="space-y-2">
-                  <Label text="Corporation" required />
+                  {/* Department */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Department
+                    </Label>
+                    <Select
+                      value={values.department}
+                      onValueChange={(value) => {
+                        setFieldValue("department", value);
+                        setFieldValue("subDepartment", "");
+                        setFieldValue("employee", "");
+                        fetchSubDepartments(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departmentOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Select
-                    value={values.corporation}
-                    onValueChange={(value) =>
-                      setFieldValue("corporation", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
+                  {/* Sub Department */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Sub-Department
+                    </Label>
+                    <Select
+                      value={values.subDepartment}
+                      onValueChange={(value) => {
+                        setFieldValue("subDepartment", value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subDepartmentOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <SelectContent>
-                      <SelectItem value="870">
-                        Sangli Miraj Kupwad Corporation
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  {/* Employee */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Employee Name
+                    </Label>
+                    <Select
+                      value={values.employee}
+                      onValueChange={(value) => {
+                        setFieldValue("employee", value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employeeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Department */}
-                <div className="space-y-2">
-                  <Label text="Department" required />
+                  {/* Deduction Type - Optional */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Deduction Type
+                    </Label>
+                    <Select
+                      value={values.deductionType}
+                      onValueChange={(value) => setFieldValue("deductionType", value)}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deductionTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Select
-                    value={values.department}
-                    onValueChange={(value) =>
-                      setFieldValue("department", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="1">
-                        Department 1
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sub Department */}
-                <div className="space-y-2">
-                  <Label text="Sub-Department" required  className="min-w-[180px]"/>
-
-                  <Select
-                    value={values.subDepartment}
-                    onValueChange={(value) =>
-                      setFieldValue("subDepartment", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="1">
-                        Sub Department 1
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Employee Name */}
-                <div className="space-y-2">
-                  <Label text="Employee Name" required className="min-w-[180px]"/>
-
-                  <Select
-                    value={values.employeeName}
-                    onValueChange={(value) =>
-                      setFieldValue("employeeName", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="1">
-                        Employee 1
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Deduction Type */}
-                <div className="space-y-2">
-                  <Label text="Deduction Type" required className="min-w-[180px]"/>
-
-                  <Select
-                    value={values.deductionType}
-                    onValueChange={(value) =>
-                      setFieldValue("deductionType", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="1">
-                        Deduction Type 1
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Recovery Amount */}
-                <div className="space-y-2">
-                  <Label text="Recovery Amount" required className="min-w-[180px]" />
-
-                  <Input
-                    type="number"
-                    name="recoveryAmount"
-                    value={values.recoveryAmount}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Is Working */}
-                <div className="space-y-2">
-                  <Label text="Is Working?" />
-
-                  <div className="flex items-center h-9">
+                  {/* Recovery Amount */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Recovery Amount
+                    </Label>
                     <Input
-                      type="checkbox"
-                      checked={values.isWorking}
-                      onChange={(e) =>
-                        setFieldValue(
-                          "isWorking",
-                          e.target.checked
-                        )
-                      }
+                      name="recoveryAmount"
+                      value={values.recoveryAmount}
+                      onChange={(e) => setFieldValue("recoveryAmount", e.target.value)}
+                      type="number"
+                      className="h-9"
+                      placeholder="Enter recovery amount"
+                    />
+                  </div>
+
+                  {/* Is Working */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Is Working?
+                    </Label>
+                    <div className="flex items-center h-9">
+                      <Input
+                        type="checkbox"
+                        checked={values.isWorking}
+                        onChange={(e) => setFieldValue("isWorking", e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                    </div>
+                  </div>
+
+                  {/* From Year */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      From Year
+                    </Label>
+                    <Select
+                      value={values.fromYear}
+                      onValueChange={(value) => setFieldValue("fromYear", value)}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Year --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* To Year */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      To Year
+                    </Label>
+                    <Select
+                      value={values.toYear}
+                      onValueChange={(value) => setFieldValue("toYear", value)}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Year --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* From Month */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      From Month
+                    </Label>
+                    <Select
+                      value={values.fromMonth}
+                      onValueChange={(value) => setFieldValue("fromMonth", value)}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Month --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* To Month */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      To Month
+                    </Label>
+                    <Select
+                      value={values.toMonth}
+                      onValueChange={(value) => setFieldValue("toMonth", value)}
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- Select Month --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Remark */}
+                  <div className="space-y-2">
+                    <Label className="font-semibold whitespace-nowrap">
+                      Remark
+                    </Label>
+                    <Input
+                      name="remark"
+                      value={values.remark || ''}
+                      onChange={(e) => setFieldValue("remark", e.target.value)}
+                      className="h-9"
+                      placeholder="Enter remark"
                     />
                   </div>
                 </div>
 
-                {/* From Year */}
-                <div className="space-y-2">
-                  <Label text="From Year" required />
-
-                  <Select
-                    value={values.fromYear}
-                    onValueChange={(value) =>
-                      setFieldValue("fromYear", value)
-                    }
+                <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 text-white hover:bg-blue-700"
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      "Accumulation"
+                    )}
+                  </Button>
 
-                    <SelectContent>
-                      <SelectItem value="2025">
-                        2025
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* To Year */}
-                <div className="space-y-2">
-                  <Label text="To Year" required />
-
-                  <Select
-                    value={values.toYear}
-                    onValueChange={(value) =>
-                      setFieldValue("toYear", value)
-                    }
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                      resetForm();
+                      setSubDepartmentOptions([]);
+                      setFieldValue("corporation", defaultCorporationId);
+                      fetchEmployees();
+                    }}
+                    className="bg-red-600 text-white hover:bg-red-700"
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
+                    Reset
+                  </Button>
 
-                    <SelectContent>
-                      <SelectItem value="2025">
-                        2025
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* From Month */}
-                <div className="space-y-2">
-                  <Label text="From Month" required />
-
-                  <Select
-                    value={values.fromMonth}
-                    onValueChange={(value) =>
-                      setFieldValue("fromMonth", value)
-                    }
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="bg-gray-200 text-black hover:bg-gray-300"
+                    path="/"
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="1">
-                        January
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Cancel
+                  </Button>
                 </div>
-
-                {/* To Month */}
-                <div className="space-y-2">
-                  <Label text="To Month" required />
-
-                  <Select
-                    value={values.toMonth}
-                    onValueChange={(value) =>
-                      setFieldValue("toMonth", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="1">
-                        January
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Remark */}
-                <div className="space-y-2">
-                  <Label text="Remark" />
-
-                  <Textarea
-                    name="remark"
-                    value={values.remark}
-                    onChange={handleChange}
-                    className="min-h-[42px]"
-                  />
-                </div>
-
-              </div>
-
-              <div className="flex justify-center gap-3 mt-8">
-
-                <Button type="submit">
-                  Accumulation
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => resetForm()}
-                >
-                  Reset
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                >
-                  Cancel
-                </Button>
-
-              </div>
-
-            </CardContent>
-          </Card>
-        </Form>
-      )}
+              </CardContent>
+            </Card>
+          </Form>
+        );
+      }}
     </Formik>
   );
 };

@@ -43,7 +43,6 @@ const FrmLoansAndAdvancesReceived = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // Get today's date at start of day to avoid time issues
   const getTodayDate = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -160,20 +159,7 @@ const FrmLoansAndAdvancesReceived = () => {
       setPdfLoading(false);
     }
   };
-
-  const handleCancel = (resetForm) => {
-    resetForm();
-    setFilteredData([]);
-    setHasSearched(false);
-    Swal.fire({
-      icon: "info",
-      text: "Form has been reset",
-      confirmButtonColor: "#3085d6",
-      timer: 1500,
-      showConfirmButton: false,
-    });
-  };
-
+  
   useEffect(() => {
     if (ulbId) {
       fetchPayHeads();
@@ -254,14 +240,14 @@ const FrmLoansAndAdvancesReceived = () => {
                     </div>
                     <div className="flex flex-col gap-2">
                       <Label className="font-semibold">
-                        Pay Head
+                        PayHeads
                       </Label>
                       <Select
                         value={values.payHeadId}
                         onValueChange={(v) => setFieldValue("payHeadId", v)}
                       >
                         <SelectTrigger className="w-full h-10">
-                          <SelectValue placeholder="Select Pay Head" />
+                          <SelectValue placeholder="Select Option" />
                         </SelectTrigger>
                         <SelectContent>
                           {payHeadsOptions.map((option) => (
@@ -286,17 +272,8 @@ const FrmLoansAndAdvancesReceived = () => {
                           Processing...
                         </>
                       ) : (
-                        "Search & Generate PDF"
+                        "Print"
                       )}
-                    </Button>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleCancel(resetForm)}
-                      className="bg-gray-200 text-black hover:bg-gray-300"
-                    >
-                      Cancel
                     </Button>
                   </div>
 
