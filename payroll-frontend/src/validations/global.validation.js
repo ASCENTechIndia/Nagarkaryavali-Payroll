@@ -304,3 +304,89 @@ export const FrmEmployeeRetireValidationSchema = z.object({
     });
   }
 });
+
+export const FrmLeaveApprovalValidationSchema = z.object({
+    empName: z.string().optional(),
+    empCode: z.string().optional(),
+    department: z.string().optional(),
+    designation: z.string().optional(),
+    
+    leaveType: z.string().min(1, "Leave Type is required"),
+    fromDate: z.date({
+        required_error: "From Date is required",
+        invalid_type_error: "Invalid date format"
+    }),
+    toDate: z.date({
+        required_error: "To Date is required",
+        invalid_type_error: "Invalid date format"
+    }),
+    totalDays: z.string().min(1, "Total Days is required"),
+    halfDay: z.boolean().default(false),
+    reason: z.string().min(1, "Reason is required"),
+    contact: z.string().min(1, "Contact is required"),
+    
+    leaveStatus: z.string({
+        required_error: "Please select leave status"
+    }).min(1, "Please select leave status")
+    .refine((val) => ['A', 'R'].includes(val), {
+        message: "Invalid leave status"
+    }),
+    
+    remark: z.string({
+        required_error: "Please enter remark"
+    }).min(1, "Please enter remark")
+});
+
+export const FrmLeaveApprovalSaveValidationSchema = z.object({
+    leaveappid: z.number({
+        required_error: "Leave Application ID is required"
+    }),
+    empid: z.number({
+        required_error: "Employee ID is required"
+    }),
+    leavetypeid: z.number({
+        required_error: "Leave Type ID is required"
+    }),
+    balanceleave: z.number({
+        required_error: "Balance Leave is required"
+    }),
+    frmdate: z.date({
+        required_error: "From Date is required"
+    }),
+    todate: z.date({
+        required_error: "To Date is required"
+    }),
+    halfday: z.string().min(1, "Half Day is required"),
+    reason: z.string().min(1, "Reason is required"),
+    contact: z.string().min(1, "Contact is required"),
+    leavestatus: z.string().min(1, "Leave Status is required"),
+    remark: z.string().min(1, "Remark is required"),
+    ulbid: z.number({
+        required_error: "ULB ID is required"
+    }),
+    userId: z.string({
+        required_error: "User ID is required"
+    })
+});
+
+export const FrmEmpLeaveListValidationSchema = z
+  .object({
+    department: z.string({
+      required_error: "Department is required",
+    }).min(1, "Department is required"),
+    category: z.string({
+      required_error: "Category is required",
+    }).min(1, "Category is required"),
+    empId: z.string().optional(),
+    empName: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      return true;
+    },
+    {
+      message: "Please fill all required fields",
+      path: ["department"],
+    }
+  );
+  

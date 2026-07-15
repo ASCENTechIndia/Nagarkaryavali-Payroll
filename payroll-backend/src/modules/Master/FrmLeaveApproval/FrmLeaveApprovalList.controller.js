@@ -57,3 +57,8 @@ exports.getLeaveApprovalDetails = asyncHandler(
     );
   }
 );
+
+exports.saveLeaveApproval = asyncHandler(async (req, res) => {
+    const data = await service.saveLeaveApprovalService(req.body);
+    return ok(res, data, data.message || "Leave application processed successfully");
+});
