@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<style>
+@page {
+  size: A4 landscape;
+  margin: 8mm 6mm;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Noto Sans Devanagari", "Mangal", Arial, sans-serif;
+  font-size: 10px;
+  color: #000;
+  background: #fff;
+  padding: 2mm;
+}
+
+.container {
+  width: 100%;
+}
+
+/* Header Section with Logo */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-left img {
+  height: 40px;
+  max-height: 45px;
+  object-fit: contain;
+}
+
+.corp-name {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.header-right {
+  text-align: right;
+  font-size: 10px;
+  font-weight: bold;
+}
+/* Top Info Table */
+.top-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+
+.top-table td {
+  border: 1px solid #000;
+  padding: 3px 5px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.top-table .label-cell {
+  font-weight: bold;
+}
+
+/* Title Section */
+.title-section {
+  text-align: center;
+  margin: 4px 0 8px 0;
+}
+
+.main-title {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.sub-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+/* Report Info */
+.report-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid #666;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 1.5px 1.5px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+th {
+  font-weight: bold;
+}
+
+thead th {
+  font-size: 10px;
+}
+
+/* Left aligned text */
+.text-left {
+  text-align: left;
+  padding-left: 3px;
+}
+
+.text-right {
+  text-align: right;
+  padding-right: 3px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Total row */
+.total-row {
+  font-weight: bold;
+  border-top: 2px solid #000;
+}
+
+.total-row td {
+  font-weight: bold;
+  padding: 2px 1.5px;
+}
+
+/* Footer */
+.footer {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #999;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #555;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+/* Net Pay in words */
+.net-pay-words {
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: right;
+  border-top: 1px solid #ddd;
+  padding-top: 4px;
+}
+
+/* Small text for sub-values */
+.sub-value {
+  font-size: 10px;
+  color: #555;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-left">
+      {{#if corporationLogo}}
+        <img src="{{corporationLogo}}" alt="Logo" />
+      {{/if}}
+      <span class="corp-name">{{corporationName}}</span>
+    </div>
+    <div class="sub-title">{{reportTitle}}</div>
+  </div>
+
+  <!-- Report Info -->
+  <div class="report-info">
+    <span>विभागाचे नाव : {{departmentName}}</span>
+    <span>महिना : {{monthName}} - {{year}}</span>
+  </div>
+
+  <!-- Main Table - 21 Columns with Merged Headers -->
+  <table>
+    <thead>
+      <tr>
+        <!-- Column 1: Employee Code + Sr No -->
+        <th rowspan="2" style="width:5%;">कर्मचारी क्र.<br/><span style="font-weight:bold;font-size:10px;">अ.क्र.</span></th>
+        
+        <!-- Column 2: PF + PF Return (2 values) -->
+        <th rowspan="2" style="width:5%;">भ.नि.निधी<br/><span style="font-weight:bold;font-size:10px;">भ.नि.नि.परतावा (PF)</span></th>
+        
+        <!-- Column 3: Profession Tax -->
+        <th rowspan="2" style="width:4%;">व्यवसाय कर</th>
+        
+        <!-- Column 4: Income Tax + TDS (2 values) -->
+        <th rowspan="2" style="width:5%;">आयकर (IT)<br/><span style="font-weight:bold;font-size:10px;">टिडीएस</span></th>
+        
+        <!-- Column 5-8: Societies -->
+        <th rowspan="2" style="width:4%;">सोसायटी १</th>
+        <th rowspan="2" style="width:4%;">सोसायटी २</th>
+        <th rowspan="2" style="width:4%;">सोसायटी ३</th>
+        <th rowspan="2" style="width:4%;">सोसायटी ४</th>
+        
+        <!-- Column 9: Bank + Financial Institution (2 values) -->
+        <th rowspan="2" style="width:4%;">बँक/ पतसंस्था</span></th>
+        
+        <!-- Column 10: Refund + Tasalmat (2 values) -->
+        <th rowspan="2" style="width:4%;">परत जमा<br/><span style="font-weight:bold;font-size:10px;">तसलमात</span></th>
+        
+        <!-- Column 11: Group Insurance -->
+        <th rowspan="2" style="width:4%;">गट विमा</th>
+        
+        <!-- Column 12: DCPS 10% -->
+        <th rowspan="2" style="width:4%;">डि.सी.पी.एस<br/>10%</th>
+        
+        <!-- Column 13: NMC DCPS -->
+        <th rowspan="2" style="width:4%;">मनपा<br/>डि.सी.पी.एस</th>
+        
+        <!-- Column 14: Misc Fee + JMFC (2 values) -->
+        <th rowspan="2" style="width:4%;">मु. शुल्क<br/><span style="font-weight:bold;font-size:10px;">जे.एम.एफ.सी.</span></th>
+        
+        <!-- Column 15: House Rent Recovery + HR Ancillary (2 values) -->
+        <th rowspan="2" style="width:4%;">घरभाडे वसली<br/><span style="font-weight:bold;font-size:10px;">घरभाडे अनु. शुल्क</span></th>
+        
+        <!-- Column 16: Water Tax + House Tax (2 values) -->
+        <th rowspan="2" style="width:4%;">पाणीपट्टी<br/><span style="font-weight:bold;font-size:10px;">घरपट्टी</span></th>
+        
+        <!-- Column 17: Festival Advance -->
+        <th rowspan="2" style="width:4%;">सण<br/>ॲडव्हान्स</th>
+        
+        <!-- Column 18: Other Deduction + Special Fund (2 values) -->
+        <th rowspan="2" style="width:5%;">इतर कपात<br/><span style="font-weight:bold;font-size:10px;">विशेष निधी</span></th>
+        
+        <!-- Column 19: Total Deduction -->
+        <th rowspan="2" style="width:5%;">एकूण कटाई</th>
+        
+        <!-- Column 20: Net Pay -->
+        <th rowspan="2" style="width:5%;">देय वेतन</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each employees}}
+      <tr>
+        <!-- Column 1: Employee Code + Sr No -->
+        <td>
+          {{this.empCode}}<br/>
+          <span class="sub-value">{{this.srNo}}</span>
+        </td>
+        
+        <!-- Column 2: PF / PF Return - Keys: 126, 127 -->
+        <td class="text-right">
+          {{getColValue this 126}}<br/>
+          <span class="sub-value">{{getColValue this 127}}</span>
+        </td>
+        
+        <!-- Column 3: Profession Tax - Key: 131 -->
+        <td class="text-right">{{getColValue this 131}}</td>
+        
+        <!-- Column 4: Income Tax / TDS - Keys: 132, 10 -->
+        <td class="text-right">
+          {{getColValue this 132}}<br/>
+          <span class="sub-value">{{getColValue this 10}}</span>
+        </td>
+        
+        <!-- Column 5-8: Societies - Keys: 20, 17, 18, 19 -->
+        <td class="text-right">{{getColValue this 20}}</td>
+        <td class="text-right">{{getColValue this 17}}</td>
+        <td class="text-right">{{getColValue this 18}}</td>
+        <td class="text-right">{{getColValue this 19}}</td>
+        
+        <!-- Column 9: Bank / Financial Institution - Keys: 21, 128 -->
+        <td class="text-right">
+          {{getColValue this 21}}<br/>
+        </td>
+        
+        <!-- Column 10: Refund / Tasalmat - Keys: 106, 22 -->
+        <td class="text-right">
+          {{getColValue this 106}}<br/>
+          <span class="sub-value">{{getColValue this 22}}</span>
+        </td>
+        
+        <!-- Column 11: Group Insurance - Key: 25 -->
+        <td class="text-right">{{getColValue this 25}}</td>
+        
+        <!-- Column 12: DCPS 10% - Key: 28 -->
+        <td class="text-right">{{getColValue this 28}}</td>
+        
+        <!-- Column 13: NMC DCPS - Key: 27 -->
+        <td class="text-right">{{getColValue this 27}}</td>
+        
+        <!-- Column 14: Misc Fee / JMFC - Keys: 14, 30 -->
+        <td class="text-right">
+          {{getColValue this 14}}<br/>
+          <span class="sub-value">{{getColValue this 30}}</span>
+        </td>
+        
+        <!-- Column 15: House Rent Recovery / HR Ancillary - Keys: 32, 108 -->
+        <td class="text-right">
+          {{getColValue this 32}}<br/>
+          <span class="sub-value">{{getColValue this 108}}</span>
+        </td>
+        
+        <!-- Column 16: Water Tax / House Tax - Keys: 29, 107 -->
+        <td class="text-right">
+          {{getColValue this 29}}<br/>
+          <span class="sub-value">{{getColValue this 107}}</span>
+        </td>
+        
+        <!-- Column 17: Festival Advance - Key: 105 -->
+        <td class="text-right">{{getColValue this 105}}</td>
+        
+        <!-- Column 18: Other Deduction / Special Fund - Keys: 11, 24 -->
+        <td class="text-right">
+          {{getColValue this 11}}<br/>
+          <span class="sub-value">{{getColValue this 24}}</span>
+        </td>
+        
+        <!-- Column 19: Total Deduction -->
+        <td class="text-right bold">{{formatNumber this.totalDeduction}}</td>
+        
+        <!-- Column 20: Net Pay -->
+        <td class="text-right bold">{{formatNumber this.netPay}}</td>
+      </tr>
+      {{/each}}
+
+      <!-- Grand Total Row -->
+      {{#if employees.length}}
+      <tr class="total-row">
+        <td class="text-right">एकूण</td>
+        
+        <!-- Column 2 Total: PF / PF Return - Keys: 126, 127 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 126}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 127}}</span>
+        </td>
+        
+        <!-- Column 3 Total: Profession Tax - Key: 131 -->
+        <td class="text-right">{{getTotalValue reportTotals 131}}</td>
+        
+        <!-- Column 4 Total: Income Tax / TDS - Keys: 132, 10 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 132}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 10}}</span>
+        </td>
+        
+        <!-- Column 5-8 Totals: Societies - Keys: 20, 17, 18, 19 -->
+        <td class="text-right">{{getTotalValue reportTotals 20}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 17}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 18}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 19}}</td>
+        
+        <!-- Column 9 Total: Bank / Financial Institution - Keys: 21, 128 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 21}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 128}}</span>
+        </td>
+        
+        <!-- Column 10 Total: Refund / Tasalmat - Keys: 106, 22 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 106}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 22}}</span>
+        </td>
+        
+        <!-- Column 11 Total: Group Insurance - Key: 25 -->
+        <td class="text-right">{{getTotalValue reportTotals 25}}</td>
+        
+        <!-- Column 12 Total: DCPS 10% - Key: 28 -->
+        <td class="text-right">{{getTotalValue reportTotals 28}}</td>
+        
+        <!-- Column 13 Total: NMC DCPS - Key: 27 -->
+        <td class="text-right">{{getTotalValue reportTotals 27}}</td>
+        
+        <!-- Column 14 Total: Misc Fee / JMFC - Keys: 14, 30 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 14}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 30}}</span>
+        </td>
+        
+        <!-- Column 15 Total: House Rent Recovery / HR Ancillary - Keys: 32, 108 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 32}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 108}}</span>
+        </td>
+        
+        <!-- Column 16 Total: Water Tax / House Tax - Keys: 29, 107 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 29}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 107}}</span>
+        </td>
+        
+        <!-- Column 17 Total: Festival Advance - Key: 105 -->
+        <td class="text-right">{{getTotalValue reportTotals 105}}</td>
+        
+        <!-- Column 18 Total: Other Deduction / Special Fund - Keys: 11, 24 -->
+        <td class="text-right">
+          {{getTotalValue reportTotals 11}}<br/>
+          <span class="sub-value">{{getTotalValue reportTotals 24}}</span>
+        </td>
+        
+        <!-- Column 19 Total: Total Deduction -->
+        <td class="text-right bold">{{formatNumber grandTotalDeduct}}</td>
+        
+        <!-- Column 20 Total: Net Pay -->
+        <td class="text-right bold">{{formatNumber grandNetPay}}</td>
+      </tr>
+      {{/if}}
+    </tbody>
+  </table>
+
+</div>
+</body>
+</html>

@@ -136,6 +136,7 @@ app.use("/api/FrmLoansAndAdvancesRpt", require("./modules/Reports/FrmLoansAndAdv
 app.use("/api/FrmNetPayRpt", require("./modules/Reports/FrmNetPayRpt/FrmNetPayRpt.route"));
 app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeductionPayheadsDtls/FrmDeductionPayheadsDtls.route"));
 app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
+app.use("/api/FrmDepSalBill", require("./modules/Reports/FrmDepSalBill/FrmDepSalBill.routes"));
 
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
