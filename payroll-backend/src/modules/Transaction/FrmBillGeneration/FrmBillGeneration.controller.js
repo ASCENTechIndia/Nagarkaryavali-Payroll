@@ -14,11 +14,6 @@ const {
   getCorporationService,
 } = require("../../MenuAccess/MenuAccess.service");
 
-/**
- * ==========================================
- * Validation
- * ==========================================
- */
 function validate(body) {
   const { salDate, ulbid, deptid } = body;
 
@@ -35,11 +30,6 @@ function validate(body) {
   };
 }
 
-/**
- * ==========================================================
- * Detail Report PDF
- * ==========================================================
- */
 exports.downloadDetailReport = asyncHandler(async (req, res) => {
 
    console.log("=========== DETAIL REPORT ===========");
@@ -105,19 +95,11 @@ exports.downloadDetailReport = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * ==========================================================
- * Summary Report PDF
- * ==========================================================
- */
 exports.downloadSummaryReport = asyncHandler(async (req, res) => {
   const payload = validate(req.body);
 
   const report = await service.getSummaryReportService(payload);
 
-  /**
-   * Corporation Details
-   */
   let ulbInfo;
 
   try {

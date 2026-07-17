@@ -3,57 +3,42 @@ const { executeQuery } = require("../../../db/queryExecutor");
 const oracledb = require("oracledb");
 const { executeProcedure } = require("../../../db/procedureExecutor");
 
-
 const monthMap = {
-    Jan: 0,
-    Feb: 1,
-    Mar: 2,
-    Apr: 3,
-    May: 4,
-    Jun: 5,
-    Jul: 6,
-    Aug: 7,
-    Sep: 8,
-    Oct: 9,
-    Nov: 10,
-    Dec: 11,
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
 };
 
 function oracleDate(dateString) {
-    const [day, month, year] = dateString.split("-");
+  const [day, month, year] = dateString.split("-");
 
-    return {
-        val: new Date(
-            Number(year),
-            monthMap[month],
-            Number(day)
-        ),
-        type: oracledb.DATE,
-    };
+  return {
+    val: new Date(Number(year), monthMap[month], Number(day)),
+    type: oracledb.DATE,
+  };
 }
-/**
- * ==========================================================
- * Execute Query Helper
- * ==========================================================
- */
+
 async function runQuery(sql, binds) {
-    const result = await executeQuery(sql, binds);
+  const result = await executeQuery(sql, binds);
 
-    if (!result.success) {
-        throw new Error(result.error);
-    }
+  if (!result.success) {
+    throw new Error(result.error);
+  }
 
-    return result.rows;
+  return result.rows;
 }
 
-/**
- * ==========================================================
- * Earning Query
- * ==========================================================
- */
 async function getEarningData({ salDate, ulbid, deptid }) {
-
-    const sql = `
+  const sql = `
         SELECT
             var_billpayhead_billno BILLNO,
             var_payheads_shortname PAYHEADS_ENAME,
@@ -91,22 +76,15 @@ async function getEarningData({ salDate, ulbid, deptid }) {
         ORDER BY BILLNO
     `;
 
-   return await runQuery(sql, {
+  return await runQuery(sql, {
     salDate: oracleDate(salDate),
     ulbid,
-    deptid
-});
-
+    deptid,
+  });
 }
 
-/**
- * ==========================================================
- * Deduction Query
- * ==========================================================
- */
 async function getDeductionData({ salDate, ulbid, deptid }) {
-
-    const sql = `
+  const sql = `
         SELECT
             var_billpayhead_billno BILLNO,
             var_payheads_shortname PAYHEADS_ENAME,
@@ -144,22 +122,15 @@ async function getDeductionData({ salDate, ulbid, deptid }) {
         ORDER BY BILLNO
     `;
 
-   return await runQuery(sql, {
+  return await runQuery(sql, {
     salDate: oracleDate(salDate),
     ulbid,
-    deptid
-});
+    deptid,
+  });
 }
 
-/**
- * ==========================================================
- * Pension / Total Query
- * Same as .NET dtPension Query
- * ==========================================================
- */
 async function getPensionTotals({ salDate, ulbid, deptid }) {
-
-    const sql = `
+  const sql = `
         SELECT
 
         NVL(
@@ -219,33 +190,25 @@ async function getPensionTotals({ salDate, ulbid, deptid }) {
         FROM dual
     `;
 
-    const rows = await runQuery(sql, {
-        salDate: oracleDate(salDate),
-        ulbid,
-        deptid
-    });
+  const rows = await runQuery(sql, {
+    salDate: oracleDate(salDate),
+    ulbid,
+    deptid,
+  });
 
-    const pension = rows[0] || {};
+  const pension = rows[0] || {};
 
-    return {
-        netEarning: Number(pension.TOTEARANDPENSION || 0),
-        netDeduction: Number(pension.TOTDUDANDPENSION || 0),
-        netPayable:
-            Number(pension.TOTEARANDPENSION || 0) -
-            Number(pension.TOTDUDANDPENSION || 0)
-    };
+  return {
+    netEarning: Number(pension.TOTEARANDPENSION || 0),
+    netDeduction: Number(pension.TOTDUDANDPENSION || 0),
+    netPayable:
+      Number(pension.TOTEARANDPENSION || 0) -
+      Number(pension.TOTDUDANDPENSION || 0),
+  };
 }
 
-
-/**
- * ==========================================================
- * Sub Detail Query
- * Same as .NET GetSubDetail()
- * ==========================================================
- */
 async function getSubDetailData({ salDate, ulbid, deptid }) {
-
-    const sql = `
+  const sql = `
         SELECT
             '' BILLNO,
             'पगार' PAYHEADS_ENAME,
@@ -349,188 +312,139 @@ async function getSubDetailData({ salDate, ulbid, deptid }) {
             var_payheads_shortname
     `;
 
-   return await runQuery(sql, {
+  return await runQuery(sql, {
     salDate: oracleDate(salDate),
     ulbid,
-    deptid
-});
+    deptid,
+  });
 }
 
 async function getDetailReportRepo(payload) {
+  const earning = await getEarningData(payload);
 
-    const earning = await getEarningData(payload);
+  const deduction = await getDeductionData(payload);
 
-    const deduction = await getDeductionData(payload);
+  const pension = await getPensionTotals(payload);
 
-    const pension = await getPensionTotals(payload);
+  const detail = [];
 
-    const detail = [];
+  const maxRows = Math.max(earning.length, deduction.length);
 
-    const maxRows = Math.max(
-        earning.length,
-        deduction.length
-    );
-
-    for (let i = 0; i < maxRows; i++) {
-
-        detail.push({
-
-            Earning_Head:
-                earning[i]?.PAYHEADS_ENAME || "",
-
-            Earning_Amount:
-                Number(earning[i]?.AMOUNT || 0),
-
-            Deduction_Head:
-                deduction[i]?.PAYHEADS_ENAME || "",
-
-            Deduction_Amount:
-                Number(deduction[i]?.AMOUNT || 0)
-
-        });
-
-    }
-
-    /**
-     * Same rows added in .NET
-     */
-
+  for (let i = 0; i < maxRows; i++) {
     detail.push({
+      Earning_Head: earning[i]?.PAYHEADS_ENAME || "",
 
-        Earning_Head: "पेंशन फंडासह एकूण वेतन",
+      Earning_Amount: Number(earning[i]?.AMOUNT || 0),
 
-        Earning_Amount: pension.netEarning,
+      Deduction_Head: deduction[i]?.PAYHEADS_ENAME || "",
 
-        Deduction_Head: "",
-
-        Deduction_Amount: ""
-
+      Deduction_Amount: Number(deduction[i]?.AMOUNT || 0),
     });
+  }
 
-    detail.push({
+  /**
+   * Same rows added in .NET
+   */
 
-        Earning_Head: "पेंशन फंडासह एकूण वजा",
+  detail.push({
+    Earning_Head: "पेंशन फंडासह एकूण वेतन",
 
-        Earning_Amount: pension.netDeduction,
+    Earning_Amount: pension.netEarning,
 
-        Deduction_Head: "",
+    Deduction_Head: "",
 
-        Deduction_Amount: ""
+    Deduction_Amount: "",
+  });
 
-    });
+  detail.push({
+    Earning_Head: "पेंशन फंडासह एकूण वजा",
 
-    const subDetail = await getSubDetailData(payload);
+    Earning_Amount: pension.netDeduction,
 
-    return {
+    Deduction_Head: "",
 
-        detail,
+    Deduction_Amount: "",
+  });
 
-        subDetail,
+  const subDetail = await getSubDetailData(payload);
 
-        netEarning: pension.netEarning,
+  return {
+    detail,
 
-        netDeduction: pension.netDeduction,
+    subDetail,
 
-        netPayable: pension.netPayable
+    netEarning: pension.netEarning,
 
-    };
+    netDeduction: pension.netDeduction,
 
+    netPayable: pension.netPayable,
+  };
 }
-
-
-/**
- * ==========================================================
- * Summary Report Repo
- * Same Data as .NET GenerateSummaryReport()
- * ==========================================================
- */
 async function getSummaryReportRepo(payload) {
+  const earning = await getEarningData(payload);
 
-    const earning = await getEarningData(payload);
+  const deduction = await getDeductionData(payload);
 
-    const deduction = await getDeductionData(payload);
+  const pension = await getPensionTotals(payload);
 
-    const pension = await getPensionTotals(payload);
+  const summary = [];
 
-    const summary = [];
+  const maxRows = Math.max(earning.length, deduction.length);
 
-    const maxRows = Math.max(
-        earning.length,
-        deduction.length
-    );
-
-    for (let i = 0; i < maxRows; i++) {
-
-        summary.push({
-
-            Earning_Head:
-                earning[i]?.PAYHEADS_ENAME || "",
-
-            Earning_Amount:
-                Number(earning[i]?.AMOUNT || 0),
-
-            Deduction_Head:
-                deduction[i]?.PAYHEADS_ENAME || "",
-
-            Deduction_Amount:
-                Number(deduction[i]?.AMOUNT || 0)
-
-        });
-
-    }
-
+  for (let i = 0; i < maxRows; i++) {
     summary.push({
+      Earning_Head: earning[i]?.PAYHEADS_ENAME || "",
 
-        Earning_Head: "पेंशन फंडासह एकूण वेतन",
+      Earning_Amount: Number(earning[i]?.AMOUNT || 0),
 
-        Earning_Amount: pension.netEarning,
+      Deduction_Head: deduction[i]?.PAYHEADS_ENAME || "",
 
-        Deduction_Head: "",
-
-        Deduction_Amount: ""
-
+      Deduction_Amount: Number(deduction[i]?.AMOUNT || 0),
     });
+  }
 
-    summary.push({
+  summary.push({
+    Earning_Head: "पेंशन फंडासह एकूण वेतन",
 
-        Earning_Head: "पेंशन फंडासह एकूण वजा",
+    Earning_Amount: pension.netEarning,
 
-        Earning_Amount: pension.netDeduction,
+    Deduction_Head: "",
 
-        Deduction_Head: "",
+    Deduction_Amount: "",
+  });
 
-        Deduction_Amount: ""
+  summary.push({
+    Earning_Head: "पेंशन फंडासह एकूण वजा",
 
-    });
+    Earning_Amount: pension.netDeduction,
 
-    return {
+    Deduction_Head: "",
 
-        summary,
+    Deduction_Amount: "",
+  });
 
-        netEarning: pension.netEarning,
+  return {
+    summary,
 
-        netDeduction: pension.netDeduction,
+    netEarning: pension.netEarning,
 
-        netPayable: pension.netPayable
+    netDeduction: pension.netDeduction,
 
-    };
-
+    netPayable: pension.netPayable,
+  };
 }
-
 
 async function generateBillRepo(payload) {
-
-    return {
-        success: true,
-        message: "Bill generated successfully."
-    };
-
+  return {
+    success: true,
+    message: "Bill generated successfully.",
+  };
 }
 
 async function insertBillRepo(payload) {
-   const [day, month, year] = payload.salDate.split("-");
+  const [day, month, year] = payload.salDate.split("-");
 
-const monthMap = {
+  const monthMap = {
     Jan: 0,
     Feb: 1,
     Mar: 2,
@@ -543,24 +457,20 @@ const monthMap = {
     Oct: 9,
     Nov: 10,
     Dec: 11,
-};
+  };
 
-const salaryDate = new Date(
-    Number(year),
-    monthMap[month],
-    Number(day)
-);
+  const salaryDate = new Date(Number(year), monthMap[month], Number(day));
 
-    console.log("========== BILL INPUT ==========");
-    console.log("User        :", payload.userId);
-    console.log("Input Date  :", payload.salDate);
-    console.log("Salary Date :", salaryDate.toDateString());
-    console.log("Dept        :", payload.deptid);
-    console.log("ULB         :", payload.ulbid);
-    console.log("===============================");
+  console.log("========== BILL INPUT ==========");
+  console.log("User        :", payload.userId);
+  console.log("Input Date  :", payload.salDate);
+  console.log("Salary Date :", salaryDate.toDateString());
+  console.log("Dept        :", payload.deptid);
+  console.log("ULB         :", payload.ulbid);
+  console.log("===============================");
 
-    const result = await executeProcedure({
-        sql: `
+  const result = await executeProcedure({
+    sql: `
         BEGIN
             aopr_bill_ins(
                 :in_UserId,
@@ -572,45 +482,42 @@ const salaryDate = new Date(
             );
         END;
         `,
-        binds: {
-            in_UserId: payload.userId,
-            in_Date: {
-                val: salaryDate,
-                type: oracledb.DATE
-            },
-            in_dept: Number(payload.deptid),
-            in_UlbID: Number(payload.ulbid),
-            out_ErrorCode: {
-                dir: oracledb.BIND_OUT,
-                type: oracledb.NUMBER
-            },
-            out_ErrorMsg: {
-                dir: oracledb.BIND_OUT,
-                type: oracledb.STRING,
-                maxSize: 5000
-            }
-        }
-    });
+    binds: {
+      in_UserId: payload.userId,
+      in_Date: {
+        val: salaryDate,
+        type: oracledb.DATE,
+      },
+      in_dept: Number(payload.deptid),
+      in_UlbID: Number(payload.ulbid),
+      out_ErrorCode: {
+        dir: oracledb.BIND_OUT,
+        type: oracledb.NUMBER,
+      },
+      out_ErrorMsg: {
+        dir: oracledb.BIND_OUT,
+        type: oracledb.STRING,
+        maxSize: 5000,
+      },
+    },
+  });
 
-    if (!result.success) {
-        throw new Error(result.error);
-    }
+  if (!result.success) {
+    throw new Error(result.error);
+  }
 
-    return {
-        success: result.outBinds.out_ErrorCode === 9999,
-        errorCode: result.outBinds.out_ErrorCode,
-        errorMsg: result.outBinds.out_ErrorMsg
-    };
+  return {
+    success: result.outBinds.out_ErrorCode === 9999,
+    errorCode: result.outBinds.out_ErrorCode,
+    errorMsg: result.outBinds.out_ErrorMsg,
+  };
 }
 
-
 module.exports = {
+  generateBillRepo,
 
-    generateBillRepo,
+  getDetailReportRepo,
 
-    getDetailReportRepo,
-
-    getSummaryReportRepo,
-    insertBillRepo
-
+  getSummaryReportRepo,
+  insertBillRepo,
 };

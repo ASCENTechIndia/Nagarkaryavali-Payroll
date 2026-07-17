@@ -3,11 +3,6 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 const Handlebars = require("handlebars");
 
-/**
- * ==========================================================
- * Bill Generation PDF Helper
- * ==========================================================
- */
 const BillGenerationPDFHelper = async ({
   reportType,
   reportData,
@@ -20,14 +15,6 @@ const BillGenerationPDFHelper = async ({
   let browser;
 
   try {
-    console.log("========== BILL PDF START ==========");
-
-    /**
-     * ======================================================
-     * Validation
-     * ======================================================
-     */
-
     if (!reportData) {
       throw new Error("Report data is missing.");
     }
@@ -39,12 +26,6 @@ const BillGenerationPDFHelper = async ({
     if (reportType === "SUMMARY" && !Array.isArray(reportData.summary)) {
       throw new Error("Summary report data is missing.");
     }
-
-    /**
-     * ======================================================
-     * Load HTML Template
-     * ======================================================
-     */
 
     const templateName =
       reportType === "DETAIL"
@@ -66,12 +47,6 @@ const BillGenerationPDFHelper = async ({
     const htmlFile = fs.readFileSync(templatePath, "utf8");
 
     const template = Handlebars.compile(htmlFile);
-
-    /**
-     * ======================================================
-     * Salary Month
-     * ======================================================
-     */
 
     let monthName = "";
     let year = "";
@@ -102,12 +77,6 @@ const BillGenerationPDFHelper = async ({
       }
     }
 
-    /**
-     * ======================================================
-     * Report Rows
-     * ======================================================
-     */
-
     const reportRows =
       reportType === "DETAIL"
         ? reportData.detail || []
@@ -134,12 +103,6 @@ const BillGenerationPDFHelper = async ({
       ),
     }));
 
-    /**
-     * ======================================================
-     * Returned Salary Details
-     * ======================================================
-     */
-
     const subDetailRows = (reportData.subDetail || []).map((row, index) => ({
       SRNO: index + 1,
 
@@ -155,12 +118,6 @@ const BillGenerationPDFHelper = async ({
 
     console.log("Detail Rows :", detailRows.length);
     console.log("Sub Detail Rows :", subDetailRows.length);
-
-    /**
-     * ======================================================
-     * Generate HTML
-     * ======================================================
-     */
 
     const html = template({
       corporationName: ulbInfo?.ABC_MUNICIPAL_TEXT || "नगर परिषद",
@@ -212,14 +169,6 @@ const BillGenerationPDFHelper = async ({
       }),
     });
 
-    console.log("HTML Generated Successfully");
-
-    /**
-     * ======================================================
-     * Launch Browser
-     * ======================================================
-     */
-
     const chromePath = path.resolve(
       __dirname,
       "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe",
@@ -243,9 +192,6 @@ const BillGenerationPDFHelper = async ({
     }
 
     browser = await puppeteer.launch(launchOptions);
-
-    console.log("Chrome Started Successfully");
-
     const page = await browser.newPage();
 
     await page.setViewport({
@@ -283,12 +229,6 @@ const BillGenerationPDFHelper = async ({
 
     console.log("PDF Generated Successfully");
 
-    /**
-     * ======================================================
-     * Save PDF
-     * ======================================================
-     */
-
     const outputDir = path.resolve(__dirname, "../../../public/pdf");
 
     if (!fs.existsSync(outputDir)) {
@@ -305,11 +245,6 @@ const BillGenerationPDFHelper = async ({
     const filePath = path.join(outputDir, fileName);
 
     fs.writeFileSync(filePath, pdfBuffer);
-
-    console.log("==================================");
-    console.log("PDF Saved Successfully");
-    console.log("File :", filePath);
-    console.log("==================================");
 
     return {
       fileName,
@@ -330,8 +265,6 @@ const BillGenerationPDFHelper = async ({
         console.error("Error Closing Chrome :", closeError.message);
       }
     }
-
-    console.log("========== BILL PDF END ==========");
   }
 };
 

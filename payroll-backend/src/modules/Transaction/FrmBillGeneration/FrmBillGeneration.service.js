@@ -1,21 +1,11 @@
 const repo = require("./FrmBillGeneration.repo");
 
-/**
- * ==========================================================
- * Generate Bill
- * ==========================================================
- */
 async function generateBillService(payload) {
-    console.log("📥 Service : Generate Bill");
+    console.log(" Service : Generate Bill");
 
     return await repo.generateBillRepo(payload);
 }
 
-/**
- * ==========================================================
- * Detail Report
- * ==========================================================
- */
 async function getDetailReportService(payload) {
 
     const report = await repo.getDetailReportRepo(payload);
@@ -41,11 +31,6 @@ async function getDetailReportService(payload) {
     };
 }
 
-/**
- * ==========================================================
- * Summary Report
- * ==========================================================
- */
 async function getSummaryReportService(payload) {
     console.log("📥 Service : Summary Report");
 
@@ -69,7 +54,6 @@ async function getSummaryReportService(payload) {
         netPayable: report.netPayable
     };
 }
-
 
 async function insertBillService(payload) {
 
