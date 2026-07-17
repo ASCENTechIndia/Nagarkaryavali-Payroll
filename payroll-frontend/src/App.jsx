@@ -92,6 +92,7 @@ import FrmBillGeneration from './pages/Transaction/FrmBillGeneration';
 import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthList"
 import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
 import FrmDashboard from './pages/FrmHomePage';
+import FrmAttendanceEntryUpdate from './pages/Transaction/FrmAttendanceEntryUpdate';
 
 
 
@@ -361,6 +362,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmAttendanceEntry",
         element: <FrmAttendanceEntry />
+      },
+      {
+        path: "Transactions/FrmAttendanceEntryUpdate",
+        element: <FrmAttendanceEntryUpdate />
       },
       {
         path: "Transactions/FrmEmpTransferApprList",

@@ -118,6 +118,7 @@ app.use("/api/FrmMonthlyBankDeductionUploadAuth",require ("./modules/Transaction
 app.use("/api/FrmSalDeduction", require("./modules/Transaction/FrmSalDeduction/FrmSalDeduction.routes"))
 app.use("/api/FrmEmployeeRetire", require("./modules/Transaction/FrmEmployeeRetire/FrmEmployeeRetire.routes"))
 app.use("/api/FrmBillGeneration", require("./modules/Transaction/FrmBillGeneration/FrmBillGeneration.route"));
+app.use("/api/FrmAttendanceEntryUpdate", require("./modules/Transaction/FrmAttendanceEntryUpdate/FrmAttendanceEntryUpdate.route"));
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
