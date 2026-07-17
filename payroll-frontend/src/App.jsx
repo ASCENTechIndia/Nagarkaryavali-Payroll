@@ -92,6 +92,9 @@ import FrmBillGeneration from './pages/Transaction/FrmBillGeneration';
 import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthList"
 import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
 
+import FrmSalaryConsolidationReport from "./pages/Reports/FrmSalaryConsolidationRpt"
+import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadReport';
+
 
 
 const Home = () => {
@@ -496,6 +499,14 @@ export const router = createBrowserRouter([
       {
         path: "ReportsForm/FrmRetiredEmpRpt",
         element: <FrmRetiredEmpRpt />
+      },
+      {
+        path:"ReportsForm/FrmSalaryConsolidationRpt",
+        element: <FrmSalaryConsolidationReport/>
+      },
+      {
+        path:"Transactions/FrmMonthlyBankUploadReport",
+        element: <FrmMonthlyBankUploadReport />
       },
 
       // Loan and Advance 

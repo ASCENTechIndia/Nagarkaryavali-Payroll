@@ -133,6 +133,8 @@ app.use("/api/FrmNetPayRpt", require("./modules/Reports/FrmNetPayRpt/FrmNetPayRp
 app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeductionPayheadsDtls/FrmDeductionPayheadsDtls.route"));
 app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
 
+app.use("/api/FrmSalaryConsolidationRpt", require("./modules/Reports/FrmSalaryConsolidationRpt/FrmSalaryConsolidationRpt.route"))
+app.use("/api/FrmMonthlyBankUploadReport", require("./modules/Reports/FrmMonthlyBankUploadReport/FrmMonthlyBankUploadReportRoutes"))
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
 app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))
