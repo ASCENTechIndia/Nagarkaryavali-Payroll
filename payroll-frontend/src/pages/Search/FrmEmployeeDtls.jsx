@@ -13,13 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectTrigger, 
-  SelectValue, 
-  SelectContent, 
-  SelectItem 
-} from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -32,7 +25,6 @@ const FrmEmployeeDtls = () => {
   const { state } = location;
   const empId = state?.empId;
   const passedEmployeeData = state?.employeeData;
-  const mode = state?.mode || 2;
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const [employeeData, setEmployeeData] = useState({
@@ -68,7 +60,9 @@ const FrmEmployeeDtls = () => {
     basicSalary: "",
     gradePay: "",
     vehicleAcquisition: "",
-    homeAcquisition: ""
+    homeAcquisition: "",
+    empType: "",
+    empId: ""
   });
 
   const [images, setImages] = useState({
@@ -77,9 +71,7 @@ const FrmEmployeeDtls = () => {
     thumb: null
   });
 
-  const [officeGradeOptions, setOfficeGradeOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [gradeLoading, setGradeLoading] = useState(false);
 
   const parseDate = (dateString) => {
     if (!dateString) return null;
@@ -101,52 +93,25 @@ const FrmEmployeeDtls = () => {
 
   const mapYesNo = (value) => {
     if (value === null || value === undefined) return "";
-    const v = String(value).toUpperCase();
-    if (v === "YES" || v === "Y" || v === "1") return "Y";
-    if (v === "NO" || v === "N" || v === "0") return "N";
+    const v = String(value).toUpperCase().trim();
+    if (v === "YES" || v === "Y" || v === "1" || v === "TRUE") return "Y";
+    if (v === "NO" || v === "N" || v === "0" || v === "FALSE") return "N";
     return "";
   };
 
-  const safeGetValue = (data, fieldNames, defaultValue = "") => {
-    if (!data) return defaultValue;
-    
-    const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
-    
-    for (const name of names) {
-      if (data[name] !== undefined && data[name] !== null) {
-        return data[name];
-      }
-    }
-    
-    return defaultValue;
-  };
-
-  // Debug function to inspect API response
-  const debugApiResponse = (data) => {
-    console.group(" API Response Debug");
-    console.log("Full Response:", data);
-    console.log("All Keys:", Object.keys(data || {}));
-    
-    // Search for specific fields
-    const searchFields = ['gender', 'GENDER', 'society', 'SOCIETY', 'handicap', 'HANDICAP'];
-    searchFields.forEach(field => {
-      const found = Object.keys(data || {}).filter(key => 
-        key.toLowerCase().includes(field.toLowerCase())
-      );
-      if (found.length > 0) {
-        console.log(` Found fields containing "${field}":`, found);
-        found.forEach(key => {
-          console.log(`   ${key}:`, data[key]);
-        });
-      }
-    });
-    
-    console.groupEnd();
+  const mapEmployeeStatus = (value) => {
+    if (!value) return "";
+    const v = String(value).toUpperCase().trim();
+    if (v === "P" || v === "PERMANENT" || v === "PERM") return "Permanent";
+    if (v === "T" || v === "TEMPORARY" || v === "TEMP" || v === "A") return "Temporary";
+    return "";
   };
 
   useEffect(() => {
     if (!empId) {
       Swal.fire({
+        icon: "warning",
+        title: "No Employee ID",
         text: "Employee ID is required. Redirecting to search...",
       }).then(() => {
         navigate("/Transactions/FrmGenericSearch");
@@ -165,21 +130,22 @@ const FrmEmployeeDtls = () => {
       });
 
       try {
-        if (passedEmployeeData) {
-          // Debug the incoming data
-          debugApiResponse(passedEmployeeData);
+        if (passedEmployeeData && Object.keys(passedEmployeeData).length > 0) {
           populateFormData(passedEmployeeData);
-        } else {
-          await fetchEmployeeData();
         }
+        
+        await fetchEmployeeDetails();
+        await fetchEmployeeImages();
         
       } catch (error) {
         console.error("Error loading data:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to load employee details. Please try again."
-        });
+        if (!passedEmployeeData || Object.keys(passedEmployeeData).length === 0) {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error?.response?.data?.message || error?.message || "Failed to load employee details. Please try again."
+          });
+        }
       } finally {
         setIsLoading(false);
         Swal.close();
@@ -189,32 +155,79 @@ const FrmEmployeeDtls = () => {
     loadData();
   }, [empId]);
 
-  const fetchEmployeeData = async () => {
+  const fetchEmployeeDetails = async () => {
     try {
-      const response = await axios.post(`${BASE_URL}/get-employee-details`, {
-        empId: empId,
-        ulbId: ulbId
-      }, {
+      const url = `${BASE_URL}/api/FrmEmployeeDtls/employee-details`;
+      const payload = {
+        ulbid: Number(ulbId),
+        empid: Number(empId)
+      };
+      
+      console.log("API Request:", { url, payload });
+      
+      const response = await axios.post(url, payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       
-      if (response.data && response.data.data) {
-        const data = response.data.data;
-        debugApiResponse(data);
-        populateFormData(data);
+      console.log("API Response:", response.data);
+      
+      if (response.data && response.data.ok === true) {
+        const employeeData = response.data?.data?.data;
+        
+        if (employeeData && Object.keys(employeeData).length > 0) {
+          console.log("Employee details fetched successfully");
+          populateFormData(employeeData);
+        } else {
+          console.warn("No employee data found in response");
+          if (passedEmployeeData && Object.keys(passedEmployeeData).length > 0) {
+            console.log("Using search data as fallback");
+            return;
+          }
+          throw new Error("No employee data found in response");
+        }
       } else {
-        console.warn("No data in API response");
-        Swal.fire({
-          icon: "warning",
-          title: "No Data",
-          text: "No employee data found for the given ID."
-        });
+        console.error("API returned error:", response.data);
+        const errorMessage = response.data?.message || response.data?.error || "Failed to fetch employee details";
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error("Error fetching employee data:", error);
+      if (passedEmployeeData && Object.keys(passedEmployeeData).length > 0) {
+        console.log("Using search data as fallback");
+        return;
+      }
       throw error;
+    }
+  };
+
+  const fetchEmployeeImages = async () => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/FrmEmployeeDtls/employee-images`,
+        {
+          ulbid: Number(ulbId),
+          empid: Number(empId)
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      
+      if (response.data && response.data.ok === true && response.data.data) {
+        const imageData = response.data.data;
+        setImages({
+          photo: imageData.PHOTO || null,
+          signature: imageData.SIGNATURE || null,
+          thumb: imageData.THUMB || null
+        });
+        console.log("Employee images fetched");
+      }
+    } catch (error) {
+      console.warn("Could not fetch employee images:", error.message);
     }
   };
 
@@ -224,79 +237,58 @@ const FrmEmployeeDtls = () => {
       return;
     }
     
-    const genderValue = safeGetValue(data, [
-      'VAR_EMPLOYEE_GENDER', 
-      'GENDER', 
-      'EMPLOYEE_GENDER', 
-      'gender',
-      'var_employee_gender'
-    ]);
-    
-    const societyValue = safeGetValue(data, [
-      'NUM_EMPLOYEE_SOCIETYAMT',
-      'SOCIETYAMT',
-      'EMPLOYEE_SOCIETYAMT',
-      'societyAmt',
-      'num_employee_societyamt',
-      'SOCIETY_AMT'
-    ]);
-    
-    const handicapValue = safeGetValue(data, [
-      'VAR_EMPLOYEE_HANDICAP',
-      'HANDICAP',
-      'EMPLOYEE_HANDICAP',
-      'handicap',
-      'var_employee_handicap',
-      'IS_HANDICAP'
-    ]);
-    console.groupEnd();
+    console.log("Populating form data...");
+    const updatedData = {
+      empId: data.NUM_EMPLOYEE_EMPID || "",
+      employeeName: data.VAR_EMPLOYEE_ENGNAME || "",
+      
+      joiningDate: parseDate(data.DATE_EMPLOYEE_JOINDATE),
+      dateOfBirth: parseDate(data.DATE_EMPLOYEE_DOB),
+      confirmationDate: parseDate(data.DATE_EMPLOYEE_CONFIRMDATE),
+      retirementDate: parseDate(data.DATE_EMPLOYEE_RETIREMNTDATE),
+      serviceDate: parseDate(data.DATESERVICE),
+      
+      currentAddress: data.VAR_EMPLOYEE_PSNTADDRESS || "",
+      permanentAddress: data.VAR_EMPLOYEE_PMNTADDRESS || "",
+      
+      mobileNo: data.NUM_EMPLOYEE_MOBILENO ? data.NUM_EMPLOYEE_MOBILENO.toString() : "",
+      emailId: data.VAR_EMPLOYEE_EMAILID || "",
+      aadharNo: data.NUM_EMPLOYEE_AADHARNO ? data.NUM_EMPLOYEE_AADHARNO.toString() : "",
+      panNo: data.VAR_EMPLOYEE_PANNO || "",
+      pfNo: data.VAR_EMPLOYEE_PFNO || "",
+      
+      empType: data.VAR_EMPLOYEE_EMPTYPE || "",
+      
+      employeeStatus: mapEmployeeStatus(data.EMPSTATUS),
+      
+      departmentName: data.VAR_DEPTMST_DEPTNAMEE || "",
+      designationName: data.VAR_DESIGMST_DESIGNATIONNAME || "",
+      categoryName: data.VAR_CATEGORY_NAME || "",
+      zoneName: data.VAR_ZONE_NAME || "",
+      
+      bankName: data.VAR_BANKMST_BANKNAME || "",
+      branch: data.NUM_EMPLOYEE_BANKBRID ? data.NUM_EMPLOYEE_BANKBRID.toString() : "",
+      accountNo: data.NUM_EMPLOYEE_BANKACCNO ? data.NUM_EMPLOYEE_BANKACCNO.toString() : "",
+      
+      payScale: data.VAR_PAYSCALEMST_PAYSCALENAME || "",
+      basicSalary: data.NUM_EMPLOYEE_BASIC ? data.NUM_EMPLOYEE_BASIC.toString() : "",
+      gradePay: data.NUM_EMPLOYEE_GRADEPAY !== null && data.NUM_EMPLOYEE_GRADEPAY !== undefined ? data.NUM_EMPLOYEE_GRADEPAY.toString() : "0",
+      musterSheet: data.NUM_EMPLOYEE_PAYSHEETTYPE ? data.NUM_EMPLOYEE_PAYSHEETTYPE.toString() : "",
+      
+      officeGrade: data.NUM_EMPLOYEE_GRADEID ? data.NUM_EMPLOYEE_GRADEID.toString() : "",
+      
+      officeDeptName: data.VAR_DEPTMST_DEPTNAMEE || "",
+      officeDesignationName: data.VAR_DESIGMST_DESIGNATIONNAME || "",
+      
+      gender: mapGender(data.VAR_EMPLOYEE_GENDER),
+      handicap: mapYesNo(data.VAR_EMPLOYEE_HANDICAP),
+      societyMember: mapYesNo(data.VAR_EMPLOYEE_SOCMEM),
+      vehicleAcquisition: mapYesNo(data.VAR_EMPLOYEE_VEHICLE),
+      homeAcquisition: mapYesNo(data.HOMEAQUASITION)
+    };
 
-    const mappedGender = mapGender(genderValue);
-    const mappedSociety = mapYesNo(societyValue);
-    const mappedHandicap = mapYesNo(handicapValue);
-
-    setEmployeeData({
-      employeeName: data.VAR_EMPLOYEE_ENGNAME || data.EMPLOYEE_NAME || data.NAME || "",
-      joiningDate: parseDate(data.DATE_EMPLOYEE_JOINDATE || data.JOINING_DATE),
-      dateOfBirth: parseDate(data.DATE_EMPLOYEE_DOB || data.DOB),
-      confirmationDate: parseDate(data.DATE_EMPLOYEE_CONFIRMDATE || data.CONFIRMATION_DATE),
-      retirementDate: parseDate(data.DATE_EMPLOYEE_RETIREMNTDATE || data.RETIREMENT_DATE),
-      currentAddress: data.VAR_EMPLOYEE_PSNTADDRESS || data.CURRENT_ADDRESS || "",
-      accountNo: (data.NUM_EMPLOYEE_BANKACCNO || data.ACCOUNT_NO || "").toString(),
-      
-      gender: mappedGender,
-      emailId: data.VAR_EMPLOYEE_EMAILID || data.EMAIL || "",
-      mobileNo: (data.NUM_EMPLOYEE_MOBILENO || data.MOBILE_NO || "").toString(),
-      aadharNo: (data.NUM_EMPLOYEE_AADHARNO || data.AADHAR_NO || "").toString(),
-      panNo: data.VAR_EMPLOYEE_PANNO || data.PAN_NO || "",
-      permanentAddress: data.VAR_EMPLOYEE_PMNTADDRESS || data.PERMANENT_ADDRESS || "",
-      
-      handicap: mappedHandicap,
-      musterSheet: (data.NUM_EMPLOYEE_PAYSHEETTYPE || data.MUSTER_SHEET || "").toString(),
-      societyMember: mappedSociety,
-      employeeStatus: data.EMPSTATUS || data.EMPLOYEE_STATUS || "",
-      serviceDate: parseDate(data.DATESERVICE || data.SERVICE_DATE),  
-      
-      departmentName: data.VAR_DEPTMST_DEPTNAMEE || data.DEPARTMENT_NAME || "",
-      designationName: data.VAR_DESIGNATION_ENAME || data.DESIGNATION_NAME || "",
-      officeGrade: (data.NUM_EMPLOYEE_GRADEID || data.GRADE_ID || "").toString(),
-      officeDeptName: data.VAR_DEPTMST_DEPTNAMEE || data.DEPARTMENT_NAME || "",
-      officeDesignationName: data.VAR_DESIGNATION_ENAME || data.DESIGNATION_NAME || "",
-      
-      bankName: data.VAR_BANKMST_BANKNAME || data.BANK_NAME || "",
-      branch: (data.NUM_EMPLOYEE_BANKBRID || data.BRANCH_ID || "").toString(),
-      pfNo: data.VAR_EMPLOYEE_PFNO || data.PF_NO || "",
-      
-      payScale: data.VAR_PAYSCALEMST_PAYSCALENAME || data.PAY_SCALE || "",
-      basicSalary: (data.NUM_EMPLOYEE_BASIC || data.BASIC_SALARY || "").toString(),
-      gradePay: (data.NUM_EMPLOYEE_GRADEPAY || data.GRADE_PAY || "").toString(),
-      
-      vehicleAcquisition: mapYesNo(data.VAR_EMPLOYEE_VEHICLE || data.VEHICLE_ACQUISITION),
-      homeAcquisition: mapYesNo(data.HOMEAQUASITION || data.HOME_ACQUISITION),
-      
-      zoneName: data.VAR_ZONE_NAME || data.ZONE_NAME || "",
-      categoryName: data.VAR_CATEGORY_NAME || data.CATEGORY_NAME || ""
-    });
+    setEmployeeData(updatedData);
+    console.log("Form data populated:", updatedData);
   };
 
   const handleBack = () => {
@@ -310,7 +302,6 @@ const FrmEmployeeDtls = () => {
     </div>
   );
 
-  // Section Header
   const SectionHeader = ({ title }) => (
     <div className="col-span-full flex justify-center my-4">
       <h3 className="text-lg font-semibold text-gray-700 border-b-2 border-gray-300 pb-2 px-8">
@@ -319,7 +310,6 @@ const FrmEmployeeDtls = () => {
     </div>
   );
 
-  // Image Display
   const ImageDisplay = ({ label, imageUrl, altText }) => (
     <div className="flex flex-col items-center">
       <Label className="font-medium text-sm mb-1 whitespace-nowrap">{label}</Label>
@@ -327,7 +317,7 @@ const FrmEmployeeDtls = () => {
         <img 
           src={imageUrl} 
           alt={altText}
-          className="w-32 h-32 object-contain rounded"
+          className="w-32 h-32 object-contain rounded border"
         />
       ) : (
         <div className="w-32 h-32 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded">
@@ -339,7 +329,6 @@ const FrmEmployeeDtls = () => {
     </div>
   );
 
-  // Radio options
   const genderOptions = [
     { value: "M", label: "Male" },
     { value: "F", label: "Female" }
@@ -351,8 +340,8 @@ const FrmEmployeeDtls = () => {
   ];
 
   const statusOptions = [
-    { value: "Active", label: "Permanent" },
-    { value: "Inactive", label: "Temporary" }
+    { value: "Permanent", label: "Permanent" },
+    { value: "Temporary", label: "Temporary" }
   ];
 
   if (isLoading) {
@@ -376,6 +365,7 @@ const FrmEmployeeDtls = () => {
           <CardTitle className="text-2xl font-bold">
             Employee Details
           </CardTitle>
+          <span className="text-sm text-gray-500">Employee ID: {employeeData.empId || empId}</span>
         </CardHeader>
 
         <CardContent className="pt-2">
@@ -570,7 +560,6 @@ const FrmEmployeeDtls = () => {
                 </FormField>
               </div>
 
-              {/* Office Details Section */}
               <SectionHeader title="Office Details" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                 <FormField label="Employee Status">
@@ -642,28 +631,21 @@ const FrmEmployeeDtls = () => {
                   />
                 </FormField>
 
+                <FormField label="PF Number">
+                  <Input
+                    value={employeeData.pfNo}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </FormField>
+
                 <FormField label="Grade">
-                  <Select
+                  <Input
                     value={employeeData.officeGrade}
-                    disabled
-                  >
-                    <SelectTrigger className="bg-gray-50">
-                      <SelectValue placeholder="-- Select --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {gradeLoading ? (
-                        <SelectItem value="loading" disabled>Loading grades...</SelectItem>
-                      ) : officeGradeOptions.length > 0 ? (
-                        officeGradeOptions.map(item => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-grades" disabled>No grades available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
+                    readOnly
+                    className="bg-gray-50"
+                    placeholder="No Grade"
+                  />
                 </FormField>
 
                 <FormField label="Office Department">
@@ -685,14 +667,6 @@ const FrmEmployeeDtls = () => {
                 <FormField label="Pay Scale">
                   <Input
                     value={employeeData.payScale}
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                </FormField>
-
-                <FormField label="PF Number">
-                  <Input
-                    value={employeeData.pfNo}
                     readOnly
                     className="bg-gray-50"
                   />

@@ -52,6 +52,8 @@ if (NODE_ENV !== "production") {
 
 app.use("/pdf", express.static(path.join(__dirname, "../public/pdf")));
 
+app.use("/excel", express.static(path.join(__dirname, "../public/excel")));
+
 // health first (no rate limit)
 app.use("/api", healthRoutes);
 
@@ -132,6 +134,7 @@ app.use("/api/FrmLoansAndAdvancesRpt", require("./modules/Reports/FrmLoansAndAdv
 app.use("/api/FrmNetPayRpt", require("./modules/Reports/FrmNetPayRpt/FrmNetPayRpt.route"));
 app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeductionPayheadsDtls/FrmDeductionPayheadsDtls.route"));
 app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
+app.use("/api/FrmRetiredEmpRpt", require("./modules/Reports/FrmRetiredEmpRpt/FrmRetiredEmpRpt.route"));
 
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))

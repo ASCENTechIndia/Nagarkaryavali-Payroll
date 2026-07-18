@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .sub-title {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .filter-item {
+      flex: 1;
+      text-align: center;
+    }
+
+    .filter-label {
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+    }
+
+    table th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+      text-align: center;
+      padding: 5px 3px;
+      border: 1px solid #000;
+    }
+
+    table td {
+      padding: 4px 3px;
+      border: 1px solid #000;
+      text-align: center;
+    }
+
+    .text-left {
+      text-align: left !important;
+      padding-left: 5px;
+    }
+
+    .table-container {
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="{{../logo}}" style="height:50px;" />
+    <div class="main-title">{{corporationName}}</div>
+  </div>
+
+  <div class="sub-title">Retired Employee Report</div>
+
+  <div class="filter-row">
+    <div class="filter-item">
+      <span class="filter-label">Department :</span> {{departmentName}}
+    </div>
+    <div class="filter-item">
+      <span class="filter-label">Retire Date :</span> {{retireDate}}
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Sr. No.</th>
+          <th>Employee Id</th>
+          <th class="text-left">Name</th>
+          <th>Retire Date</th>
+          <th class="text-left">Department</th>
+          <th class="text-left">Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each employees}}
+        <tr>
+          <td>{{SRNO}}</td>
+          <td>{{oldslipno}}</td>
+          <td class="text-left">{{name}}</td>
+          <td>{{retiredate}}</td>
+          <td class="text-left">{{department}}</td>
+          <td class="text-left">{{type}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>

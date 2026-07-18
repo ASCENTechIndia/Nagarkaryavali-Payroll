@@ -1,136 +1,107 @@
-const { executeQuery } = require("../../../db/queryExecutor")
+const { executeQuery } = require("../../../db/queryExecutor");
 
 const getEmployeeDetailsRepo = async (ulbid, empid) => {
     console.log("Repo: Get Employee Details", ulbid, empid);
     
     const sql = `
         SELECT 
-            num_employee_empid,
-            var_employee_engname,
-            var_employee_marname,
-            date_employee_dob,
-            var_employee_gender,
-            var_employee_handicap,
-            var_employee_psntaddress,
-            var_employee_pmntaddress,
-            num_employee_mobileno,
-            var_employee_emailid,
-            date_employee_joindate,
-            date_employee_confirmdate,
-            date_employee_retiremntdate,
-            var_employee_emptype,
-            num_employee_bankid,
-            num_employee_bankbrid,
-            num_employee_bankaccno,
-            var_employee_pfno,
-            var_employee_panno,
-            num_employee_desigid,
-            num_employee_deptid,
-            num_employee_gradeid,
-            num_employee_payscaleid,
-            num_employee_gradepay,
-            num_employee_basic,
-            var_employee_vehicle,
-            var_employee_accomod,
-            var_employee_insby,
-            date_employee_insdate,
-            var_employee_updtby,
-            date_employee_updtdate,
-            var_employee_socmem,
-            num_employee_pfpercent,
-            num_employee_pffixamt,
-            num_employee_defpfpercent,
-            num_employee_defpffixamt,
-            var_employee_machiatten,
-            num_employee_corpid,
-            num_employee_paysheettype,
-            num_employee_zone,
-            num_employee_societyamt,
-            num_employee_aadharno,
-            date_employee_sumpeddate,
-            var_employee_paymode,
-            num_employee_currbasic,
-            num_employee_currgradepay,
-            var_employee_ic,
-            num_employee_mop,
-            num_employee_micr,
-            var_employee_levelofmanagement,
-            num_employee_dscppercent,
-            num_employee_ulbid,
-            var_bankmst_bankname,
-            var_payscalemst_payscalename,
-            empstatus,
-            dateservice,
-            homeaquasition,
-            var_deptslip_sequence
-        FROM aopr_employee_def
-        LEFT join aopr_deptslip_mas 
-        ON num_employee_empid = num_deptslip_empid 
-        AND num_employee_ulbid = num_deptslip_ulbid
-        WHERE num_employee_empid = :empid 
-        AND num_employee_ulbid = :ulbid
+            V.num_employee_empid, 
+            V.var_employee_engname, 
+            V.var_employee_marname, 
+            V.date_employee_dob, 
+            V.var_employee_gender, 
+            V.var_employee_handicap,
+            V.var_employee_psntaddress, 
+            V.var_employee_pmntaddress, 
+            V.num_employee_mobileno, 
+            V.var_employee_emailid, 
+            V.date_employee_joindate, 
+            V.date_employee_confirmdate, 
+            V.date_employee_retiremntdate, 
+            V.var_employee_emptype, 
+            V.num_employee_bankid, 
+            V.num_employee_bankbrid,
+            V.num_employee_bankaccno, 
+            V.var_employee_pfno, 
+            V.var_employee_panno, 
+            V.num_employee_desigid, 
+            V.num_employee_deptid, 
+            V.num_employee_gradeid, 
+            V.num_employee_payscaleid, 
+            V.num_employee_gradepay, 
+            V.num_employee_basic, 
+            V.var_employee_vehicle, 
+            V.var_employee_accomod, 
+            V.var_employee_insby,
+            V.date_employee_insdate, 
+            V.var_employee_updtby, 
+            V.date_employee_updtdate, 
+            V.var_employee_socmem, 
+            V.num_employee_pfpercent, 
+            V.num_employee_pffixamt, 
+            V.num_employee_defpfpercent, 
+            V.num_employee_defpffixamt, 
+            V.var_employee_machiatten, 
+            V.num_employee_corpid,
+            V.num_employee_paysheettype, 
+            V.num_employee_zone, 
+            V.num_employee_societyamt, 
+            V.num_employee_aadharno, 
+            V.date_employee_sumpeddate, 
+            V.var_employee_paymode,
+            V.num_employee_currbasic, 
+            V.num_employee_currgradepay, 
+            V.var_employee_ic,
+            V.num_employee_mop, 
+            V.num_employee_micr, 
+            V.var_employee_levelofmanagement,
+            V.num_employee_dscppercent, 
+            V.num_employee_ulbid, 
+            V.var_bankmst_bankname,
+            V.var_payscalemst_payscalename,
+            V.empstatus,
+            V.dateservice, 
+            V.homeaquasition,
+            DM.var_deptslip_sequence,
+            -- Get display names from master tables
+            DD.var_deptmst_deptnamee AS var_deptmst_deptnamee,
+            DS.var_desigmst_designationname AS var_desigmst_designationname,
+            CM.var_category_name AS var_category_name,
+            ZM.zonename AS var_zone_name
+        FROM 
+            view_Employeedtls V
+        LEFT JOIN 
+            aopr_deptslip_mas DM 
+            ON V.num_employee_empid = DM.num_deptslip_empid 
+            AND V.num_employee_ulbid = DM.num_deptslip_ulbid
+        LEFT JOIN
+            aopr_deptmst_def DD
+            ON DD.num_deptmst_deptid = V.num_employee_deptid
+        LEFT JOIN
+            aopr_designationmst_def DS
+            ON DS.num_desigmst_designationid = V.num_employee_desigid
+        LEFT JOIN
+            aopr_category_mas CM
+            ON CM.num_category_id = V.num_employee_paysheettype
+        LEFT JOIN
+            vw_zoneconfig ZM
+            ON ZM.zoneid = V.num_employee_zone 
+            AND ZM.ulbid = V.num_employee_ulbid
+        WHERE 
+            V.num_employee_empid = :empid 
+            AND V.num_employee_ulbid = :ulbid
     `
 
-    const binds = { ulbid, empid }
-    const result = await executeQuery(sql, binds)
+    const binds = { ulbid, empid };
+    const result = await executeQuery(sql, binds);
     
     if (!result.success) {
-        throw new Error(result.error)
-    }
-    return result.rows
-}
-
-const getEmployeeImagesRepo = async (ulbid, empid) => {
-    console.log("Repo: Get Employee Images", ulbid, empid);
-    //need new query this is temporary
-    const sql = `
-        SELECT 
-            PHOTO,
-            SIGNATURE,
-            THUMB
-        FROM employee_images
-        WHERE emp_id = :empid 
-        AND ulb_id = :ulbid
-    `
-
-    const binds = { ulbid, empid }
-    const result = await executeQuery(sql, binds)
-    
-    if (!result.success) {
-        throw new Error(result.error)
+        throw new Error(result.error);
     }
     
-    if (!result.rows || result.rows.length === 0) {
-        return [{ PHOTO: null, SIGNATURE: null, THUMB: null }]
-    }
-    
-    return result.rows
-}
-
-const getOfficeGradeListRepo = async (ulbid) => {
-    console.log("Repo: Get Office Grade List", ulbid);
-    
-    const sql = `
-        SELECT 
-            num_grademst_gradeid as GRADEID,
-            var_grademst_gradename as GRADENAME
-        FROM aopr_grademst_def
-        --WHERE num_grademst_ulbid = :ulbid
-        ORDER BY var_grademst_gradename
-    `
-
-    const binds = { ulbid }
-    const result = await executeQuery(sql, [])
-    console.log("repo log",result);
-    console.log("repo binds",binds);
-    if (!result.success) {
-        throw new Error(result.error)
-    }
-    return result.rows
+    return result.rows;
 }
 
 module.exports = {
-    getEmployeeDetailsRepo,
-    getEmployeeImagesRepo,
-    getOfficeGradeListRepo
-}
+    getEmployeeDetailsRepo
+};
