@@ -277,7 +277,7 @@ const Login = () => {
       loginAdmin(user, token);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      navigate("/");
+      navigate("/HomePage/FrmHomePage");
     } catch (err) {
       console.error("Silent login failed:", err);
       localStorage.removeItem("token");
