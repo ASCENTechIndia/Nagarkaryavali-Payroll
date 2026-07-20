@@ -19,12 +19,13 @@ import Swal from "sweetalert2";
 import { DatePicker } from "@/components/ui/calendar";
 
 const initialValues = {
-  payHead: "",
-  payHeadId: "",
-  englishName: "",
-  marathiName: "",
-  paySheetOrder: "",
-  mergeIn: "",
+  salaryDate: new Date(),
+  Year: "",
+  Month: "",
+  zone: "",
+  department: "",
+  category: "",
+  employeeId: "",
 };
 
 const FrmPaySlip = () => {
@@ -33,127 +34,155 @@ const FrmPaySlip = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const mode = location.state?.mode;
-  const headId = location.state?.headId;
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const [payHeadOptions, setPayHeadOptions] = useState([]);
-  const [mergeInOptions, setMergeInOptions] = useState([]);
-  const [formInitialValues, setFormInitialValues] = useState(initialValues);
+  const [zoneOptions, setZoneOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [yearOptions, setYearOptions] = useState([]);
+  const [monthOptions, setMonthOptions] = useState([]);
 
-  const fetchPayHeads = async () => {
+
+  const fetchYears = async () => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/FrmPayHeadListMst/paysubheads-list`,
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmPayrollReport/year-list`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-      setPayHeadOptions(res.data?.rows || []);
+
+      setYearOptions(res.data?.data?.data || []);
     } catch (error) {
-      console.error("Pay Head Dropdown API Error:", error);
+      console.error("Year API Error:", error);
     }
   };
 
-  const fetchMergeInOptions = async (paySubHeadId) => {
+  const fetchMonths = async () => {
     try {
-      Swal.fire({
-        title: "Loading ...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
       const res = await axios.post(
-        `${BASE_URL}/api/FrmPayHeadListMst/parent-payheads-list`,
-        {
-          paySubHeadId: paySubHeadId,
-          ulbId: ulbId,
-        },
+        `${BASE_URL}/api/FrmPayrollReport/month-list`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-      setMergeInOptions(res.data?.rows || []);
+
+      setMonthOptions(res.data?.data?.data || []);
     } catch (error) {
-      console.error("Merge In API Error:", error);
-      setMergeInOptions([]);
-    } finally {
-      Swal.close();
+      console.error("Month API Error:", error);
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchPayHeads();
-    }
-  }, [token]);
-
-  const fetchPayHeadDetails = async () => {
+  const fetchZones = async () => {
     try {
-      Swal.fire({
-        title: "Loading ...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
       const res = await axios.post(
-        `${BASE_URL}/api/FrmPayHeadListMst/payhead-details`,
+        `${BASE_URL}/api/FrmEmployeeMstList/zone-list`,
         {
-          payHeadId: headId,
+          ulbid: ulbId,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
-      );
-
-      const data = res.data?.rows?.[0];
-
-      if (data) {
-        const updatedValues = {
-          payHead: data.SUBPAYID?.toString() || "",
-          payHeadId: data.PAYID?.toString() || "",
-          englishName: data.NAMEE || "",
-          marathiName: data.NAMEM || "",
-          paySheetOrder: data.NUM_PAYHEADS_ORDERNO?.toString() || "",
-          mergeIn: data.NUM_PAYHEADS_MERGEID?.toString() || "",
-        };
-
-        setFormInitialValues(updatedValues);
-
-        if (data.SUBPAYID) {
-          await fetchMergeInOptions(data.SUBPAYID);
         }
-      }
+      );
+
+      setZoneOptions(res.data?.data?.data || []);
     } catch (error) {
-      console.error("PayHead Details API Error:", error);
-    } finally {
-      Swal.close();
+      console.error("Zone API Error:", error);
     }
   };
 
-  useEffect(() => {
-    if (mode == 2 && headId && token) {
-      fetchPayHeadDetails();
+  const fetchDepartments = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
+        {
+          ulbid: ulbId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setDepartmentOptions(res.data?.data?.data || []);
+    } catch (error) {
+      console.error("Department API Error:", error);
     }
-  }, [mode, headId, token]);
+  };
+
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmSalaryCalulation/category`,
+        {
+          ulbid: ulbId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setCategoryOptions(res.data?.data?.data || []);
+    } catch (error) {
+      console.error("Category API Error:", error);
+    }
+  };
+
+
+  useEffect(() => {
+    if (!token) return;
+
+    const loadDropdowns = async () => {
+      Swal.fire({
+        title: "Loading...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        await Promise.allSettled([
+          fetchZones(),
+          fetchDepartments(),
+          fetchCategories(),
+          fetchYears(),
+          fetchMonths(),
+        ]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        Swal.close();
+      }
+    };
+
+    loadDropdowns();
+  }, [token]);
 
   const handleSubmit = async (values) => {
     try {
+      // Validation
+      if (!values.zone) {
+        Swal.fire({
+          text: "Please select Zone",
+        });
+        return;
+      }
+
       Swal.fire({
-        title: "Saving...",
+        title: "Processing...",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
@@ -161,54 +190,87 @@ const FrmPaySlip = () => {
       });
 
       const payload = {
-        userId: userId,
-        corpId: Number(ulbId),
-        payHeadId: mode == 2 ? Number(values.payHeadId) : 0,
-        subHeadId: Number(values.payHead),
-        engName: values.englishName,
-        marathiName: values.marathiName,
-        orderNo: Number(values.paySheetOrder),
-        mergeId: values.mergeIn ? Number(values.mergeIn) : null,
-        mode: mode == 2 ? 2 : 1,
+        ulbId: Number(ulbId),
+        empId: values.employeeId || "",
+        oldEmpNo: "",
+        deptId: Number(values.department) || "",
+        subDept: "",
+        categoryId: Number(values.category) || "",
+        zoneId: Number(values.zone),
+        month: Number(values.Month),
+        year: Number(values.Year),
       };
 
       const res = await axios.post(
-        `${BASE_URL}/api/FrmPayHeadListMst/save-payhead`,
+        `${BASE_URL}/api/FrmPayslip/generate-payslip`,
         payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
+
+
       if (res.data?.success) {
-        Swal.fire({
-          text: res.data?.message,
-          confirmButtonColor: "#1e3a8a",
-        }).then(() => {
-          navigate("/Masters/FrmPayHeadListMst");
-        });
+
+        if (res.data?.pdfUrl) {
+          window.open(res.data.pdfUrl, "_blank");
+        }
+        Swal.close();
+
       } else {
         Swal.fire({
-          text: res.data?.message,
+          text: res.data?.message || "Failed to generate pay slip",
         });
       }
     } catch (error) {
-      console.error("Save API Error:", error);
+      console.error("Generate Pay Slip API Error:", error);
+
       Swal.fire({
-        text: "Failed to save data",
+        text: error.response?.data?.message || "Failed to generate pay slip",
       });
     }
   };
 
   return (
     <Formik
-      initialValues={formInitialValues}
-      enableReinitialize={true}
+      initialValues={initialValues}
       onSubmit={handleSubmit}
     >
       {({ values, handleChange, setFieldValue }) => {
+
+        useEffect(() => {
+          if (
+            monthOptions.length > 0 &&
+            yearOptions.length > 0 &&
+            !values.Month &&
+            !values.Year
+          ) {
+            const currentDate = new Date();
+
+            const currentMonth = currentDate.getMonth() + 1; // 1-12
+            const currentYear = currentDate.getFullYear();
+
+            const month = monthOptions.find(
+              (item) => Number(item.NUM_MONTH_ID) === currentMonth
+            );
+
+            const year = yearOptions.find(
+              (item) => Number(item.VAR_YEAR) === currentYear
+            );
+
+            if (month) {
+              setFieldValue("Month", month.NUM_MONTH_ID.toString());
+            }
+
+            if (year) {
+              setFieldValue("Year", year.NUM_YEAR_ID.toString());
+            }
+          }
+        }, [monthOptions, yearOptions]);
+
         return (
           <Form>
             <motion.div
@@ -223,23 +285,60 @@ const FrmPaySlip = () => {
 
                 <CardContent className="p-4 sm:p-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {/* From Date */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
                           text="Salary Date"
                           className="text-[15px] font-semibold text-black"
-                          required
                         />
                         <span>:</span>
                       </div>
 
-                      <DatePicker
-                        value={values.salaryDate}
-                        onChange={(date) => setFieldValue("salaryDate", date)}
-                      />
+                      <Select
+                        value={values.Month}
+                        onValueChange={(value) => setFieldValue("Month", value)}
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- Month --" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {monthOptions.map((item) => (
+                            <SelectItem
+                              key={item.NUM_MONTH_ID}
+                              value={item.NUM_MONTH_ID.toString()}
+                            >
+                              {item.VAR_MONTH_NAME}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={values.Year}
+                        onValueChange={(value) => setFieldValue("Year", value)}
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- Year --" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {yearOptions.map((item) => (
+                            <SelectItem
+                              key={item.NUM_YEAR_ID}
+                              value={item.NUM_YEAR_ID.toString()}
+                            >
+                              {item.VAR_YEAR}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+
+
                     </div>
 
+                  
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
@@ -254,14 +353,20 @@ const FrmPaySlip = () => {
                         value={values.zone}
                         onValueChange={(value) => setFieldValue("zone", value)}
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
                           <SelectValue placeholder="-- Select Option --" />
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="ALL">ALL</SelectItem>
-                          <SelectItem value="INCREMENT">Increment</SelectItem>
-                          <SelectItem value="PROMOTION">Promotion</SelectItem>
+
+                          {zoneOptions.map((item) => (
+                            <SelectItem
+                              key={item.ZONEID}
+                              value={item.ZONEID.toString()}
+                            >
+                              {item.ZONENAME}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -282,19 +387,19 @@ const FrmPaySlip = () => {
                           setFieldValue("department", value)
                         }
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
                           <SelectValue placeholder="-- Select Option --" />
                         </SelectTrigger>
 
                         <SelectContent>
-                          {/* {departmentOptions?.map((item) => (
-                                                        <SelectItem
-                                                            key={item.id}
-                                                            value={item.id.toString()}
-                                                        >
-                                                            {item.name}
-                                                        </SelectItem>
-                                                    ))} */}
+                          {departmentOptions.map((item) => (
+                            <SelectItem
+                              key={item.DEPTID}
+                              value={item.DEPTID.toString()}
+                            >
+                              {item.DEPTNAME}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -351,14 +456,14 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          {/* {employeeOptions?.map((item) => (
-                                                        <SelectItem
-                                                            key={item.id}
-                                                            value={item.id.toString()}
-                                                        >
-                                                            {item.name}
-                                                        </SelectItem>
-                                                    ))} */}
+                          {categoryOptions.map((item) => (
+                            <SelectItem
+                              key={item.NUM_CATEGORY_ID}
+                              value={item.NUM_CATEGORY_ID.toString()}
+                            >
+                              {item.VAR_CATEGORY_NAME}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @page {
+        size: A4 portrait; /* Matches your Node code which outputs landscape orientation */
+        margin: 8mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Mangal", "Noto Sans Devanagari", sans-serif;
+        font-size: 11px;
+        color: #000;
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        width: 100%;
+        page-break-after: always;
+      }
+
+      .page:last-child {
+        page-break-after: auto;
+      }
+
+      /* Header styling */
+      .header {
+        text-align: center;
+        margin-bottom: 12px;
+      }
+
+      .corporation {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .office {
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 4px;
+      }
+
+      .month {
+        margin-top: 10px;
+        font-size: 13px;
+        font-weight: bold;
+      }
+
+      .bill-row {
+        width: 100%;
+        margin-top: 20px;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+      }
+
+      /* Unified Main Layout Table Grid */
+      .main-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .main-table > tbody > tr > th {
+        border: 1px solid #000;
+        text-align: center;
+        padding: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        background-color: #ffffff;
+      }
+
+      .main-table > tbody > tr > td {
+        border: 1px solid #000;
+        vertical-align: top;
+        padding: 0; /* Clear container padding to keep borders clean */
+      }
+
+      /* Inner Employee Section Styling */
+      .emp-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .emp-table td {
+        border: none;
+        padding: 5px 6px;
+        vertical-align: top;
+        font-size: 11px;
+      }
+
+      .emp-label {
+        width: 45%;
+        font-weight: normal;
+      }
+
+      .emp-value {
+        width: 55%;
+      }
+
+      /* Inner Financial Grid Data Sheet */
+      /* Inner Financial Grid Data Sheet */
+      .salary-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .salary-table th {
+        border-bottom: 1px solid #000;
+        padding: 5px 6px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .salary-table td {
+        padding: 4px 6px;
+        font-size: 11px;
+        border: none;
+      }
+
+      .amount {
+        text-align: right;
+      }
+
+      /* Clean grid dividers matching Image 1 exactly */
+      .total-row {
+        font-weight: bold;
+        background-color: #f9f9f9;
+      }
+
+      .total-row td {
+        padding: 6px 8px;
+      }
+
+      .net-row {
+        font-weight: bold;
+        background-color: #eef2f7;
+        font-size: 12px;
+      }
+
+      .net-row td {
+        padding: 8px;
+      }
+
+      /* Summary Bottom Footer Area */
+      .bottom-section {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .salary-summary {
+        width: 50%;
+      }
+
+      .net-salary {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+      .amount-words {
+        font-size: 11px;
+        line-height: 1.6;
+        font-weight: bold;
+      }
+
+      .leave-section {
+        width: 45%;
+      }
+
+      .leave-table,
+      .leave-detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 5px;
+      }
+
+      .leave-table th,
+      .leave-table td,
+      .leave-detail-table th,
+      .leave-detail-table td {
+        border: 1px solid #000;
+        text-align: center;
+        padding: 5px;
+        font-size: 11px;
+      }
+
+      .leave-table th,
+      .leave-detail-table th {
+        font-weight: normal;
+      }
+
+      .footer-signatures {
+        margin-top: 40px;
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .footer-signatures td {
+        width: 50%;
+        text-align: center;
+        vertical-align: top;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .footer-title {
+        font-weight: bold;
+        margin-bottom: 25px;
+      }
+    </style>
+  </head>
+
+  <body>
+    {{#each employees}}
+    <div class="page">
+      <!-- Header -->
+      <div class="header">
+        <div class="corporation">{{../corporationName}}</div>
+        <div class="office">{{Dept}}</div>
+        <div class="month">वेतन प्रमाणपत्र माहे : {{monthText}}</div>
+      </div>
+
+      <!-- Bill Info Row -->
+      <div class="bill-row">
+        <div>बिल नंबर: {{billcode}}</div>
+        <div>अनु.क्र. : {{srNo}}</div>
+      </div>
+
+      <!-- Main Structured Grid Table -->
+      <table class="main-table">
+        <tbody>
+          <tr>
+            <th width="34%">तपशील</th>
+            <th width="33%">देयक तपशील</th>
+            <th width="33%">वजाती तपशील</th>
+          </tr>
+          <tr>
+            <!-- Col 1: Employee Details Info Block -->
+            <td>
+              <table class="emp-table">
+                <tr>
+                  <td class="emp-label">कर्मचारी क्र. :</td>
+                  <td class="emp-value">{{EmpId}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">कर्मचा-याचे नाव :</td>
+                  <td class="emp-value"><b>{{EmpMName}}</b></td>
+                </tr>
+                <tr>
+                  <td class="emp-label">पदनाम :</td>
+                  <td class="emp-value">{{Designation}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">विभागाचे नाव :</td>
+                  <td class="emp-value">{{Dept}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">उपविभागाचे नाव :</td>
+                  <td class="emp-value">{{subdept}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">बँक खाते क्र. :</td>
+                  <td class="emp-value">{{empbankno}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">पॅन नंबर:</td>
+                  <td class="emp-value">{{emppanno}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">भविष्य निर्वाह निधी क्रमांक:</td>
+                  <td class="emp-value">{{emppfno}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">मूळ वेतन :</td>
+                  <td class="emp-value">{{basicSalary}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">ग्रेड वेतन :</td>
+                  <td class="emp-value">{{gradePay}}</td>
+                </tr>
+                <tr>
+                  <td class="emp-label">PRAN No. :</td>
+                  <td class="emp-value">{{panno}}</td>
+                </tr>
+              </table>
+            </td>
+
+            <!-- Col 2: Earnings Column Side using combined parallel data array -->
+            <td>
+              <table class="salary-table">
+                <thead>
+                  <tr>
+                    <th style="text-align: left">देयक तपशील</th>
+                    <th class="amount" style="width: 35%">रक्कम रु.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each salaryRows}}
+                  <tr>
+                    <td>{{earningHead}}</td>
+                    <td class="amount">{{earningAmount}}</td>
+                  </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </td>
+
+            <!-- Col 3: Deductions Column Side -->
+            <td>
+              <table class="salary-table">
+                <thead>
+                  <tr>
+                    <th style="text-align: left">वजाती तपशील</th>
+                    <th class="amount" style="width: 35%">रक्कम रु.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each salaryRows}}
+                  <tr>
+                    <td>{{deductionHead}}</td>
+                    <td class="amount">{{deductionAmount}}</td>
+                  </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <!-- NEW ROW 1: Gross Salary & Total Deduction at the Bottom of Respective Columns -->
+          <tr class="total-row">
+            <td style="border-right: 1px solid #000; border-top: 1px solid #000">&nbsp;</td>
+            <td style="border-right: 1px solid #000; border-top: 1px solid #000; padding: 0">
+              <table style="width: 100%; border-collapse: collapse">
+                <tr>
+                  <td style="padding: 6px; font-weight: bold">एकूण वेतन :</td>
+                  <td class="amount" style="padding: 6px; font-weight: bold; width: 35%">{{grossSalary}}</td>
+                </tr>
+              </table>
+            </td>
+            <td style="border-top: 1px solid #000; padding: 0">
+              <table style="width: 100%; border-collapse: collapse">
+                <tr>
+                  <td style="padding: 6px; font-weight: bold">एकूण कपात :</td>
+                  <td class="amount" style="padding: 6px; font-weight: bold; width: 35%">{{totalDeduction}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- NEW ROW 2: Net Salary Merged Across Both Earnings & Deductions Columns -->
+          <tr class="net-row">
+            <td style="border-right: 1px solid #000; border-top: 1px solid #000">&nbsp;</td>
+            <td colspan="2" style="border-top: 1px solid #000; padding: 8px; text-align: left; font-weight: bold">देय वेतन : {{netSalary}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Bottom Layout Section -->
+      <div class="bottom-section">
+        <div class="salary-summary">
+          <div class="net-salary">एकूण देय पगार: <span>{{netSalary}}</span></div>
+          <div class="amount-words">
+            अक्षरी रक्कम रु. <br />
+            <span>{{amountInWords}}</span>
+          </div>
+        </div>
+
+        <div class="leave-section">
+          <!-- Main Attendances -->
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>एकूण दिवस</th>
+                <th>हजर दिवस</th>
+                <th>रजा/गैरहजर दिवस</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{total_days}}</td>
+                <td>{{num_salary_presentdays}}</td>
+                <td>{{earnedleave}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Detailed Leaves Broken down underneath -->
+          {{#if hasLeaveDetails}}
+          <table class="leave-detail-table">
+            <thead>
+              <tr>
+                <th>वैद्यकीय रजा</th>
+                <th>अर्जित रजा</th>
+                <th>अर्ध वेतनाची रजा</th>
+                <th>बिनवेतनी रजा</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{medicalleave}}</td>
+                <td>{{earnedleave}}</td>
+                <td>{{halfday}}</td>
+                <td>{{withoutpay}}</td>
+              </tr>
+            </tbody>
+          </table>
+          {{/if}}
+        </div>
+      </div>
+
+      <!-- Footer Signatures Blocks -->
+      <table class="footer-signatures">
+        <tr>
+          <td>
+            <div class="footer-title">अधिकारी</div>
+            <div>{{../corporationName}}</div>
+          </td>
+          <td>
+            <div class="footer-title">प्र . सहा . आयुक्त</div>
+            <div>{{../corporationName}}</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    {{/each}}
+  </body>
+</html>

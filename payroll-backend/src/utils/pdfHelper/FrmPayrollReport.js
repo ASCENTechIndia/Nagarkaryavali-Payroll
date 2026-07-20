@@ -63,7 +63,7 @@ const PayrollReportPDFHelper = async ({
 if (reportType === "1") {
   reportRows = rows.map((row, index) => ({
     SRNO: index + 1,
-    DEPTCODE: row.DEPTID,
+    DEPTCODE: row.DEPTMST_CODE,
     DEPTNAME: row.DEPNAME,
     EMPCODE: row.EMPCODE,
     EMPNAME: row.EMPNAME,

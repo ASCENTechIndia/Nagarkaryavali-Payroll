@@ -5,360 +5,436 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
+import * as XLSX from "xlsx";
 
 const initialValues = {
-    payHead: "",
-    payHeadId: "",
-    englishName: "",
-    marathiName: "",
-    paySheetOrder: "",
-    mergeIn: "",
+  Year: "",
+  Month: "",
+  Zone: "",
+  department: "",
+  reportType: "",
+  status: "PDF",
 };
 
 const FrmPayrollReport = () => {
+  const { user } = useAuth();
+  const token = user?.token;
+  const ulbId = user?.ulbId;
+  const navigate = useNavigate();
 
-    const { user } = useAuth();
-    const token = user?.token;
-    const ulbId = user?.ulbId;
-    const userId = user?.userId;
-    const navigate = useNavigate();
-    const location = useLocation();
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-    const mode = location.state?.mode;
-    const headId = location.state?.headId;
+  const [yearOptions, setYearOptions] = useState([]);
+  const [monthOptions, setMonthOptions] = useState([]);
+  const [zoneOptions, setZoneOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
 
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const fetchYears = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmPayrollReport/year-list`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-    const [payHeadOptions, setPayHeadOptions] = useState([]);
-    const [mergeInOptions, setMergeInOptions] = useState([]);
-    const [formInitialValues, setFormInitialValues] = useState(initialValues);
+      setYearOptions(res.data?.data?.data || []);
+    } catch (error) {
+      console.error("Year API Error:", error);
+    }
+  };
 
+  const fetchMonths = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmPayrollReport/month-list`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-    const fetchPayHeads = async () => {
-        try {
-            const res = await axios.get(
-                `${BASE_URL}/api/FrmPayHeadListMst/paysubheads-list`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            setPayHeadOptions(res.data?.rows || []);
-        } catch (error) {
-            console.error("Pay Head Dropdown API Error:", error);
-        }
+      setMonthOptions(res.data?.data?.data || []);
+    } catch (error) {
+      console.error("Month API Error:", error);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
+        {
+          ulbid: ulbId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setDepartmentOptions(res.data?.data?.data || []);
+    } catch (error) {
+      console.error("Department API Error:", error);
+    }
+  };
+
+  const fetchZones = async () => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmEmployeeMstList/zone-list`,
+        {
+          ulbid: ulbId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setZoneOptions(res.data?.data?.data || []);
+    } catch (error) {
+      console.error("Zone API Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const loadDropdowns = async () => {
+      Swal.fire({
+        title: "Loading...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        const results = await Promise.allSettled([
+          fetchYears(),
+          fetchMonths(),
+          fetchDepartments(),
+          fetchZones(),
+        ]);
+
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled") {
+            console.log(`Dropdown ${index} loaded successfully`);
+          } else {
+            console.error(`Dropdown ${index} failed:`, result.reason);
+            Swal.fire("Error", `Failed to load dropdown ${index + 1}`, "error");
+          }
+        });
+      } finally {
+        Swal.close();
+      }
     };
 
-    const fetchMergeInOptions = async (paySubHeadId) => {
-        try {
-            Swal.fire({
-                title: "Loading ...",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+    loadDropdowns();
+  }, [token]);
 
-            const res = await axios.post(
-                `${BASE_URL}/api/FrmPayHeadListMst/parent-payheads-list`,
-                {
-                    paySubHeadId: paySubHeadId,
-                    ulbId: ulbId,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            setMergeInOptions(res.data?.rows || []);
-        } catch (error) {
-            console.error("Merge In API Error:", error);
-            setMergeInOptions([]);
-        } finally {
-            Swal.close();
-        }
+  const getStartEndDate = (year, month) => {
+    const monthIndex = Number(month) - 1;
+
+    const firstDate = new Date(year, monthIndex, 1);
+    const lastDate = new Date(year, monthIndex + 1, 0);
+
+    const format = (date) => {
+      return date
+        .toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+        .replace(/ /g, "-");
     };
 
-    useEffect(() => {
-        if (token) {
-            fetchPayHeads();
-        }
-    }, [token]);
-
-
-    const fetchPayHeadDetails = async () => {
-        try {
-
-            Swal.fire({
-                title: "Loading ...",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
-
-            const res = await axios.post(
-                `${BASE_URL}/api/FrmPayHeadListMst/payhead-details`,
-                {
-                    payHeadId: headId,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            const data = res.data?.rows?.[0];
-
-            if (data) {
-                const updatedValues = {
-                    payHead: data.SUBPAYID?.toString() || "",
-                    payHeadId: data.PAYID?.toString() || "",
-                    englishName: data.NAMEE || "",
-                    marathiName: data.NAMEM || "",
-                    paySheetOrder:
-                        data.NUM_PAYHEADS_ORDERNO?.toString() || "",
-                    mergeIn:
-                        data.NUM_PAYHEADS_MERGEID?.toString() || "",
-                };
-
-                setFormInitialValues(updatedValues);
-
-                if (data.SUBPAYID) {
-                    await fetchMergeInOptions(data.SUBPAYID);
-                }
-            }
-
-        } catch (error) {
-            console.error("PayHead Details API Error:", error);
-        } finally {
-            Swal.close();
-        }
+    return {
+      startDate: format(firstDate),
+      endDate: format(lastDate),
     };
+  };
 
-    useEffect(() => {
-        if (
-            mode == 2 &&
-            headId &&
-            token
-        ) {
-            fetchPayHeadDetails();
+  const exportExcel = (response) => {
+    const rows = response.data || [];
+
+    let total = 0;
+
+    const excelData = rows.map((item, index) => {
+      total += Number(item.AMOUNT || 0);
+
+      return {
+        "Sr No": index + 1,
+        "Department Code": item.DEPTMST_CODE,
+        "Department Name": item.DEPNAME,
+        "Employee Code": item.EMPCODE,
+        "Employee Name": item.EMPNAME,
+        "Bank Account No": item.ACCNO,
+        "Net Salary": item.AMOUNT,
+      };
+    });
+
+    excelData.push({
+      "Sr No": "",
+      "Department Code": "",
+      "Department Name": "",
+      "Employee Code": "",
+      "Employee Name": "TOTAL",
+      "Account No": "",
+      "Net Salary": total,
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      response.reportName || "Payroll Report",
+    );
+
+    XLSX.writeFile(workbook, "Payroll_Report.xlsx");
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+
+      if (!values.Zone) {
+        Swal.fire({
+          text: "Please select Zone",
+        });
+        return;
+      }
+
+
+      if (!values.reportType) {
+        Swal.fire({
+          text: "Please select Report Type",
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Loading...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const { startDate, endDate } = getStartEndDate(values.Year, values.Month);
+
+      const payload = {
+        startDate,
+        endDate,
+        ulbid: ulbId,
+        deptId: values.department || "-1",
+        zoneId: values.Zone,
+        reportType: values.reportType,
+      };
+
+      if (values.status === "PDF") {
+        const res = await axios.post(
+          `${BASE_URL}/api/FrmPayrollReport/generate-payroll-pdf`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (res.data.success) {
+          window.open(res.data.pdfUrl, "_blank");
         }
-    }, [mode, headId, token]);
+      } else {
+        const res = await axios.post(
+          `${BASE_URL}/api/FrmPayrollReport/payroll-report`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
-    const handleSubmit = async (values) => {
-        try {
+        exportExcel(res.data.data);
+      }
+    } catch (err) {
+      console.log(err);
 
-            Swal.fire({
-                title: "Saving...",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+      Swal.fire({
+        icon: "error",
+        text: "Something went wrong.",
+      });
+    } finally {
+      Swal.close();
+    }
+  };
 
-            const payload = {
-                userId: userId,
-                corpId: Number(ulbId),
-                payHeadId: mode == 2 ? Number(values.payHeadId) : 0,
-                subHeadId: Number(values.payHead),
-                engName: values.englishName,
-                marathiName: values.marathiName,
-                orderNo: Number(values.paySheetOrder),
-                mergeId: values.mergeIn ? Number(values.mergeIn) : null,
-                mode: mode == 2 ? 2 : 1,
-            };
+  return (
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+      {({ values, handleChange, setFieldValue }) => {
+        return (
+          <Form>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-4 md:p-5 min-h-screen"
+            >
+              <Card className="border-0 shadow-none rounded-none bg-transparent">
+                <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
+                  <CardTitle className="text-xl font-bold">
+                    Payroll Report
+                  </CardTitle>
+                </CardHeader>
 
-            const res = await axios.post(
-                `${BASE_URL}/api/FrmPayHeadListMst/save-payhead`,
-                payload,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+                <CardContent className="p-4 sm:p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label
+                          text="Year"
+                          className="text-[15px] font-semibold text-black"
+                          required
+                        />
+                        <span>:</span>
+                      </div>
 
-            if (res.data?.success) {
-                Swal.fire({
-                    text: res.data?.message,
-                    confirmButtonColor: "#1e3a8a",
-                }).then(() => {
-                    navigate("/Masters/FrmPayHeadListMst");
-                });
-            } else {
+                      <Select
+                        value={values.Year}
+                        onValueChange={(value) => setFieldValue("Year", value)}
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
 
-                Swal.fire({
-                    text: res.data?.message
-                });
-            }
+                        <SelectContent>
+                          {yearOptions.map((item) => (
+                            <SelectItem
+                              key={item.NUM_YEAR_ID}
+                              value={item.NUM_YEAR_ID.toString()}
+                            >
+                              {item.VAR_YEAR}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-        } catch (error) {
-            console.error("Save API Error:", error);
-            Swal.fire({
-                text: "Failed to save data",
-            });
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label
+                          text="Month"
+                          className="text-[15px] font-semibold text-black"
+                          required
+                        />
+                        <span>:</span>
+                      </div>
 
-        }
-    };
+                      <Select
+                        value={values.Month}
+                        onValueChange={(value) => setFieldValue("Month", value)}
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
 
+                        <SelectContent>
+                          {monthOptions.map((item) => (
+                            <SelectItem
+                              key={item.NUM_MONTH_ID}
+                              value={item.NUM_MONTH_ID.toString()}
+                            >
+                              {item.VAR_MONTH_NAME}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-    return (
-        <Formik initialValues={formInitialValues} enableReinitialize={true} onSubmit={handleSubmit}>
-            {({ values, handleChange, setFieldValue }) => {
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label
+                          text="Zone"
+                          className="text-[15px] font-semibold text-black"
+                          required
+                        />
+                        <span>:</span>
+                      </div>
 
-                return (
-                    <Form>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="p-4 md:p-5 min-h-screen"
-                        >
-                            <Card className="border-0 shadow-none rounded-none bg-transparent">
-                                <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
-                                    <CardTitle className="text-xl font-bold">
-                                        Payroll Report
-                                    </CardTitle>
-                                </CardHeader>
+                      <Select
+                        value={values.Zone}
+                        onValueChange={(value) => setFieldValue("Zone", value)}
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- ALL --" />
+                        </SelectTrigger>
 
-                                <CardContent className="p-4 sm:p-6 space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label
-                                                    text="Year"
-                                                    className="text-[15px] font-semibold text-black"
-                                                />
-                                                <span>:</span>
-                                            </div>
+                        <SelectContent>
+                          <SelectItem value="-1"> -- ALL -- </SelectItem>
+                          {zoneOptions.map((item) => (
+                            <SelectItem
+                              key={item.ZONEID}
+                              value={item.ZONEID.toString()}
+                            >
+                              {item.ZONENAME}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                                            <Select
-                                                value={values.Year}
-                                                onValueChange={(value) => setFieldValue("Year", value)}
-                                            >
-                                                <SelectTrigger className="w-full h-9">
-                                                    <SelectValue placeholder="-- Select Option --" />
-                                                </SelectTrigger>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label
+                          text="Department"
+                          className="text-[15px] font-semibold text-black"
+                        />
+                        <span>:</span>
+                      </div>
 
-                                                <SelectContent>
-                                                    <SelectItem value="ALL">ALL</SelectItem>
-                                                    <SelectItem value="INCREMENT">Increment</SelectItem>
-                                                    <SelectItem value="PROMOTION">Promotion</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
+                      <Select
+                        value={values.department}
+                        onValueChange={(value) =>
+                          setFieldValue("department", value)
+                        }
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- ALL --" />
+                        </SelectTrigger>
 
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label
-                                                    text="Month"
-                                                    className="text-[15px] font-semibold text-black"
-                                                />
-                                                <span>:</span>
-                                            </div>
+                        <SelectContent>
+                          <SelectItem value="-1"> -- ALL -- </SelectItem>
+                          {departmentOptions.map((item) => (
+                            <SelectItem
+                              key={item.DEPTID}
+                              value={item.DEPTID.toString()}
+                            >
+                              {item.DEPTNAME}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                                            <Select
-                                                value={values.Month}
-                                                onValueChange={(value) =>
-                                                    setFieldValue("Month", value)
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full h-9">
-                                                    <SelectValue placeholder="-- Select Option --" />
-                                                </SelectTrigger>
-
-                                                <SelectContent>
-                                                    {/* {subDepartmentOptions?.map((item) => (
-                                                        <SelectItem
-                                                            key={item.id}
-                                                            value={item.id.toString()}
-                                                        >
-                                                            {item.name}
-                                                        </SelectItem>
-                                                    ))} */}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label
-                                                    text="Zone"
-                                                    className="text-[15px] font-semibold text-black"
-                                                />
-                                                <span>:</span>
-                                            </div>
-
-                                            <Select
-                                                value={values.Zone}
-                                                onValueChange={(value) =>
-                                                    setFieldValue("Zone", value)
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full h-9">
-                                                    <SelectValue placeholder="-- Select Employee --" />
-                                                </SelectTrigger>
-
-                                                <SelectContent>
-                                                    {/* {employeeOptions?.map((item) => (
-                                                        <SelectItem
-                                                            key={item.id}
-                                                            value={item.id.toString()}
-                                                        >
-                                                            {item.name}
-                                                        </SelectItem>
-                                                    ))} */}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label
-                                                    text="Department"
-                                                    className="text-[15px] font-semibold text-black"
-                                                />
-                                                <span>:</span>
-                                            </div>
-
-                                            <Select
-                                                value={values.department}
-                                                onValueChange={(value) =>
-                                                    setFieldValue("department", value)
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full h-9">
-                                                    <SelectValue placeholder="-- Select Option --" />
-                                                </SelectTrigger>
-
-                                                <SelectContent>
-                                                    {/* {departmentOptions?.map((item) => (
-                                                        <SelectItem
-                                                            key={item.id}
-                                                            value={item.id.toString()}
-                                                        >
-                                                            {item.name}
-                                                        </SelectItem>
-                                                    ))} */}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                             <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                                                 <Label
                                                     text="Employee Type"
@@ -384,106 +460,105 @@ const FrmPayrollReport = () => {
                                             </Select>
                                         </div> */}
 
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label
-                                                    text="Report Type"
-                                                    className="text-[15px] font-semibold text-black"
-                                                    required
-                                                />
-                                                <span>:</span>
-                                            </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label
+                          text="Report Type"
+                          className="text-[15px] font-semibold text-black"
+                          required
+                        />
+                        <span>:</span>
+                      </div>
 
-                                            <Select
-                                                value={values.reportType}
-                                                onValueChange={(value) =>
-                                                    setFieldValue("reportType", value)
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full h-9">
-                                                    <SelectValue placeholder="-- Select Option --" />
-                                                </SelectTrigger>
+                      <Select
+                        value={values.reportType}
+                        onValueChange={(value) =>
+                          setFieldValue("reportType", value)
+                        }
+                      >
+                        <SelectTrigger className="w-full h-9 overflow-hidden">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
 
-                                                <SelectContent>
-                                                    {/* {departmentOptions?.map((item) => (
-                                                        <SelectItem
-                                                            key={item.id}
-                                                            value={item.id.toString()}
-                                                        >
-                                                            {item.name}
-                                                        </SelectItem>
-                                                    ))} */}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
+                        <SelectContent>
+                          <SelectItem value="0">
+                            --Select Report Type--
+                          </SelectItem>
+                          <SelectItem value="1">Bank List</SelectItem>
+                          <SelectItem value="2">Bank Deduction</SelectItem>
+                          <SelectItem value="4">
+                            Bank Of Maharashtra List
+                          </SelectItem>
+                          <SelectItem value="5">Bank ECS List</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
-                                                <Label className="text-[15px] font-semibold text-black" required>
-                                                    Export To
-                                                </Label>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center">
+                        <Label
+                          className="text-[15px] font-semibold text-black"
+                          required
+                        >
+                          Export To
+                        </Label>
 
-                                                <span>:</span>
-                                            </div>
+                        <span>:</span>
+                      </div>
 
-                                            <div className="flex items-center gap-5">
-                                                <Label className="flex items-center gap-3 cursor-pointer">
-                                                    <Input
-                                                        type="radio"
-                                                        name="status"
-                                                        value="PDF"
-                                                        checked={values.status === "PDF"}
-                                                        onChange={handleChange}
-                                                        className="w-9 h-4"
-                                                    />
-                                                    PDF
-                                                </Label>
+                      <div className="flex items-center gap-5">
+                        <Label className="flex items-center gap-3 cursor-pointer">
+                          <Input
+                            type="radio"
+                            name="status"
+                            value="PDF"
+                            checked={values.status === "PDF"}
+                            onChange={handleChange}
+                            className="w-9 h-4"
+                          />
+                          PDF
+                        </Label>
 
-                                                <Label className="flex items-center gap-2 cursor-pointer">
-                                                    <Input
-                                                        type="radio"
-                                                        name="status"
-                                                        value="EXCEL"
-                                                        checked={values.status === "EXCEL"}
-                                                        onChange={handleChange}
-                                                        className="w-9 h-4"
-                                                    />
-                                                    EXCEL
-                                                </Label>
-                                            </div>
-                                        </div>
+                        <Label className="flex items-center gap-2 cursor-pointer">
+                          <Input
+                            type="radio"
+                            name="status"
+                            value="EXCEL"
+                            checked={values.status === "EXCEL"}
+                            onChange={handleChange}
+                            className="w-9 h-4"
+                          />
+                          EXCEL
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
 
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+                    <Button
+                      type="submit"
+                      className="bg-blue-900 hover:bg-blue-800 text-white px-8"
+                    >
+                      Search
+                    </Button>
 
-
-
-                                    </div>
-
-                                    {/* Buttons */}
-                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                                        <Button
-                                            type="submit"
-                                            className="bg-blue-900 hover:bg-blue-800 text-white px-8"
-                                        >
-                                            Search
-                                        </Button>
-
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="px-8"
-                                            onClick={() => navigate("/HomePage/FrmHomePage")}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    </Form>
-                );
-            }}
-        </Formik>
-    );
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="px-8"
+                      onClick={() => navigate("/HomePage/FrmHomePage")}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Form>
+        );
+      }}
+    </Formik>
+  );
 };
 
 export default FrmPayrollReport;
