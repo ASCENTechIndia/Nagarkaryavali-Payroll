@@ -1,31 +1,23 @@
 const repo = require("./FrmMonthlyBankUploadReportRepo");
+const { AppError } = require("../../../libs/errors");
 
 async function generateMonthlyBankUploadReportService(payload) {
   console.log("Service: Generate Monthly Bank Upload Report", payload);
 
-  const {
-    departmentId,
-    month,
-    year,
-  } = payload;
+  const { departmentId, month, year } = payload;
 
   // Calculate last date of selected month
-  const lastDate = new Date(
-    parseInt(year),
-    parseInt(month),
-    0
-  );
+  const lastDate = new Date(Number(year), Number(month), 0);
 
   const formattedLastDate = formatDate(lastDate);
 
-  const reportData =
-    await repo.getMonthlyBankUploadReportDataRepo({
-      departmentId,
-      lastDate: formattedLastDate,
-    });
+  const reportData = await repo.getMonthlyBankUploadReportDataRepo({
+    departmentId,
+    lastDate: formattedLastDate,
+  });
 
   if (!reportData || reportData.length === 0) {
-    throw new Error("Record Not Found");
+    throw new AppError("No records found.", 404);
   }
 
   return {
@@ -37,8 +29,8 @@ async function generateMonthlyBankUploadReportService(payload) {
 }
 
 function formatDate(date) {
-  const day = date.getDate();
-  const month = date.toLocaleString("default", {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = date.toLocaleString("en-US", {
     month: "short",
   });
   const year = date.getFullYear();

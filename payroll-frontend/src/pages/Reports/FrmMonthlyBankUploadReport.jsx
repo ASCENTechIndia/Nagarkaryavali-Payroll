@@ -114,11 +114,7 @@ const FrmMonthlyBankUploadReport = () => {
     "DEC",
   ];
 
-  const handleBack = () => {
-    setDepartmentId("-1");
-    setSelectedYear("");
-    setSelectedMonth("");
-  };
+
 
   const generateExcel = (rows) => {
     if (!rows || rows.length === 0) {
@@ -279,7 +275,7 @@ const FrmMonthlyBankUploadReport = () => {
               <span>:</span>
 
               <Select value={departmentId} onValueChange={setDepartmentId}>
-                <SelectTrigger className="flex-1 h-10">
+                <SelectTrigger className="flex-1 h-10 overflow-hidden">
                   <SelectValue placeholder="-- Select Department --" />
                 </SelectTrigger>
 
@@ -347,7 +343,7 @@ const FrmMonthlyBankUploadReport = () => {
               Print
             </Button>
 
-            <Button type="button" variant="outline" onClick={handleBack}>
+            <Button type="button" variant="outline" path="/HomePage/FrmHomePage">
               Back
             </Button>
           </div>

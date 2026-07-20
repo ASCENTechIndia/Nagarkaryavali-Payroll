@@ -284,7 +284,7 @@ const FrmSalaryConsolidationBanks = () => {
                                 setDeptId("");
                                 setReportType("D");
                             }}
-                            path={"/"}
+                            path="/HomePage/FrmHomePage"
                         >
                             Cancel
                         </Button>

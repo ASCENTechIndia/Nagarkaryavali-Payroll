@@ -423,7 +423,7 @@ const FrmSalaryConsolidationReport = () => {
               Print
             </Button>
 
-            <Button type="button" variant="outline" path="/dashboard">
+            <Button type="button" variant="outline" path="/HomePage/FrmHomePage">
               Cancel
             </Button>
           </div>
