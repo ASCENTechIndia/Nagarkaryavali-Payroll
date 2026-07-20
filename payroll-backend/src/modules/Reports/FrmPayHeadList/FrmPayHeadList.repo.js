@@ -101,6 +101,7 @@ async function getIncomeTaxRepo({
             SLIPNO
     `;
 
+    console.log("sql", sql)
     const result = await executeQuery(sql, binds);
     if (!result.success) throw new Error(result.error);
     return result.rows;
@@ -175,6 +176,7 @@ async function getLICRepo({
 
     sql += ` ORDER BY SLIPNO`;
 
+    console.log("sql", sql)
     const result = await executeQuery(sql, binds);
     if (!result.success) throw new Error(result.error);
     return result.rows;
@@ -190,6 +192,16 @@ async function getProfessionalTaxSlabRepo({
     empStatus,
     deptId
 }) {
+
+    console.log("body", {
+        salaryDate,
+        ulbid,
+        categoryId,
+        zoneId,
+        empStatus,
+        deptId
+    })
+
     let sql = `
         SELECT 
             fixedamt,
@@ -244,10 +256,14 @@ async function getProfessionalTaxSlabRepo({
         ORDER BY FIXEDAMT
     `;
 
+    console.log("sql", sql)
     const result = await executeQuery(sql, binds);
+
+    console.log("result", result);
     if (!result.success) throw new Error(result.error);
     return result.rows;
 }
+
 
 async function getMainPayHeadListRepo({
     salaryDate,
@@ -255,98 +271,94 @@ async function getMainPayHeadListRepo({
     categoryId,
     zoneId,
     payHeadId,
-    empStatus,
     deptId,
     subDeptId,
-    hsgRentType,
-    bankRecType,
-    festAdvType
+    empStatus,
+    useShortName
 }) {
+
+    console.log("body", {
+        salaryDate,
+        ulbid,
+        categoryId,
+        zoneId,
+        payHeadId,
+        deptId,
+        subDeptId,
+        empStatus,
+        useShortName
+    })
+
     let sql = `
         SELECT 
-            num_salary_categoryid,
-            num_salary_zone,
-            LPAD(p.num_salary_empid, 5, '0') AS empid,
-            p.var_employee_engname AS engname,
-            p.var_employee_marname AS marname,
-            var_employee_pfno AS PfNo,
-            var_employee_panno AS PanNo,
-            p.num_salarydtl_payheadid AS headid,
-            h.var_payheads_ename AS ename,
-            h.var_payheads_mname AS mname,
-            p.NUM_SALARY_DEPTID AS deptid,
-            p.VAR_DEPTMST_DEPTNAMEM AS deptname,
+            LPAD(p.num_salary_empid, 5, '0') AS EMPID,
+            p.var_employee_engname AS ENGNAME,
+            p.var_employee_marname AS MARNAME,
+            e.var_employee_pfno AS PFNO,        
+            e.var_employee_panno AS PANNO,     
+            p.oldempno AS OLDEMPNO,
+            p.num_salarydtl_payheadid AS HEADID,
     `;
 
-    if (payHeadId == "440" && (ulbid == 770 || ulbid == 1750 || ulbid == 930)) {
-        sql += ` nvl(num_empbank_amount, 0) AS Amount,`;
-    } 
-    else if (payHeadId == "439" && (ulbid == 770 || ulbid == 1750 || ulbid == 930)) {
-        sql += ` p.num_salarydtl_amount AS Amount, hsgrent,`;
-    }
-    else if (payHeadId == "287" && (ulbid == 751 || ulbid == 870)) {
-        sql += ` p.num_salarydtl_amount AS Amount, NVL(TO_CHAR(r.num_rechead_currinst), '0') || '/' || NVL(TO_CHAR(r.num_rechead_installments), '0') AS kapatno,`;
-    }
-    else {
-        sql += ` p.num_salarydtl_amount AS Amount,`;
+    if (useShortName || ulbid == 870) {
+        sql += `
+            h.var_payheads_shortname AS PAYHEAD_NAME,
+            h.var_payheads_mname AS PAYHEAD_MNAME,
+        `;
+    } else {
+        sql += `
+            h.var_payheads_ename AS PAYHEAD_NAME,
+            h.var_payheads_mname AS PAYHEAD_MNAME,
+        `;
     }
 
     sql += `
-            p.ulbid,
+            p.num_salarydtl_amount AS AMOUNT,
+            p.NUM_SALARY_DEPTID AS DEPTID,
+            p.VAR_DEPTMST_DEPTNAMEM AS DEPTNAME,
+            p.ulbid AS ULBID,
+            p.num_salary_categoryid AS CATEGORYID,
+            p.num_salary_zone AS ZONEID,
             CASE 
-                WHEN var_employee_gender = 'M' THEN 'Male' 
-                WHEN var_employee_gender = 'F' THEN 'Female' 
+                WHEN e.var_employee_gender = 'M' THEN 'Male'    
+                WHEN e.var_employee_gender = 'F' THEN 'Female' 
                 ELSE 'Not Defined' 
-            END AS Gender,
-            oldempno
+            END AS GENDER
     `;
 
-    if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
-        sql += ` ,var_deptslip_code billno, var_deptslip_sequence slipno`;
-    }
-
-    if (ulbid == 2) {
-        sql += ` ,num_deptsub_id, var_deptsub_sdeptnamee`;
+    if (payHeadId == 287) {
+        sql += `,
+            NVL(TO_CHAR(r.num_rechead_currinst), '0') || '/' || 
+            NVL(TO_CHAR(r.num_rechead_installments), '0') AS KAPATNO
+        `;
     }
 
     sql += `
         FROM view_paysheet p
         INNER JOIN aopr_payheads_def h 
             ON p.num_salarydtl_payheadid = h.num_payheads_id 
-            AND num_payheads_ulbid = p.ulbid
+            AND h.num_payheads_ulbid = p.ulbid
         INNER JOIN aopr_employee_def e
             ON e.num_employee_empid = p.num_salary_empid 
             AND e.num_employee_ulbid = p.ulbid
     `;
 
-    if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
-        sql += ` LEFT JOIN aopr_deptslip_mas d ON d.num_deptslip_empid = p.num_salary_empid AND d.num_deptslip_ulbid = p.ulbid`;
-        
-        if (payHeadId == "440") {
-            sql += ` INNER JOIN aopr_empbank_det b ON b.num_empbank_ulbid = p.ulbid 
-                     AND b.num_empbank_empid = p.num_salary_empid 
-                     AND b.var_empbank_bankid = :bankRecType`;
-        }
-    }
-
-    if (ulbid == 2 || ulbid == 1630) {
-        sql += ` LEFT JOIN aopr_subdept_mas s ON s.num_deptsub_ulbid = p.ulbid 
-                 AND s.num_deptsub_deptid = e.num_employee_deptid 
-                 AND e.num_employee_subdeptid = s.num_deptsub_id`;
-    }
-
-    if ((ulbid == 751 || ulbid == 870) && payHeadId == "287") {
-        sql += ` LEFT JOIN aopr_rechead_mas r ON r.num_rechead_empid = e.num_employee_empid 
-                 AND r.num_rechead_ulbid = p.ulbid`;
+    if (payHeadId == 287) {
+        sql += `
+            LEFT JOIN aopr_rechead_mas r
+                ON r.num_rechead_empid = e.num_employee_empid 
+                AND r.num_rechead_ulbid = p.ulbid
+        `;
     }
 
     sql += `
-        WHERE p.date_salary_saldate = :salaryDate
-          AND p.num_salarydtl_amount > 0
-          AND p.num_salarydtl_payheadid = :payHeadId
-          AND p.ulbid = :ulbid
-          AND p.num_salary_categoryid = :categoryId
-          AND p.num_salary_zone = :zoneId
+        WHERE 1=1
+            AND p.date_salary_saldate = :salaryDate
+            AND p.num_salarydtl_amount > 0
+            AND p.num_salarydtl_payheadid = :payHeadId
+            AND p.ulbid = :ulbid
+            AND p.num_salary_categoryid = :categoryId
+            AND p.num_salary_zone = :zoneId
     `;
 
     const binds = {
@@ -356,13 +368,6 @@ async function getMainPayHeadListRepo({
         categoryId,
         zoneId
     };
-
-    if (empStatus && empStatus !== "-1") {
-        if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
-            sql += ` AND p.VAR_EMPLOYEE_EMPSTATUS = :empStatus`;
-            binds.empStatus = empStatus;
-        }
-    }
 
     if (deptId && deptId !== "-1" && deptId !== "0") {
         sql += ` AND p.num_salary_deptid = :deptId`;
@@ -374,33 +379,17 @@ async function getMainPayHeadListRepo({
         binds.subDeptId = subDeptId;
     }
 
-    if (payHeadId == "439" && hsgRentType && hsgRentType !== "-1") {
-        sql += ` AND hsgrent = :hsgRentType`;
-        binds.hsgRentType = hsgRentType;
+    if (empStatus && empStatus !== "-1" && empStatus !== null && empStatus !== undefined) {
+        sql += ` AND p.VAR_EMPLOYEE_EMPSTATUS = :empStatus`;
+        binds.empStatus = empStatus;
     }
 
-    if (payHeadId == "440" && bankRecType && bankRecType !== "-1") {
-        sql += ` AND var_empbank_bankid = :bankRecType`;
-        binds.bankRecType = bankRecType;
-    }
+    sql += ` ORDER BY p.num_salary_empid`;
 
-    if (payHeadId == "443" && festAdvType && festAdvType !== "-1") {
-        sql += ` AND festid = :festAdvType`;
-        binds.festAdvType = festAdvType;
-    }
-
-    if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
-        sql += `
-            ORDER BY 
-                CASE WHEN REGEXP_LIKE(var_deptslip_sequence, '^\\d+(\\.\\d+)?$') THEN 0 ELSE 1 END,
-                CASE WHEN REGEXP_LIKE(var_deptslip_sequence, '^\\d+(\\.\\d+)?$') THEN TO_NUMBER(var_deptslip_sequence) ELSE NULL END,
-                var_deptslip_sequence
-        `;
-    } else {
-        sql += ` ORDER BY p.num_salary_empid`;
-    }
-
+    console.log("getMainPayHeadListRepo: ", sql)
     const result = await executeQuery(sql, binds);
+
+    console.log("result: ", result)
     if (!result.success) throw new Error(result.error);
     return result.rows;
 }
@@ -464,6 +453,7 @@ async function getAMCProfessionalTaxRepo({
         ORDER BY s.slab
     `;
 
+    console.log("sql", sql)
     const result = await executeQuery(sql, binds);
     if (!result.success) throw new Error(result.error);
     return result.rows;
@@ -555,6 +545,7 @@ async function getAMCTenFourteenRepo({
         ORDER BY deptid, subdeptid, empid
     `;
 
+    console.log("sql", sql)
     const result = await executeQuery(sql, binds);
     if (!result.success) throw new Error(result.error);
     return result.rows;
@@ -820,6 +811,8 @@ async function getSubDetailProfessionalTaxRepo({
 
     if (!firstResult.success) throw new Error(firstResult.error);
     if (!secondResult.success) throw new Error(secondResult.error);
+
+    console.log("sql", sql)
 
     return {
         withHyphen: firstResult.rows,
