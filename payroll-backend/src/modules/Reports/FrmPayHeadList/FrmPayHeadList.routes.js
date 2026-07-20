@@ -9,5 +9,6 @@ router.post("/pf-fund", auth(), controller.getPFFundReport);
 router.post("/income-tax", auth(), controller.getIncomeTaxReport);
 router.post("/lic", auth(), controller.getLICReport);
 router.post("/excel-gross-tds", auth(), controller.getExcelGrossTDSReport);
+router.post("/generate-pdf", auth(), controller.generatePayHeadListPDF);
 
 module.exports = router;

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Noto Sans Devanagari", "Mangal", Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+            padding: 20px 40px;
+            background: #fff;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 5mm;
+        }
+
+        .container {
+            width: 100%;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 5px;
+            page-break-after: avoid;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-logo {
+            height: 60px;
+            max-height: 65px;
+            object-fit: contain;
+        }
+
+        .title {
+            text-align: center;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .title h1 {
+            font-size: 16px;
+            font-weight: normal;
+        }
+
+        .title h2 {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .title h3 {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .title h4 {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .title h5 {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .department-section {
+            margin-bottom: 20px;
+        }
+
+        .department-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0 8px 0;
+            padding: 5px;
+            border-top: 2px solid #000;
+            border-bottom: 1px solid #000;
+        }
+
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .employee-table thead {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+
+        .employee-table th {
+            padding: 4px 3px;
+            font-size: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .employee-table td {
+            padding: 3px 3px;
+            font-size: 10px;
+        }
+
+        .employee-table .center {
+            text-align: center;
+        }
+
+        .employee-table .right {
+            text-align: right;
+        }
+
+        .employee-table .left {
+            text-align: left;
+        }
+
+        .dept-total-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2px;
+        }
+
+        .dept-total-table tr {
+            border-top: 2px solid #000;
+        }
+
+        .dept-total-table td {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .dept-total-table .label {
+            text-align: right;
+            width: 85%;
+        }
+
+        .dept-total-table .amount {
+            text-align: right;
+            width: 15%;
+        }
+
+        .grand-total-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-top: 3px solid #000;
+        }
+
+        .grand-total-table td {
+            padding: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .grand-total-table .label {
+            text-align: right;
+            width: 85%;
+        }
+
+        .grand-total-table .amount {
+            text-align: right;
+            width: 15%;
+            font-size: 16px;
+        }
+
+        .sub-detail-section {
+            margin-top: 15px;
+            border-top: 2px solid #000;
+            padding-top: 15px;
+        }
+
+        .sub-detail-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .sub-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .sub-detail-table thead {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+
+        .sub-detail-table th {
+            padding: 4px 6px;
+            font-size: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .sub-detail-table td {
+            padding: 3px 6px;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .sub-total-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .sub-total-table tr {
+            border-top: 1px solid #000;
+        }
+
+        .sub-total-table td {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .sub-total-table .label {
+            text-align: right;
+            width: 85%;
+        }
+
+        .sub-total-table .amount {
+            text-align: right;
+            width: 15%;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  
+
+    <div class="header-container">
+        {{#if corporationLogo}}
+            <div class="header-left">
+                <img src="{{corporationLogo}}" alt="Logo" class="header-logo" />
+            </div>
+        {{/if}}
+        
+        <div class="title">
+            <h1>{{corporationName}}</h1>
+            <h2>मासिक हप्ते कपात अहवाल</h2>
+            <h3>विभागाचे नाव - {{departmentName}}</h3>
+            <h4>कपातीचे नाव - {{payHeadName}}</h4>
+            <h5>माहे - {{monthYear}}</h5>
+        </div>
+    </div>
+
+
+
+    {{#if hasData}}
+
+        {{#each departmentGroups}}
+
+            <div class="department-section">
+                
+                <!-- Department Title -->
+                <div class="department-title">
+                    विभागाचे नाव - {{this.deptName}}
+                </div>
+
+                <!-- Employee Table -->
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th style="width:6%">अ.क्र.</th>
+                            <th style="width:15%">कर्मचारी क्र.</th>
+                            <th style="width:37%">कर्मचारी नाव</th>
+                            
+                            {{#if ../showPanColumn}}
+                                <th style="width:20%">पॅन नंबर</th>
+                            {{else}}
+                                <th style="width:20%">कपात क्र.</th>
+                            {{/if}}
+                            
+                            <th style="width:22%">कपात केलेली रक्कम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each this.employees}}
+                        <tr>
+                            <td class="center">{{srNo}}</td>
+                            <td>{{empId}}</td>
+                            <td class="left">{{employeeName}}</td>
+                            
+                            {{#if ../../showPanColumn}}
+                                <td class="center">{{panNo}}</td>
+                            {{else}}
+                                <td class="center">{{headid}}</td>
+                            {{/if}}
+                            
+                            <td class="right">{{formatAmount amount}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+
+                <!-- Department Total -->
+                <table class="dept-total-table">
+                    <tr>
+                        <td class="label">विभागाची एकूण रक्कम</td>
+                        <td class="amount">{{formatAmount this.deptTotal}}</td>
+                    </tr>
+                </table>
+
+            </div>
+
+        {{/each}}
+
+      
+
+        <table class="grand-total-table">
+            <tr>
+                <td class="label">एकूण रक्कम</td>
+                <td class="amount">{{formatAmount totalAmount}}</td>
+            </tr>
+        </table>
+
+      
+
+        {{#if isProfessionalTax}}
+
+            {{#if subDetail}}
+
+                <div class="sub-detail-section">
+                    <div class="sub-detail-title">
+                        व्यवसाय कर तपशील (स्त्री/पुरुष)
+                    </div>
+
+                    {{#if subDetail.withoutHyphen.length}}
+                        <table class="sub-detail-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:6%">अ.क्र.</th>
+                                    <th style="width:19%">व्यवसाय कर रक्कम</th>
+                                    <th style="width:18%">पुरुष</th>
+                                    <th style="width:18%">स्त्री</th>
+                                    <th style="width:19%">एकूण कर्मचारी</th>
+                                    <th style="width:20%">एकूण रक्कम</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each subDetail.withoutHyphen}}
+                                <tr>
+                                    <td class="center">{{inc @index}}</td>
+                                    <td>{{formatAmount amount}}</td>
+                                    <td>{{male}}</td>
+                                    <td>{{female}}</td>
+                                    <td>{{total}}</td>
+                                    <td>{{formatAmount (multiply amount total)}}</td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+
+                        {{#with (calculateTotals subDetail.withoutHyphen)}}
+                        <table class="sub-total-table">
+                            <tr>
+                                <td class="label">एकूण</td>
+                                <td class="amount">{{formatAmount totalAmount}}</td>
+                            </tr>
+                        </table>
+                        {{/with}}
+                    {{/if}}
+                </div>
+
+            {{/if}}
+
+        {{/if}}
+
+
+    {{/if}}
+
+</div>
+
+</body>
+
+</html>

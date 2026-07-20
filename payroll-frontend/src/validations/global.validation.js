@@ -389,4 +389,46 @@ export const FrmEmpLeaveListValidationSchema = z
       path: ["department"],
     }
   );
-  
+
+export const FrmPayHeadListValidationSchema = z.object({
+    month: z.number()
+        .min(1, "Month is required")
+        .refine((val) => val !== "-1", {
+            message: "Please select a month",
+        }),
+    year: z.string()
+        .min(1, "Year is required")
+        .refine((val) => val !== "-1", {
+            message: "Please select a year",
+        }),
+    zone: z.string()
+        .min(1, "Zone is required")
+        .refine((val) => val !== "-1" && val !== "", {
+            message: "Please select a zone",
+        }),
+    category: z.string()
+        .min(1, "Category is required")
+        .refine((val) => val !== "-1" && val !== "", {
+            message: "Please select a category",
+        }),
+    payHead: z.string()
+        .min(1, "PayHead is required")
+        .refine((val) => val !== "-1" && val !== "", {
+            message: "Please select a pay head",
+        }),
+    department: z.string().optional(),
+})
+.refine(
+    (data) => {
+        const year = parseInt(data.year);
+        const month = parseInt(data.month);
+        if (isNaN(year) || isNaN(month)) return false;
+        if (year < 1900 || year > 2100) return false;
+        if (month < 1 || month > 12) return false;
+        return true;
+    },
+    {
+        message: "Invalid date selection",
+        path: ["month"],
+    }
+);

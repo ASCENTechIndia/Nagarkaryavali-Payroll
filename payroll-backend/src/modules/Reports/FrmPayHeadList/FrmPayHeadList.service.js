@@ -147,7 +147,8 @@ async function processProfessionalTaxSlabService(payload) {
 async function processMainPayHeadListService(payload) {
     const {
         ulbid, month, year, categoryId, zoneId, payHeadId, 
-        empStatus, deptId, subDeptId, hsgRentType, bankRecType, festAdvType
+        empStatus, deptId, subDeptId, hsgRentType, bankRecType, festAdvType,
+        useShortName = false
     } = payload;
 
     validateRequiredParams(payload, ["ulbid", "month", "year", "categoryId", "zoneId", "payHeadId"]);
@@ -160,12 +161,14 @@ async function processMainPayHeadListService(payload) {
         categoryId,
         zoneId,
         payHeadId,
-        empStatus: empStatus || "NEW",
+        // empStatus: empStatus || "NEW",
+        empStatus: (empStatus && empStatus !== "-1") ? empStatus : undefined,
         deptId: deptId === "-1" ? null : deptId,
         subDeptId: subDeptId === "-1" ? null : subDeptId,
         hsgRentType: hsgRentType === "-1" ? null : hsgRentType,
         bankRecType: bankRecType === "-1" ? null : bankRecType,
-        festAdvType: festAdvType === "-1" ? null : festAdvType
+        festAdvType: festAdvType === "-1" ? null : festAdvType,
+        useShortName: useShortName 
     });
 
     return {
@@ -269,14 +272,27 @@ async function processExcelGrossTDSService(payload) {
 
 async function processSubDetailProfessionalTaxService(payload) {
     const {
-        ulbid, month, year, categoryId, zoneId, deptId
+        ulbid, month, year, categoryId, zoneId, payHeadId, deptId
     } = payload;
 
     validateRequiredParams(payload, ["ulbid", "month", "year", "categoryId", "zoneId"]);
 
     const salaryDate = formatSalaryDate(month, year);
 
-    const data = await repo.getSubDetailProfessionalTaxRepo({
+    const employeeData = await repo.getMainPayHeadListRepo({
+        salaryDate,
+        ulbid,
+        categoryId,
+        zoneId,
+        payHeadId: 358,
+        deptId: deptId === "-1" ? null : deptId,
+        subDeptId: null,
+        // empStatus: null,
+        empStatus: undefined,
+        useShortName: true
+    });
+
+    const subDetailData = await repo.getSubDetailProfessionalTaxRepo({
         salaryDate,
         ulbid,
         categoryId,
@@ -288,12 +304,43 @@ async function processSubDetailProfessionalTaxService(payload) {
         success: true,
         reportType: "SUB_DETAIL_PROFESSIONAL_TAX",
         salaryDate,
-        data
+        data: {
+            employees: employeeData,      // For first table
+            withHyphen: subDetailData.withHyphen,
+            withoutHyphen: subDetailData.withoutHyphen
+        }
     };
 }
 
 async function processReportService(payload) {
     const { ulbid, payHeadId } = payload;
+
+    if (ulbid == 870 && payHeadId == "282") {
+        const { empStatus, ...restPayload } = payload;
+        return await processMainPayHeadListService({
+            ...restPayload,
+            useShortName: true,
+            empStatus: undefined
+        });
+    }
+    
+    if (ulbid == 870 && payHeadId == "358") {
+        const { empStatus, ...restPayload } = payload;
+        return await processSubDetailProfessionalTaxService({
+            ...restPayload,
+            empStatus: undefined
+        });
+    }
+    
+    if (ulbid == 870) {
+        const { empStatus, ...restPayload } = payload;
+        return await processMainPayHeadListService({
+            ...restPayload,
+            useShortName: true,
+            empStatus: undefined 
+        });
+    }
+    
 
     if ((ulbid == 770 || ulbid == 1750 || ulbid == 930) && 
         (payHeadId == "424" || payHeadId == "479" || payHeadId == "426")) {
