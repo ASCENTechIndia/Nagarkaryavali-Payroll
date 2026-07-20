@@ -215,22 +215,33 @@ const FrmPayrollReport = () => {
   };
 
   const handleSubmit = async (values) => {
+    if (!values.Year) {
+      Swal.fire({
+        text: "Please select Year",
+      });
+      return;
+    }
+    if (!values.Month) {
+      Swal.fire({
+        text: "Please select Month",
+      });
+      return;
+    }
+    if (!values.Zone) {
+      Swal.fire({
+        text: "Please select Zone",
+      });
+      return;
+    }
+
+
+    if (!values.reportType) {
+      Swal.fire({
+        text: "Please select Report Type",
+      });
+      return;
+    }
     try {
-
-      if (!values.Zone) {
-        Swal.fire({
-          text: "Please select Zone",
-        });
-        return;
-      }
-
-
-      if (!values.reportType) {
-        Swal.fire({
-          text: "Please select Report Type",
-        });
-        return;
-      }
 
       Swal.fire({
         title: "Loading...",
