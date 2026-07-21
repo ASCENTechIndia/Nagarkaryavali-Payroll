@@ -14,22 +14,14 @@ const {
   getCorporationService,
 } = require("../../MenuAccess/MenuAccess.service");
 
-/**
- * ==========================================
- * Validation
- * ==========================================
- */
 function validate(body) {
   const { salDate, ulbid, deptid } = body;
 
-  if (!salDate)
-    throw new AppError("Salary Date is required", 400);
+  if (!salDate) throw new AppError("Salary Date is required", 400);
 
-  if (!ulbid)
-    throw new AppError("ULB Id is required", 400);
+  if (!ulbid) throw new AppError("ULB Id is required", 400);
 
-  if (!deptid)
-    throw new AppError("Department Id is required", 400);
+  if (!deptid) throw new AppError("Department Id is required", 400);
 
   return {
     salDate,
@@ -38,16 +30,17 @@ function validate(body) {
   };
 }
 
-/**
- * ==========================================================
- * Detail Report PDF
- * ==========================================================
- */
 exports.downloadDetailReport = asyncHandler(async (req, res) => {
+
+   console.log("=========== DETAIL REPORT ===========");
+  console.log("BODY:", req.body);
+
   const payload = validate(req.body);
 
-  const report =
-    await service.getDetailReportService(payload);
+  console.log("PAYLOAD:", payload);
+
+
+  const report = await service.getDetailReportService(payload);
 
   /**
    * Corporation Details
@@ -65,27 +58,34 @@ exports.downloadDetailReport = asyncHandler(async (req, res) => {
     };
   }
 
- const pdf = await BillGenerationPDFHelper({
-    reportType: "DETAIL",
+  let pdf;
 
-    reportData: report,
+  try {
+    pdf = await BillGenerationPDFHelper({
+      reportType: "DETAIL",
+      reportData: report,
+      ulbInfo,
+      salDate: payload.salDate,
+      department: report.department,
+      billNo: report.billNo,
+      generatedBy: req.user?.userId || "SYSTEM",
+    });
+  } catch (err) {
+  console.error("========== PDF ERROR ==========");
+  console.error("Message :", err.message);
+  console.error("Stack :");
+  console.error(err.stack);
 
-    ulbInfo,
+  return res.status(500).json({
+    ok: false,
+    error: err.message,
+    stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
+  });
+}
 
-    salDate: payload.salDate,
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-    department: report.department,
-
-    billNo: report.billNo,
-
-    generatedBy: req.user?.userId || "SYSTEM"
-});
-
-  const baseUrl =
-    `${req.protocol}://${req.get("host")}`;
-
-  const pdfUrl =
-    `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
+  const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
   return res.json({
     success: true,
@@ -95,20 +95,11 @@ exports.downloadDetailReport = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * ==========================================================
- * Summary Report PDF
- * ==========================================================
- */
 exports.downloadSummaryReport = asyncHandler(async (req, res) => {
   const payload = validate(req.body);
 
-  const report =
-    await service.getSummaryReportService(payload);
+  const report = await service.getSummaryReportService(payload);
 
-  /**
-   * Corporation Details
-   */
   let ulbInfo;
 
   try {
@@ -122,7 +113,7 @@ exports.downloadSummaryReport = asyncHandler(async (req, res) => {
     };
   }
 
-const pdf = await BillGenerationPDFHelper({
+  const pdf = await BillGenerationPDFHelper({
     reportType: "SUMMARY",
 
     reportData: report,
@@ -135,14 +126,12 @@ const pdf = await BillGenerationPDFHelper({
 
     billNo: report.billNo,
 
-    generatedBy: req.user?.userId || "SYSTEM"
-});
+    generatedBy: req.user?.userId || "SYSTEM",
+  });
 
-  const baseUrl =
-    `${req.protocol}://${req.get("host")}`;
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-  const pdfUrl =
-    `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
+  const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
   return res.json({
     success: true,
@@ -152,22 +141,18 @@ const pdf = await BillGenerationPDFHelper({
   });
 });
 
-
-
 exports.generateBill = asyncHandler(async (req, res) => {
+  const payload = validate(req.body);
 
-    const payload = validate(req.body);
+  payload.userId = req.user?.userId || req.body.userId || "SYSTEM";
 
-    payload.userId = req.user?.userId || req.body.userId || "SYSTEM";
+  const result = await service.insertBillService(payload);
 
-    const result = await service.insertBillService(payload);
+  if (result.errorCode !== 9999) {
+    throw new AppError(result.errorMsg, 400);
+  }
 
-    if (result.errorCode !== 9999) {
-        throw new AppError(result.errorMsg, 400);
-    }
-
-    return ok(res, {
-        message: result.errorMsg
-    });
-
+  return ok(res, {
+    message: result.errorMsg,
+  });
 });

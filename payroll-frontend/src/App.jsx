@@ -75,7 +75,7 @@ import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 import FrmGenericSearch from './pages/Search/FrmGenericSearch';
 
-import FrmBankLoanMst from './pages/LoanAndAdv/FrmBankLoanMst';
+import FrmBankLoanMst from './pages/Loan/FrmBankLoanMst';
 import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
 import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
 import FrmEmpTransferApprList from './pages/Transaction/FrmEmpTransferApprList';
@@ -91,6 +91,11 @@ import FrmEmployeeRetire from './pages/Transaction/FrmEmployeeRetire';
 import FrmBillGeneration from './pages/Transaction/FrmBillGeneration';
 import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthList"
 import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
+import FrmDashboard from './pages/FrmHomePage';
+import FrmAttendanceEntryUpdate from './pages/Transaction/FrmAttendanceEntryUpdate';
+
+import FrmSalaryConsolidationReport from "./pages/Reports/FrmSalaryConsolidationRpt"
+import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadReport';
 
 
 
@@ -118,6 +123,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Home />
+      },
+      {
+        path: "/HomePage/FrmHomePage",
+        element: <FrmDashboard />,
       },
       {
         path: "Masters/FrmCastListMst",
@@ -358,6 +367,10 @@ export const router = createBrowserRouter([
         element: <FrmAttendanceEntry />
       },
       {
+        path: "Transactions/FrmAttendanceEntryUpdate",
+        element: <FrmAttendanceEntryUpdate />
+      },
+      {
         path: "Transactions/FrmEmpTransferApprList",
         element: <FrmEmpTransferApprList />
       },
@@ -496,6 +509,14 @@ export const router = createBrowserRouter([
       {
         path: "ReportsForm/FrmRetiredEmpRpt",
         element: <FrmRetiredEmpRpt />
+      },
+      {
+        path:"ReportsForm/FrmSalaryConsolidationRpt",
+        element: <FrmSalaryConsolidationReport/>
+      },
+      {
+        path:"Transactions/FrmMonthlyBankUploadReport",
+        element: <FrmMonthlyBankUploadReport />
       },
 
       // Loan and Advance 

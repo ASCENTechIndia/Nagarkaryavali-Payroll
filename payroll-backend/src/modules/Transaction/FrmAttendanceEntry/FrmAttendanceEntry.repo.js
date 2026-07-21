@@ -109,11 +109,25 @@ async function getAttendanceListRepo({
             let fromMonth = monthNum === 1 ? 12 : monthNum - 1;
             let fromYear = monthNum === 1 ? yearNum - 1 : yearNum;
             
-            const fromDateObj = new Date(fromYear, fromMonth - 1, parseInt(fromDateDigit));
-            const toDateObj = new Date(yearNum, monthNum - 1, parseInt(toDateDigit));
+            // const fromDateObj = new Date(fromYear, fromMonth - 1, parseInt(fromDateDigit));
+            // const toDateObj = new Date(yearNum, monthNum - 1, parseInt(toDateDigit));
             
-            calculatedFromDate = fromDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-').toUpperCase();
-            calculatedToDate = toDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-').toUpperCase();
+            // calculatedFromDate = fromDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-').toUpperCase();
+            // calculatedToDate = toDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-').toUpperCase();
+
+            function formatDateForOracle(year, month, day) {
+                const yearNum = parseInt(year);
+                const monthNum = parseInt(month);
+                const dayStr = day.toString().padStart(2, '0');
+                const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                const monthAbbr = monthNames[monthNum - 1];
+                return `${dayStr}-${monthAbbr}-${yearNum}`;
+            }
+            
+            calculatedFromDate = formatDateForOracle(fromYear, fromMonth, fromDateDigit);
+            calculatedToDate = formatDateForOracle(yearNum, monthNum, toDateDigit);
+            
+            console.log('Calculated dates:', { calculatedFromDate, calculatedToDate });
         }
         
         sql = `

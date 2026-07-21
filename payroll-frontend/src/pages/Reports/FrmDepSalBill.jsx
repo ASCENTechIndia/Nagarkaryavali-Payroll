@@ -31,6 +31,7 @@ const FrmDepSalBill = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
+  const [isDropdownLoading, setIsDropdownLoading] = useState(true);
   const [zoneOptions, setZoneOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
@@ -109,7 +110,7 @@ const FrmDepSalBill = () => {
     if (!ulbId) return;
     try {
       const res = await axios.post(
-        `${BASE_URL}/api/FrmSalaryCalulation/zone`,
+        `${BASE_URL}/api/FrmEmployeeMstList/zone-list`,
         { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -123,8 +124,10 @@ const FrmDepSalBill = () => {
         }));
         setZoneOptions(formatted);
       }
+      return true;
     } catch (err) {
       console.error("Error fetching zones:", err);
+      return false;
     }
   };
 
@@ -138,18 +141,21 @@ const FrmDepSalBill = () => {
       );
       
       const apiData = res.data?.data?.data || res.data?.data || [];
+      console.log("apiData :", apiData);
       
       if (apiData.length > 0) {
         const formatted = apiData.map((item) => ({
           label: item.VAR_CATEGORY_NAME,
           value: String(item.NUM_CATEGORY_ID),
         }));
-        setCategoryOptions([formatted]);
+        setCategoryOptions(formatted);
       } else {
         setCategoryOptions([]);
       }
+      return true;
     } catch (err) {
       console.error("Error fetching categories:", err);
+      return false;
     }
   };
 
@@ -174,8 +180,10 @@ const FrmDepSalBill = () => {
       } else {
         setDepartmentOptions([{ value: "-1", label: "-- ALL --" }]);
       }
+      return true;
     } catch (err) {
       console.error("Error fetching departments:", err);
+      return false;
     }
   };
 
@@ -189,18 +197,21 @@ const FrmDepSalBill = () => {
       );
       
       const apiData = res.data?.data?.data || res.data?.data || [];
+      console.log("Grade apiData :", apiData);
       
       if (apiData.length > 0) {
         const formatted = apiData.map((item) => ({
           label: item.VAR_GRADEMST_GRADENAME,
           value: String(item.NUM_GRADEMST_GRADEID),
         }));
-        setGradeOptions([formatted]);
+        setGradeOptions(formatted);
       } else {
         setGradeOptions([]);
       }
+      return true;
     } catch (err) {
       console.error("Error fetching grades:", err);
+      return false;
     }
   };
 
@@ -227,9 +238,9 @@ const FrmDepSalBill = () => {
           label: item.VAR_DEPTSUB_SDEPTNAMEE,
           value: String(item.NUM_DEPTSUB_ID),
         }));
-        setSubDepartmentOptions([formatted]);
+        setSubDepartmentOptions([{ value: "-1", label: "-- ALL --" }, ...formatted]);
       } else {
-        setSubDepartmentOptions([]);
+        setSubDepartmentOptions([{ value: "-1", label: "-- ALL --" }]);
       }
     } catch (err) {
       console.error("Error fetching sub-departments:", err);
@@ -258,7 +269,7 @@ const FrmDepSalBill = () => {
           label: item.BILLCODE || item.billno,
           value: String(item.BILLCODE || item.billno),
         }));
-        setBillNoOptions([formatted]);
+        setBillNoOptions(formatted);
       } else {
         setBillNoOptions([]);
       }
@@ -268,19 +279,56 @@ const FrmDepSalBill = () => {
     }
   };
 
+  useEffect(() => {
+    if (ulbId) {
+      const loadAllDropdowns = async () => {
+        try {
+          Swal.fire({
+            title: "Loading Data...",
+            text: "Please wait while we fetch dropdown data",
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+          });
+
+          await Promise.all([
+            fetchZones(),
+            fetchCategories(),
+            fetchDepartment(),
+            fetchGrades(),
+          ]);
+
+          setSubDepartmentOptions([{ value: "-1", label: "-- ALL --" }]);
+          setBillNoOptions([{ value: "0", label: "-- Select Bill No --" }]);
+
+          Swal.close();
+          setIsDropdownLoading(false);
+        } catch (error) {
+          console.error("Error loading dropdowns:", error);
+          Swal.fire({
+            text: "Error loading dropdown data. Please refresh the page.",
+            confirmButtonColor: "#1e3a8a",
+          });
+          setIsDropdownLoading(false);
+        }
+      };
+
+      loadAllDropdowns();
+    }
+  }, [ulbId]);
+
   const generateReport = async (values) => {
-    debugger;
     let loaderSwal;
     
     try {
       const validationResult = FrmDepSalBillValidationSchema.safeParse(values);
-      console.log("validationResult", validationResult);
-
       if (!validationResult.success) {
         const firstError = validationResult.error.issues[0];
         await Swal.fire({
-            text: firstError.message,
-            confirmButtonColor: "#1e3a8a",
+          text: firstError.message,
+          confirmButtonColor: "#1e3a8a",
         });
         return;
       }
@@ -303,7 +351,7 @@ const FrmDepSalBill = () => {
       const payload = {
         ulbId: Number(ulbId),
         month: Number(values.month),
-        year: Number(values.year),
+        year: String(values.year),
         salaryDate: formattedSalaryDate,
         zoneId: values.zone,
         deptId: values.department !== "-1" ? values.department : null,
@@ -311,14 +359,24 @@ const FrmDepSalBill = () => {
         billNo: values.billNo !== "0" ? values.billNo : null,
         categoryId: values.category !== "0" ? values.category : null,
         gradeId: values.grade !== "0" ? values.grade : null,
-        reportType: values.reportType, 
-        fileFormat: values.fileFormat, 
+        reportType: values.reportType === "E" ? "EARN" : values.reportType === "D" ? "DEDUCT" : "EARN",
+        fileFormat: values.fileFormat,
         searchEmpId: values.employeeCode || null,
         searchEmpName: values.employeeName || null,
+        monthName: monthOptions.find(m => m.value === String(values.month))?.label || "",
+        yearName: String(values.year),
+        departmentName: departmentOptions.find(d => d.value === values.department)?.label || "",
+        categoryName: categoryOptions.find(c => c.value === values.category)?.label || "",
+        zoneName: zoneOptions.find(z => z.value === values.zone)?.label || "",
       };
       
+      let endpoint = `${BASE_URL}/api/FrmDepSalBill/department-salary-bill-pdf`;
+      if (values.fileFormat === "EXCEL") {
+        endpoint = `${BASE_URL}/api/FrmDepSalBill/department-salary-bill-excel`;
+      }
+      
       const response = await axios.post(
-        `${BASE_URL}/api/FrmSalaryCalulation/generate-salary-sheet`,
+        endpoint,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -337,8 +395,30 @@ const FrmDepSalBill = () => {
             timer: 2000,
             showConfirmButton: false
           });
-        } else if (values.fileFormat === "EXCEL" && response.data?.excelData) {
-          generateExcelFromData(response.data.excelData, values);
+        } else if (values.fileFormat === "EXCEL" && response.data?.data) {
+          const ws = XLSX.utils.json_to_sheet(response.data.data);
+          const colWidths = [];
+          if (response.data.data.length > 0) {
+            Object.keys(response.data.data[0]).forEach((key, idx) => {
+              let maxLength = key.length;
+              response.data.data.forEach((row) => {
+                const cellValue = row[key]?.toString() || "";
+                maxLength = Math.max(maxLength, cellValue.length);
+              });
+              colWidths[idx] = { wch: Math.min(maxLength + 2, 50) };
+            });
+          }
+          ws['!cols'] = colWidths;
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "SalarySheet");
+          const fileName = `Salary_Sheet_${values.month}_${values.year}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+          Swal.fire({
+            text: "Excel exported successfully!",
+            confirmButtonColor: "#1e3a8a",
+            timer: 2000,
+            showConfirmButton: false
+          });
         } else {
           Swal.fire({
             text: "Report generated successfully!",
@@ -363,54 +443,6 @@ const FrmDepSalBill = () => {
     } finally {
       setLoading(false);
       setHasSearched(false);
-    }
-  };
-
-  const generateExcelFromData = (excelData, values) => {
-    try {
-      if (!excelData || excelData.length === 0) {
-        Swal.fire({
-          text: "No data available for Excel export",
-          confirmButtonColor: "#1e3a8a"
-        });
-        return;
-      }
-
-      // Convert data to worksheet
-      const ws = XLSX.utils.json_to_sheet(excelData);
-      
-      // Auto-size columns
-      const colWidths = [];
-      if (excelData.length > 0) {
-        Object.keys(excelData[0]).forEach((key, idx) => {
-          let maxLength = key.length;
-          excelData.forEach((row) => {
-            const cellValue = row[key]?.toString() || "";
-            maxLength = Math.max(maxLength, cellValue.length);
-          });
-          colWidths[idx] = { wch: Math.min(maxLength + 2, 50) };
-        });
-      }
-      ws['!cols'] = colWidths;
-      
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "SalarySheet");
-      
-      const fileName = `Salary_Sheet_${values.month}_${values.year}.xls`;
-      XLSX.writeFile(wb, fileName);
-      
-      Swal.fire({
-        text: "Excel exported successfully!",
-        confirmButtonColor: "#1e3a8a",
-        timer: 2000,
-        showConfirmButton: false
-      });
-    } catch (error) {
-      console.error("Excel Generation Error:", error);
-      Swal.fire({
-        text: "Error generating Excel file",
-        confirmButtonColor: "#1e3a8a"
-      });
     }
   };
 
@@ -464,17 +496,6 @@ const FrmDepSalBill = () => {
         setShowBillNo(false);
         setShowFileFormat(false);
       }
-    }
-  }, [ulbId]);
-
-  useEffect(() => {
-    if (ulbId) {
-      fetchZones();
-      fetchCategories();
-      fetchDepartment();
-      fetchGrades();
-      setSubDepartmentOptions([{ value: "-1", label: "-- ALL --" }]);
-      setBillNoOptions([{ value: "0", label: "-- Select Bill No --" }]);
     }
   }, [ulbId]);
 
@@ -725,35 +746,6 @@ const FrmDepSalBill = () => {
                     </div>
                   </div>
 
-                  {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                      <Label text="Employee ID" />
-                      <span>:</span>
-                    </div>
-                    <Input
-                      name="employeeCode"
-                      value={values.employeeCode}
-                      onChange={(e) => setFieldValue("employeeCode", e.target.value)}
-                      type="text"
-                      className="w-full h-9"
-                      placeholder="Enter Employee ID"
-                    />
-                  </div> */}
-
-                  {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                      <Label text="Employee Name" className="whitespace-nowrap" />
-                      <span>:</span>
-                    </div>
-                    <Input
-                      name="employeeName"
-                      value={values.employeeName}
-                      onChange={(e) => setFieldValue("employeeName", e.target.value)}
-                      type="text"
-                      className="w-full h-9"
-                      placeholder="Enter Employee Name"
-                    />
-                  </div> */}
                 </div>
 
                 <div className="flex justify-center gap-4 pt-4">

@@ -152,12 +152,14 @@ const FrmPayHeadConfigList = () => {
         return;
       }
 
+      console.log(values);
+
       const payload = {
         ulbId: Number(ulbId),
         categoryId: values.category && values.category !== "-1" ? Number(values.category) : null,
         payHeadId: values.payHead && values.payHead !== "-1" ? Number(values.payHead) : null,
         desigId: values.designation && values.designation !== "-1" ? Number(values.designation) : null,
-        gradeId: values.grade && values.grade !== "-1" ? Number(values.subDepartment) : null,
+        gradeId: values.grade && values.grade !== "-1" ? Number(values.grade) : null,
       };
 
       const res = await axios.post(

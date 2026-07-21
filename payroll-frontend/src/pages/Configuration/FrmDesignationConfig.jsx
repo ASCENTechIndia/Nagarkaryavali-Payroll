@@ -449,7 +449,7 @@ const FrmDesignationConfig = () => {
             <Button
               type="button"
               variant="outline"
-              path="/"
+              path="/HomePage/FrmHomePage"
               className="bg-gray-200 text-black hover:bg-gray-300"
             >
               परत

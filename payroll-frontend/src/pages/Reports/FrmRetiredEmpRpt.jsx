@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Swal from "sweetalert2";
+import * as XLSX from "xlsx";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +30,7 @@ const FrmRetiredEmpRpt = () => {
   const [billNoOptions, setBillNoOptions] = useState([]);
   const [showSubDept, setShowSubDept] = useState(false);
   const [showBillNo, setShowBillNo] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState(String(today.getMonth() + 1));
@@ -204,21 +206,147 @@ const FrmRetiredEmpRpt = () => {
     }
   };
 
-  const downloadFile = (url, fileName) => {
-    axios({
-      url: url,
-      method: "GET",
-      responseType: "blob",
-      headers: { Authorization: `Bearer ${user?.token}` },
-    }).then((response) => {
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(new Blob([response.data]));
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    });
+  const exportExcel = (data) => {
+    if (!data || data.length === 0) {
+      Swal.fire({
+        text: "No data available to export",
+        confirmButtonColor: "#083c76"
+      });
+      return;
+    }
+
+    try {
+      const isSpecialUlb = ["930", "1750"].includes(ulbId?.toString());
+      const isUlb770 = ulbId?.toString() === "770";
+
+      let headers = [];
+      let keys = [];
+
+      if (isSpecialUlb) {
+        headers = [
+          "Bill No.",
+          "Employee Id",
+          "Name",
+          "Retire Date",
+          "Department",
+          "Type",
+          "GRADE",
+          "DOB",
+          "DESIGNATION",
+          "SUBDEPT",
+          "Old Slip No.",
+          "New Slip No."
+        ];
+        keys = [
+          "billno",
+          "oldslipno",
+          "name",
+          "retiredate",
+          "department",
+          "type",
+          "grade",
+          "dob",
+          "designation",
+          "subdept",
+          "oldslipno",
+          "newslipno"
+        ];
+      } else if (isUlb770) {
+        headers = [
+          "Employee Id",
+          "Name",
+          "Retire Date",
+          "Department",
+          "Type",
+          "GRADE",
+          "DOB",
+          "DESIGNATION",
+          "SUBDEPT"
+        ];
+        keys = [
+          "oldempno",
+          "name",
+          "retiredate",
+          "department",
+          "type",
+          "grade",
+          "dob",
+          "designation",
+          "subdept"
+        ];
+      } else {
+        headers = [
+          "Employee Id",
+          "Name",
+          "Retire Date",
+          "Department",
+          "Type",
+          "GRADE",
+          "DOB",
+          "DESIGNATION",
+          "SUBDEPT"
+        ];
+        keys = [
+          "oldslipno",
+          "name",
+          "retiredate",
+          "department",
+          "type",
+          "grade",
+          "dob",
+          "designation",
+          "subdept"
+        ];
+      }
+
+      const excelData = [];
+      excelData.push(headers);
+
+      data.forEach(row => {
+        const rowData = [];
+        keys.forEach(key => {
+          let value = row[key] || "";
+          if (typeof value === 'string') {
+            value = value.trim();
+          }
+          rowData.push(value);
+        });
+        excelData.push(rowData);
+      });
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+      const colWidths = headers.map((header, index) => {
+        let maxLength = header.length;
+        data.forEach(row => {
+          const key = keys[index];
+          const value = row[key] ? String(row[key]).length : 0;
+          if (value > maxLength) {
+            maxLength = Math.min(value, 30);
+          }
+        });
+        return { wch: Math.max(maxLength + 2, 12) };
+      });
+      worksheet['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Retired Employees");
+
+      const fileName = `RetiredEmployee_${Date.now()}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      Swal.fire({
+        text: "Excel file downloaded successfully",
+        icon: "success",
+        confirmButtonColor: "#083c76"
+      });
+    } catch (err) {
+      console.error("Excel Export Error:", err);
+      Swal.fire({
+        text: "Failed to export Excel",
+        confirmButtonColor: "#083c76"
+      });
+    }
   };
 
   const handleProcess = async (values) => {
@@ -227,13 +355,8 @@ const FrmRetiredEmpRpt = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
-      Swal.fire({
-        title: `Generating ${values.fileFormat}...`,
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
-
       const payload = {
         ulbid: Number(ulbId),
         zoneId: values.zone,
@@ -244,59 +367,87 @@ const FrmRetiredEmpRpt = () => {
         year: selectedYear,
       };
 
-      if (values.fileFormat === "PDF") {
-        const endpoint = `${BASE_URL}/api/FrmRetiredEmpRpt/generate-retired-employee-pdf`;
-        const res = await axios.post(endpoint, payload, {
-          headers: { Authorization: `Bearer ${user?.token}` },
-        });
-        
+       Swal.fire({
+        title: "Fetching Data...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const dataEndpoint = `${BASE_URL}/api/FrmRetiredEmpRpt/retired-employee-list`;
+      //console.log("Calling endpoint:", dataEndpoint);
+      
+      const dataRes = await axios.post(dataEndpoint, payload, {
+        headers: { Authorization: `Bearer ${user?.token}` },
+      });
+
+      //console.log("Data Response:", dataRes.data);
+
+      const isSuccess = dataRes.data?.ok === true || dataRes.data?.success === true;
+      
+      if (!isSuccess) {
         Swal.close();
-        
-        if (res.data.success) {
-          window.open(res.data.pdfUrl, "_blank");
+        Swal.fire({
+          text: dataRes.data?.message || "Failed to fetch data",
+          confirmButtonColor: "#083c76"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const reportData = dataRes.data?.data?.data || dataRes.data?.data || [];
+      console.log("Report Data:", reportData);
+      console.log("Report Data Count:", reportData.length);
+
+      if (!reportData || reportData.length === 0) {
+        Swal.close();
+        Swal.fire({
+          text: "No records found",
+          confirmButtonColor: "#083c76"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (values.fileFormat === "PDF") {
+        Swal.fire({
+          title: "Generating PDF...",
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        const pdfResponse = await axios.post(
+          `${BASE_URL}/api/FrmRetiredEmpRpt/generate-retired-employee-pdf`,
+          payload,
+          { headers: { Authorization: `Bearer ${user?.token}` } }
+        );
+
+        //console.log("PDF Response:", pdfResponse.data);
+        Swal.close();
+
+        if (pdfResponse.data.success) {
+          window.open(pdfResponse.data.pdfUrl, "_blank");
         } else {
-          Swal.fire(res.data.message || "Failed to generate PDF");
+          Swal.fire(pdfResponse.data.message || "Failed to generate PDF");
         }
       } else {
-        // Excel - Direct download
-        const endpoint = `${BASE_URL}/api/FrmRetiredEmpRpt/generate-retired-employee-excel`;
-        const response = await axios.post(endpoint, payload, {
-          headers: { 
-            Authorization: `Bearer ${user?.token}`,
-          },
-          responseType: 'blob',
-        });
-
         Swal.close();
-
-        // Create download link
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        
-        const contentDisposition = response.headers['content-disposition'];
-        let filename = `RetiredEmployee_${Date.now()}.xlsx`;
-        if (contentDisposition) {
-          const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-          if (match && match[1]) {
-            filename = match[1].replace(/['"]/g, '');
-          }
-        }
-        
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        exportExcel(reportData);
       }
+
     } catch (error) {
       Swal.close();
-      console.error(error);
-      Swal.fire(error.response?.data?.message || "An error occurred");
+      console.error("Error in handleProcess:", error);
+      console.error("Error response:", error.response?.data);
+      Swal.fire({
+        text: error.response?.data?.message || error.message || "An error occurred",
+        confirmButtonColor: "#083c76"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleCancel = () => navigate("/");
+  const handleCancel = () => navigate("/HomePage/FrmHomePage");
 
   const months = [
     { value: "1", label: "January" },
@@ -320,9 +471,16 @@ const FrmRetiredEmpRpt = () => {
   }));
 
   return (
-    <Formik initialValues={initialFormValues} enableReinitialize onSubmit={handleProcess}>
-      {({ values, setFieldValue }) => (
-        <Form>
+    <Formik 
+      initialValues={initialFormValues} 
+      enableReinitialize 
+      onSubmit={(values) => {
+        console.log("Formik onSubmit called with:", values);
+        handleProcess(values);
+      }}
+    >
+      {({ values, setFieldValue, handleSubmit }) => (
+        <Form onSubmit={handleSubmit}>
           <Card className="shadow-sm border">
             <CardHeader className="border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <CardTitle className="text-2xl font-semibold">
@@ -331,7 +489,7 @@ const FrmRetiredEmpRpt = () => {
             </CardHeader>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-              {/* Date Section */}
+              
               <div className="flex flex-col gap-2">
                 <Label className="font-semibold">Date</Label>
                 <div className="flex gap-4">
@@ -366,9 +524,9 @@ const FrmRetiredEmpRpt = () => {
                 </div>
               </div>
 
-              {/* Zone */}
+              
               <div className="flex flex-col gap-2">
-                <Label className="font-semibold">Zone</Label>
+                <Label className="font-semibold">Zone *</Label>
                 <Select
                   value={values.zone}
                   onValueChange={(value) => setFieldValue("zone", value)}
@@ -386,7 +544,7 @@ const FrmRetiredEmpRpt = () => {
                 </Select>
               </div>
 
-              {/* Department */}
+             
               <div className="flex flex-col gap-2">
                 <Label className="font-semibold">Department</Label>
                 <Select
@@ -406,7 +564,7 @@ const FrmRetiredEmpRpt = () => {
                 </Select>
               </div>
 
-              {/* Sub Department - Conditional */}
+             
               {showSubDept && (
                 <div className="flex flex-col gap-2">
                   <Label className="font-semibold">Sub Department</Label>
@@ -430,7 +588,7 @@ const FrmRetiredEmpRpt = () => {
                 </div>
               )}
 
-              {/* Bill No - Conditional */}
+              
               {showBillNo && (
                 <div className="flex flex-col gap-2">
                   <Label className="font-semibold">Bill No</Label>
@@ -452,7 +610,7 @@ const FrmRetiredEmpRpt = () => {
                 </div>
               )}
 
-              {/* File Format */}
+              
               <div className="flex flex-col gap-2">
                 <Label className="font-semibold">File Format</Label>
                 <div className="flex items-center gap-6 pt-1">
@@ -485,16 +643,17 @@ const FrmRetiredEmpRpt = () => {
             <CardContent className="p-6 pt-0">
               <div className="flex justify-center gap-4">
                 <Button
-                  type="button"
-                  onClick={() => handleProcess(values)}
+                  type="submit"
+                  disabled={isLoading}
                   className="bg-blue-600 text-white hover:bg-blue-700 min-w-[100px]"
                 >
-                  Print
+                  {isLoading ? "Processing..." : "Print"}
                 </Button>
 
                 <Button
                   type="button"
                   onClick={handleCancel}
+                  disabled={isLoading}
                   className="bg-gray-200 text-black hover:bg-gray-300 min-w-[100px]"
                 >
                   Cancel

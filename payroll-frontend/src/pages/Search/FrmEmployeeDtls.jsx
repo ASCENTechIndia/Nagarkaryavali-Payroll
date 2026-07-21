@@ -92,10 +92,21 @@ const FrmEmployeeDtls = () => {
   };
 
   const mapYesNo = (value) => {
-    if (value === null || value === undefined) return "";
+    if (value === null || value === undefined || value === "") return "";
     const v = String(value).toUpperCase().trim();
-    if (v === "YES" || v === "Y" || v === "1" || v === "TRUE") return "Y";
-    if (v === "NO" || v === "N" || v === "0" || v === "FALSE") return "N";
+    
+    // Check for Yes variations
+    if (v === "YES" || v === "Y" || v === "1" || v === "TRUE" || v === "T" || v === "ON") {
+      return "Y";
+    }
+    
+    // Check for No variations
+    if (v === "NO" || v === "N" || v === "0" || v === "FALSE" || v === "F" || v === "OFF") {
+      return "N";
+    }
+    
+    // If it's neither, log it for debugging
+    console.log("Unknown yes/no value:", value);
     return "";
   };
 
@@ -135,7 +146,6 @@ const FrmEmployeeDtls = () => {
         }
         
         await fetchEmployeeDetails();
-        await fetchEmployeeImages();
         
       } catch (error) {
         console.error("Error loading data:", error);
@@ -202,35 +212,6 @@ const FrmEmployeeDtls = () => {
     }
   };
 
-  const fetchEmployeeImages = async () => {
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/api/FrmEmployeeDtls/employee-images`,
-        {
-          ulbid: Number(ulbId),
-          empid: Number(empId)
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.data && response.data.ok === true && response.data.data) {
-        const imageData = response.data.data;
-        setImages({
-          photo: imageData.PHOTO || null,
-          signature: imageData.SIGNATURE || null,
-          thumb: imageData.THUMB || null
-        });
-        console.log("Employee images fetched");
-      }
-    } catch (error) {
-      console.warn("Could not fetch employee images:", error.message);
-    }
-  };
-
   const populateFormData = (data) => {
     if (!data) {
       console.warn("No data provided to populateFormData");
@@ -238,6 +219,29 @@ const FrmEmployeeDtls = () => {
     }
     
     console.log("Populating form data...");
+    
+    // EMPLOYEE STATUS - Using VAR_EMPLOYEE_EMPTYPE
+    const empStatusValue = data.VAR_EMPLOYEE_EMPTYPE || data.EMPSTATUS || "";
+    
+    // HOME ACQUISITION - Using VAR_EMPLOYEE_ACCOMOD
+    const homeAcqValue = data.VAR_EMPLOYEE_ACCOMOD || data.HOMEAQUASITION || "";
+    
+    // SOCIETY MEMBER - Using VAR_EMPLOYEE_SOCMEM
+    const societyValue = data.VAR_EMPLOYEE_SOCMEM;
+    console.log("Raw VAR_EMPLOYEE_SOCMEM:", societyValue, "Type:", typeof societyValue);
+    
+    console.log("Employee Status from VAR_EMPLOYEE_EMPTYPE:", empStatusValue);
+    console.log("Home Acquisition from VAR_EMPLOYEE_ACCOMOD:", homeAcqValue);
+    console.log("Society Member from VAR_EMPLOYEE_SOCMEM:", societyValue);
+    
+    const mappedStatus = mapEmployeeStatus(empStatusValue);
+    const mappedHome = mapYesNo(homeAcqValue);
+    const mappedSociety = mapYesNo(societyValue);
+    
+    console.log("Mapped Employee Status:", mappedStatus);
+    console.log("Mapped Home Acquisition:", mappedHome);
+    console.log("Mapped Society Member:", mappedSociety);
+    
     const updatedData = {
       empId: data.NUM_EMPLOYEE_EMPID || "",
       employeeName: data.VAR_EMPLOYEE_ENGNAME || "",
@@ -259,7 +263,7 @@ const FrmEmployeeDtls = () => {
       
       empType: data.VAR_EMPLOYEE_EMPTYPE || "",
       
-      employeeStatus: mapEmployeeStatus(data.EMPSTATUS),
+      employeeStatus: mappedStatus,
       
       departmentName: data.VAR_DEPTMST_DEPTNAMEE || "",
       designationName: data.VAR_DESIGMST_DESIGNATIONNAME || "",
@@ -282,13 +286,17 @@ const FrmEmployeeDtls = () => {
       
       gender: mapGender(data.VAR_EMPLOYEE_GENDER),
       handicap: mapYesNo(data.VAR_EMPLOYEE_HANDICAP),
-      societyMember: mapYesNo(data.VAR_EMPLOYEE_SOCMEM),
+      societyMember: mappedSociety,
       vehicleAcquisition: mapYesNo(data.VAR_EMPLOYEE_VEHICLE),
-      homeAcquisition: mapYesNo(data.HOMEAQUASITION)
+      
+      homeAcquisition: mappedHome
     };
 
     setEmployeeData(updatedData);
     console.log("Form data populated:", updatedData);
+    console.log("Final employeeStatus in state:", updatedData.employeeStatus);
+    console.log("Final homeAcquisition in state:", updatedData.homeAcquisition);
+    console.log("Final societyMember in state:", updatedData.societyMember);
   };
 
   const handleBack = () => {
@@ -631,14 +639,6 @@ const FrmEmployeeDtls = () => {
                   />
                 </FormField>
 
-                <FormField label="PF Number">
-                  <Input
-                    value={employeeData.pfNo}
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                </FormField>
-
                 <FormField label="Grade">
                   <Input
                     value={employeeData.officeGrade}
@@ -648,7 +648,7 @@ const FrmEmployeeDtls = () => {
                   />
                 </FormField>
 
-                <FormField label="Office Department">
+                <FormField label="Department">
                   <Input
                     value={employeeData.officeDeptName}
                     readOnly
@@ -656,7 +656,7 @@ const FrmEmployeeDtls = () => {
                   />
                 </FormField>
 
-                <FormField label="Office Designation">
+                <FormField label="Designation">
                   <Input
                     value={employeeData.officeDesignationName}
                     readOnly
@@ -667,6 +667,14 @@ const FrmEmployeeDtls = () => {
                 <FormField label="Pay Scale">
                   <Input
                     value={employeeData.payScale}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </FormField>
+
+                <FormField label="PF Number">
+                  <Input
+                    value={employeeData.pfNo}
                     readOnly
                     className="bg-gray-50"
                   />

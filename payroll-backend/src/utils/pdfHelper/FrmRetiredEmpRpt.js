@@ -3,75 +3,113 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 const Handlebars = require("handlebars");
 
+const imageToBase64 = (imgPath) => {
+  if (!imgPath || !fs.existsSync(imgPath)) return "";
+  const file = fs.readFileSync(imgPath);
+  const ext = path.extname(imgPath).replace(".", "");
+  return `data:image/${ext};base64,${file.toString("base64")}`;
+};
+
 const RetiredEmployeePDFHelper = async ({
   rows,
   ulbInfo,
   filters,
 }) => {
+  console.log("PDF Helper - rows received:", rows ? rows.length : 0);
+
+  if (!rows || rows.length === 0) {
+    throw new Error("No data to generate PDF");
+  }
 
   const templatePath = path.resolve(
     __dirname,
     "../../templates/FrmRetiredEmpRpt.html"
   );
 
+  console.log("Template path:", templatePath);
+
   if (!fs.existsSync(templatePath)) {
     throw new Error(`Template file not found at: ${templatePath}`);
   }
 
   const htmlFile = fs.readFileSync(templatePath, "utf8");
-  
-  // Get retire date
+  const template = Handlebars.compile(htmlFile);
+
   const lastDate = new Date(parseInt(filters.year), parseInt(filters.month), 0);
   const retireDate = `${String(lastDate.getDate()).padStart(2, "0")}/${String(lastDate.getMonth() + 1).padStart(2, "0")}/${lastDate.getFullYear()}`;
 
-  // Determine if special ULB
   const isSpecialUlb = ["930", "1750"].includes(filters.ulbid?.toString());
   const isUlb770 = filters.ulbid?.toString() === "770";
 
-  console.log("isSpecialUlb:", isSpecialUlb, "isUlb770:", isUlb770);
+  const employees = rows.map((row, index) => ({
+    SRNO: index + 1,
+    oldslipno: row.oldslipno || "",
+    oldempno: row.oldempno || "",
+    name: row.name || "",
+    retiredate: row.retiredate || "",
+    department: row.department || "",
+    type: row.type || "",
+  }));
 
-  // Format data - ensure all fields exist
-  const employees = rows.map((row, index) => {
-    // Log each row to see what we're getting
-    console.log(`Row ${index + 1} data:`, JSON.stringify(row, null, 2));
-    
-    return {
-      SRNO: index + 1,
-      billno: row.billno || "",
-      oldslipno: row.oldslipno || "",
-      oldempno: row.oldempno || "",
-      name: row.name || "",
-      retiredate: row.retiredate || "",
-      department: row.department || "",
-      type: row.type || "",
-      grade: row.grade || "",
-      dob: row.dob || "",
-      designation: row.designation || "",
-      subdept: row.subdept || "",
-      newslipno: row.newslipno || "",
-    };
-  });
-
-  console.log("First employee after mapping:", JSON.stringify(employees[0], null, 2));
-
-  // Get bill no display
   let billNoDisplay = "";
   if (filters.billNo && filters.billNo !== "0" && filters.billNo !== "-1") {
     billNoDisplay = filters.billNo;
   }
 
-  // Get department name
   let departmentName = "-- ALL --";
-  if (rows.length > 0 && employees[0].department) {
-    departmentName = employees[0].department;
+  if (filters.deptId && filters.deptId !== "-1") {
+    if (rows.length > 0 && rows[0].department) {
+      departmentName = rows[0].department;
+    }
+    if (departmentName === "-- ALL --") {
+      departmentName = rows.length > 0 ? rows[0].department || "-- ALL --" : "-- ALL --";
+    }
+  } else {
+    departmentName = "-- ALL --";
   }
 
-  // Corporation name
+  if (filters.departmentName) {
+    departmentName = filters.departmentName;
+  }
+
   let corpName = ulbInfo.ABC_MUNICIPAL_TEXT || "Municipal Corporation";
   corpName = corpName.trim();
 
+  let logoUrl = ulbInfo.ULBLOGO || "";
+
+  if (!logoUrl) {
+    try {
+      const possibleLogoPaths = [
+        //path.resolve(__dirname, "../../../public/images/logo.png"),
+        //path.resolve(__dirname, "../../../public/images/logo.jpg"),
+       // path.resolve(__dirname, "../../../public/logo.png"),
+        //path.resolve(__dirname, "../../../public/logo.jpg"),
+        path.resolve(__dirname, "../../../assets/NMC_Logo.jpeg"),
+       // path.resolve(__dirname, "../../../assets/logo.png"),
+       // path.resolve(__dirname, "../../../assets/logo.jpg"),
+      ];
+
+      for (const logoPath of possibleLogoPaths) {
+        if (fs.existsSync(logoPath)) {
+          logoUrl = imageToBase64(logoPath);
+          console.log("Logo loaded from:", logoPath);
+          break;
+        }
+      }
+
+      if (!logoUrl) {
+        console.log("No logo file found in any location");
+      }
+    } catch (err) {
+      console.log("Error loading logo:", err.message);
+    }
+  }
+
+  console.log("Department Name being passed to template:", departmentName);
+
   // Prepare data for template
   const data = {
+    logo: logoUrl,
     corporationName: corpName,
     employees: employees,
     retireDate: retireDate,
@@ -82,33 +120,48 @@ const RetiredEmployeePDFHelper = async ({
   };
 
   console.log("Data being passed to template:", {
+    hasLogo: !!data.logo,
     corporationName: data.corporationName,
+    departmentName: data.departmentName,
     employeeCount: data.employees.length,
-    firstEmployeeName: data.employees[0]?.name,
-    firstEmployeeDept: data.employees[0]?.department,
-    firstEmployeeRetireDate: data.employees[0]?.retiredate,
   });
-
-  // Compile template
-  const template = Handlebars.compile(htmlFile);
+ // Compile template
   const html = template(data);
 
-  // Save debug HTML
+  
   const debugHtmlPath = path.resolve(__dirname, "../../../public/debug.html");
   fs.writeFileSync(debugHtmlPath, html);
   console.log("Debug HTML saved to:", debugHtmlPath);
 
-  // Puppeteer launch options
-  const launchOptions = {
-    headless: true,
+  
+  const browserOptions = {
+    headless: "new",
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--font-render-hinting=none",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-accelerated-2d-canvas",
+      "--disable-accelerated-video-decode",
     ],
   };
 
-  const browser = await puppeteer.launch(launchOptions);
+  const possiblePaths = [
+    "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+  ];
+
+  for (const chromePath of possiblePaths) {
+    if (fs.existsSync(chromePath)) {
+      browserOptions.executablePath = chromePath;
+      break;
+    }
+  }
+
+  const browser = await puppeteer.launch(browserOptions);
   const page = await browser.newPage();
 
   await page.setViewport({
@@ -117,13 +170,13 @@ const RetiredEmployeePDFHelper = async ({
   });
 
   await page.setContent(html, {
-    waitUntil: "networkidle0",
-    timeout: 30000,
+    waitUntil: "domcontentloaded",
+    timeout: 60000,
   });
 
   const pdfBuffer = await page.pdf({
     format: "A4",
-    landscape: true,
+    portrait: true,
     printBackground: true,
     margin: {
       top: "8mm",
@@ -144,7 +197,6 @@ const RetiredEmployeePDFHelper = async ({
   const filePath = path.join(outputDir, fileName);
 
   fs.writeFileSync(filePath, pdfBuffer);
-  console.log("PDF saved to:", filePath);
 
   return {
     fileName,

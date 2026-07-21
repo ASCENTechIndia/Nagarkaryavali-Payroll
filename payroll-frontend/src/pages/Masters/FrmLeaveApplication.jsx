@@ -156,13 +156,20 @@ const FrmLeaveApplication = () => {
         axiosConfig,
       );
 
+      if(response?.data?.data?.count == 0 
+        || response?.data?.data?.data?.length === 0
+      ){
+       await Swal.fire({
+          text: "|| Record Not Found ||"
+        })
+      }
+
       const employeeData = response?.data?.data?.data?.[0];
 
-      if (!employeeData) {
+      if (!employeeData && employeeData.length == 0) {
         hideLoader();
 
         Swal.fire({
-          icon: "error",
           title: "Employee Details Not Found",
         });
 
@@ -190,8 +197,6 @@ const FrmLeaveApplication = () => {
       console.log("Employee Details Error", error);
 
       Swal.fire({
-        icon: "error",
-        title: "Error",
         text: "Failed to load employee details",
       });
     } finally {
@@ -219,6 +224,12 @@ const FrmLeaveApplication = () => {
         axiosConfig,
       );
 
+      if(response?.data?.data?.count === 0){
+        Swal.fire({
+          text: "No Data Found for Selected Leave Type"
+        })
+      }
+
       const balanceData = response?.data?.data?.data?.[0];
 
       setFieldValue("balancedLeaves", balanceData?.BALANCE_LEAVE || 0);
@@ -239,6 +250,7 @@ const FrmLeaveApplication = () => {
         },
         axiosConfig,
       );
+      
 
       setLeaveSummary(response?.data?.data?.data || []);
     } catch (error) {
@@ -513,6 +525,8 @@ const FrmLeaveApplication = () => {
                             "balancedLeaves",
                             leaveData?.BALANCE_LEAVE || 0,
                           );
+                          await getEmployeeLeaveBalance(values.employee, selectedLeave?.LEAVEID, setFieldValue)
+
                         }}
                       >
                         <SelectTrigger className="w-full h-10">
@@ -657,9 +671,9 @@ const FrmLeaveApplication = () => {
                   {/* Buttons */}
 
                   <div className="flex justify-center gap-4 pt-4">
-                    <Button type="submit">Submit</Button>
+                    <Button type="submit" >Submit</Button>
 
-                    <Button type="button" variant="secondary">
+                    <Button type="button" variant="secondary" path="/HomePage/FrmHomePage">
                       Back
                     </Button>
                   </div>

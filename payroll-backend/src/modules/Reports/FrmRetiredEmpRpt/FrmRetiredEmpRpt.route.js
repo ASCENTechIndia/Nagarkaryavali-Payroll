@@ -10,13 +10,6 @@ router.post(
   controller.generateRetiredEmployeePDF
 );
 
-// Generate Excel report
-router.post(
-  "/generate-retired-employee-excel",
-  auth(),
-  controller.generateRetiredEmployeeExcel
-);
-
 // Get retired employee list
 router.post(
   "/retired-employee-list",

@@ -133,8 +133,7 @@ const FrmSalaryCalculation = () => {
 
 
 
-    const fetchSubDepartmentList =
-        async () => {
+    const fetchSubDepartmentList = async () => {
             const res = await axios.post(`${BASE_URL}/api/FrmEmployeeMstList/subdepartment-list`,
                 { ulbid: Number(ulbId), deptId: Number(deptId) },
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -149,8 +148,7 @@ const FrmSalaryCalculation = () => {
             );
         };
 
-    const fetchBillList =
-        async () => {
+    const fetchBillList = async () => {
             const payload = { ulbid: Number(ulbId), deptid: Number(deptId) };
             const res = await axios.post(`${BASE_URL}/api/FrmSalaryCalculation/bill-list`,
                 payload,
@@ -204,8 +202,7 @@ const FrmSalaryCalculation = () => {
         billno: showBillNo ? billNo || null : null,
     });
 
-    const handleProcess =
-        async () => {
+    const handleProcess = async () => {
             try {
                 if (!validateForm()) {
                     return;
@@ -233,6 +230,12 @@ const FrmSalaryCalculation = () => {
                     // icon: "success",
                     text: res?.data?.data?.errorMsg || res?.data?.message,
                 });
+                setZoneId("");
+                setDeptId("");
+                setSubDeptId("");
+                setBillNo("");
+                setMonth("")
+                setYear("")
             } catch (error) {
                 console.error(error);
                 Swal.close();
@@ -240,6 +243,12 @@ const FrmSalaryCalculation = () => {
                     icon: "error",
                     text: error?.response?.data?.message || "Failed To Process Salary",
                 });
+                setZoneId("");
+                setDeptId("");
+                setSubDeptId("");
+                setBillNo("");
+                  setMonth("")
+                setYear("")
             }
         };
 
@@ -282,6 +291,12 @@ const FrmSalaryCalculation = () => {
                     icon: "success",
                     text: res?.data?.data?.errorMsg || res?.data?.message,
                 });
+                setZoneId("");
+                setDeptId("");
+                setSubDeptId("");
+                setBillNo("");
+                 setMonth("")
+                setYear("")
             } catch (error) {
                 console.error(error);
                 Swal.close();
@@ -289,6 +304,12 @@ const FrmSalaryCalculation = () => {
                     icon: "error",
                     text: error?.response?.data?.message || "Failed To Delete Salary",
                 });
+                setZoneId("");
+                setDeptId("");
+                setSubDeptId("");
+                setBillNo("");
+                 setMonth("")
+                setYear("")
             }
         };
 
@@ -429,7 +450,7 @@ const FrmSalaryCalculation = () => {
                                     onValueChange={setMonth}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue />
+                                        <SelectValue  placeholder="-- Month --"/>
                                     </SelectTrigger>
 
                                     <SelectContent>
@@ -449,7 +470,7 @@ const FrmSalaryCalculation = () => {
                                     onValueChange={setYear}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue />
+                                        <SelectValue  placeholder="-- Year --"/>
                                     </SelectTrigger>
 
                                     <SelectContent>

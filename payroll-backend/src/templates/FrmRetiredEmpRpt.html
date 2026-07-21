@@ -4,129 +4,193 @@
   <meta charset="UTF-8">
   <style>
     @page {
-      size: A4 landscape;
-      margin: 8mm;
+      size: A4 portrait;
+      margin: 8mm 6mm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Noto Sans Devanagari", "Mangal", Arial, sans-serif;
       font-size: 10px;
-      margin: 0;
-      padding: 0;
+      color: #000;
+      background: #fff;
+      padding: 2mm;
+    }
+
+    .container {
+      width: 100%;
     }
 
     .header {
-      text-align: center;
-      border-bottom: 2px solid #000;
-      padding-bottom: 8px;
-      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      position: relative;
+      min-height: 55px;
     }
 
-    .header-title {
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: absolute;
+      left: 0;
+    }
+
+    .header-left img {
+      height: 45px;
+      max-height: 50px;
+      object-fit: contain;
+    }
+
+    .corp-name {
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-align: center;
+      flex: 1;
+      padding: 0 60px;
+    }
+
+    .title-section {
+      text-align: center;
+      margin: 4px 0 8px 0;
+    }
+
+    .main-title {
       font-size: 16px;
       font-weight: bold;
+      letter-spacing: 0.5px;
     }
 
     .sub-title {
-      text-align: center;
       font-size: 14px;
       font-weight: bold;
-      margin-top: 5px;
-      margin-bottom: 10px;
+      margin-top: 2px;
     }
 
-    .filter-row {
+    .report-info {
       display: flex;
       justify-content: space-between;
       font-size: 11px;
-      margin-bottom: 8px;
-      padding: 5px 0;
-      border-bottom: 1px solid #ccc;
+      font-weight: bold;
+      margin-bottom: 6px;
+      padding: 4px 0;
+      border-bottom: 1px solid #000;
     }
 
-    .filter-item {
+    .report-info-item {
       flex: 1;
       text-align: center;
-    }
-
-    .filter-label {
-      font-weight: bold;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 9px;
+      font-size: 10px;
     }
 
-    table th {
-      background-color: #f0f0f0;
+    th, td {
+      border: 1px solid #000;
+      padding: 4px 5px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
       font-weight: bold;
-      text-align: center;
-      padding: 5px 3px;
-      border: 1px solid #000;
-    }
-
-    table td {
-      padding: 4px 3px;
-      border: 1px solid #000;
-      text-align: center;
+      background-color: #f0f0f0;
+      font-size: 10px;
     }
 
     .text-left {
-      text-align: left !important;
+      text-align: left;
       padding-left: 5px;
     }
 
-    .table-container {
-      margin-top: 5px;
+    .text-right {
+      text-align: right;
+      padding-right: 5px;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .wrap-text {
+      word-wrap: break-word;
+      max-width: 150px;
+    }
+
+    .page-break {
+      page-break-after: always;
+    }
+
+    @media print {
+      .page-break {
+        page-break-after: always;
+      }
     }
   </style>
 </head>
 <body>
 
+<div class="container">
+
   <div class="header">
-    <img src="{{../logo}}" style="height:50px;" />
-    <div class="main-title">{{corporationName}}</div>
-  </div>
-
-  <div class="sub-title">Retired Employee Report</div>
-
-  <div class="filter-row">
-    <div class="filter-item">
-      <span class="filter-label">Department :</span> {{departmentName}}
+    <div class="header-left">
+      {{#if logo}}
+        <img src="{{logo}}" alt="Logo" />
+      {{/if}}
     </div>
-    <div class="filter-item">
-      <span class="filter-label">Retire Date :</span> {{retireDate}}
+    <div class="corp-name">{{corporationName}}</div>
+  </div>
+
+  <div class="title-section">
+    <div class="main-title">Retired Employee Report</div>
+  </div>
+
+  <div class="report-info">
+    <div class="report-info-item">
+      <span style="font-weight:bold;">Department :</span> {{departmentName}}
+    </div>
+    <div class="report-info-item">
+      <span style="font-weight:bold;">Retire Date :</span> {{retireDate}}
     </div>
   </div>
 
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Sr. No.</th>
-          <th>Employee Id</th>
-          <th class="text-left">Name</th>
-          <th>Retire Date</th>
-          <th class="text-left">Department</th>
-          <th class="text-left">Type</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each employees}}
-        <tr>
-          <td>{{SRNO}}</td>
-          <td>{{oldslipno}}</td>
-          <td class="text-left">{{name}}</td>
-          <td>{{retiredate}}</td>
-          <td class="text-left">{{department}}</td>
-          <td class="text-left">{{type}}</td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:8%;">Sr. No.</th>
+        <th style="width:15%;">Employee Id</th>
+        <th style="width:25%;" class="text-left">Name</th>
+        <th style="width:15%;">Retire Date</th>
+        <th style="width:22%;" class="text-left">Department</th>
+        <th style="width:15%;" class="text-left">Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each employees}}
+      <tr>
+        <td>{{SRNO}}</td>
+        <td>{{#if ../isUlb770}}{{oldempno}}{{else}}{{oldslipno}}{{/if}}</td>
+        <td class="text-left wrap-text">{{name}}</td>
+        <td>{{retiredate}}</td>
+        <td class="text-left wrap-text">{{department}}</td>
+        <td class="text-left wrap-text">{{type}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
 
+</div>
 </body>
 </html>

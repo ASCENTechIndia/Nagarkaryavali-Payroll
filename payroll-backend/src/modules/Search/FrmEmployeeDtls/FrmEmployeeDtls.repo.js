@@ -63,7 +63,6 @@ const getEmployeeDetailsRepo = async (ulbid, empid) => {
             V.dateservice, 
             V.homeaquasition,
             DM.var_deptslip_sequence,
-            -- Get display names from master tables
             DD.var_deptmst_deptnamee AS var_deptmst_deptnamee,
             DS.var_desigmst_designationname AS var_desigmst_designationname,
             CM.var_category_name AS var_category_name,

@@ -34,6 +34,7 @@ const FrmBankRecovery = () => {
   const [recoveryList, setRecoveryList] = useState([]);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const rowsPerPage = 10;
 
   const DEFAULT_CORPORATION_ID = "870";
@@ -54,16 +55,53 @@ const FrmBankRecovery = () => {
 
   useEffect(() => {
     if (ulbId && token) {
-      fetchCorporation();
-      fetchDepartments();
-      setSubDepartmentOptions([]);
-      fetchEmployees();
-      setBranchOptions([]);
-      fetchMonths();
-      fetchYears();
-      fetchBanks();
+      showLoader();
+      fetchAllData();
+    } else {
+      setIsPageLoading(false);
     }
   }, [ulbId, token]);
+
+  const showLoader = () => {
+    Swal.fire({
+      title: 'Loading...',
+      text: 'Please wait while data is being loaded',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  };
+
+  const hideLoader = () => {
+    Swal.close();
+    setIsPageLoading(false);
+  };
+
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        fetchCorporation(),
+        fetchDepartments(),
+        fetchEmployees(),
+        fetchMonths(),
+        fetchYears(),
+        fetchBanks()
+      ]);
+      
+      hideLoader();
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+      hideLoader();
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to load initial data. Please refresh the page.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
 
   const fetchCorporation = async () => {
     try {
@@ -83,6 +121,7 @@ const FrmBankRecovery = () => {
       }
     } catch (err) {
       console.error("Error fetching corporation:", err);
+      throw err;
     }
   };
 
@@ -111,6 +150,7 @@ const FrmBankRecovery = () => {
       }
     } catch (err) {
       console.error("Error fetching departments:", err);
+      throw err;
     }
   };
 
@@ -182,6 +222,7 @@ const FrmBankRecovery = () => {
       }
     } catch (err) {
       console.error("Error fetching employees:", err);
+      throw err;
     }
   };
 
@@ -213,6 +254,7 @@ const FrmBankRecovery = () => {
       }
     } catch (err) {
       console.error("Error fetching banks:", err);
+      throw err;
     }
   };
 
@@ -284,6 +326,7 @@ const FrmBankRecovery = () => {
     } catch (err) {
       console.error("Error fetching months:", err);
       setMonthOptions([]);
+      throw err;
     }
   };
 
@@ -318,6 +361,7 @@ const FrmBankRecovery = () => {
     } catch (err) {
       console.error("Error fetching years:", err);
       setYearOptions([]);
+      throw err;
     }
   };
 
@@ -375,6 +419,7 @@ const FrmBankRecovery = () => {
         Swal.fire({
           title: 'No Records Found',
           text: 'No recovery records found for this employee',
+          icon: 'info',
           confirmButtonText: 'OK'
         });
       }
@@ -383,6 +428,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Error',
         text: error.response?.data?.message || "Failed to fetch recovery list",
+        icon: 'error',
         confirmButtonText: 'OK'
       });
       setRecoveryList([]);
@@ -411,6 +457,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select Department",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -420,6 +467,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select Employee",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -429,6 +477,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select Bank",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -438,6 +487,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please enter Recovery Amount",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -447,6 +497,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select From Year",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -456,6 +507,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select To Year",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -465,6 +517,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select From Month",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -474,6 +527,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Enter the required values',
         text: "Please select To Month",
+        icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
@@ -518,6 +572,7 @@ const FrmBankRecovery = () => {
           Swal.fire({
             title: 'Success',
             text: res.data.error,
+            icon: 'success',
             confirmButtonText: 'OK'
           });
           
@@ -531,6 +586,7 @@ const FrmBankRecovery = () => {
         Swal.fire({
           title: 'Success',
           text: "Bank recovery data saved successfully!",
+          icon: 'success',
           confirmButtonText: 'OK'
         });
         
@@ -545,6 +601,7 @@ const FrmBankRecovery = () => {
       Swal.fire({
         title: 'Error',
         text: error.response?.data?.message || error.message || "Failed to save bank recovery data",
+        icon: 'error',
         confirmButtonText: 'OK'
       });
     } finally {
@@ -562,6 +619,10 @@ const FrmBankRecovery = () => {
     currentPage * rowsPerPage
   );
 
+  if (isPageLoading) {
+    return null; 
+  }
+
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({ values, setFieldValue, resetForm }) => (
@@ -575,7 +636,7 @@ const FrmBankRecovery = () => {
 
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* Corporation */}
+                
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Corporation Name
@@ -602,7 +663,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* Department */}
+               
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Department
@@ -633,7 +694,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* Sub Department */}
+                
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Sub-Department
@@ -657,7 +718,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* Employee */}
+               
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Employee Name
@@ -689,7 +750,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* Bank */}
+               
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Bank Name
@@ -719,7 +780,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* Branch */}
+                
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Branch Name
@@ -741,7 +802,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* Recovery Amount */}
+                
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     Recovery Amount
@@ -770,7 +831,7 @@ const FrmBankRecovery = () => {
                   </div>
                 </div>
 
-                {/* From Year */}
+               
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     From Year
@@ -792,7 +853,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* To Year */}
+              
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     To Year
@@ -814,7 +875,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* From Month */}
+               
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     From Month
@@ -836,7 +897,7 @@ const FrmBankRecovery = () => {
                   </Select>
                 </div>
 
-                {/* To Month */}
+                
                 <div className="space-y-2">
                   <Label className="font-semibold whitespace-nowrap">
                     To Month
@@ -898,7 +959,7 @@ const FrmBankRecovery = () => {
                   type="button"
                   variant="outline"
                   className="bg-gray-200 text-black hover:bg-gray-300"
-                  path="/"
+                  path="/HomePage/FrmHomePage"
                 >
                   Cancel
                 </Button>

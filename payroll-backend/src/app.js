@@ -22,7 +22,7 @@ app.set("trust proxy", 1);
 // security & parsing
 // app.use(cors({ origin: NODE_ENV === "production" ? ["https://yourdomain.com"] : "*", credentials: true }));
 const allowedOrigins = [
-  "https://accounts.nagarkaryavalinewuat.com",
+  "https://payroll.nagarkaryavalinewuat.com",
   "https://nagarkaryavalinewuat.com",
   "http://localhost:5173"
 ];
@@ -52,8 +52,6 @@ if (NODE_ENV !== "production") {
 
 app.use("/pdf", express.static(path.join(__dirname, "../public/pdf")));
 
-app.use("/excel", express.static(path.join(__dirname, "../public/excel")));
-
 // health first (no rate limit)
 app.use("/api", healthRoutes);
 
@@ -68,6 +66,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tasks", tasksRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/menu-access", require("./modules/MenuAccess/MenuAccess.routes"));
+
+app.use("/api/FrmHomepage", require("./modules/Homepage/FrmHomepage.routes"));
+
 
 //MASTER
 app.use("/api/FrmEmployeeMstList", require("./modules/Master/FrmEmployeeMstList/FrmEmployeeMstList.route"));
@@ -117,6 +118,8 @@ app.use("/api/FrmMonthlyBankDeductionUploadAuth",require ("./modules/Transaction
 app.use("/api/FrmSalDeduction", require("./modules/Transaction/FrmSalDeduction/FrmSalDeduction.routes"))
 app.use("/api/FrmEmployeeRetire", require("./modules/Transaction/FrmEmployeeRetire/FrmEmployeeRetire.routes"))
 app.use("/api/FrmBillGeneration", require("./modules/Transaction/FrmBillGeneration/FrmBillGeneration.route"));
+app.use("/api/FrmAttendanceEntryUpdate", require("./modules/Transaction/FrmAttendanceEntryUpdate/FrmAttendanceEntryUpdate.route"));
+
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
 app.use("/api/FrmEmpSalPayheadsReport", require("./modules/Reports/FrmEmpSalPayheadsReport/FrmEmpSalPayheadsReport.route"))
@@ -134,8 +137,11 @@ app.use("/api/FrmLoansAndAdvancesRpt", require("./modules/Reports/FrmLoansAndAdv
 app.use("/api/FrmNetPayRpt", require("./modules/Reports/FrmNetPayRpt/FrmNetPayRpt.route"));
 app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeductionPayheadsDtls/FrmDeductionPayheadsDtls.route"));
 app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
+app.use("/api/FrmDepSalBill", require("./modules/Reports/FrmDepSalBill/FrmDepSalBill.routes"));
 app.use("/api/FrmRetiredEmpRpt", require("./modules/Reports/FrmRetiredEmpRpt/FrmRetiredEmpRpt.route"));
 
+app.use("/api/FrmSalaryConsolidationRpt", require("./modules/Reports/FrmSalaryConsolidationRpt/FrmSalaryConsolidationRpt.route"))
+app.use("/api/FrmMonthlyBankUploadReport", require("./modules/Reports/FrmMonthlyBankUploadReport/FrmMonthlyBankUploadReportRoutes"))
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
 app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))

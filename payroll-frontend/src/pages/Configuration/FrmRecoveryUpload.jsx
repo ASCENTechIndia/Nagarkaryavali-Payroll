@@ -34,14 +34,53 @@ const FrmRecoveryUpload = () => {
 
   useEffect(() => {
     if (ulbId && token) {
-      fetchCorporation();
-      fetchDepartments();
-      fetchEmployees();
-      fetchDeductionTypes();
-      fetchMonths();
-      fetchYears();
+      showLoader();
+      fetchAllData();
+    } else {
+      setIsPageLoading(false);
     }
   }, [ulbId, token]);
+      
+  const showLoader = () => {
+      Swal.fire({
+        title: 'Loading...',
+        text: 'Please wait while data is being loaded',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    };
+  
+    const hideLoader = () => {
+      Swal.close();
+      setIsPageLoading(false);
+    };
+
+    const fetchAllData = async () => {
+        try {
+          await Promise.all([
+            fetchCorporation(),
+            fetchDepartments(),
+            fetchEmployees(),
+            fetchDeductionTypes(),
+            fetchMonths(),
+            fetchYears()
+          ]);
+          
+          hideLoader();
+        } catch (error) {
+          console.error("Error loading initial data:", error);
+          hideLoader();
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to load initial data. Please refresh the page.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      };
 
   const fetchCorporation = async () => {
     try {
@@ -384,7 +423,6 @@ const FrmRecoveryUpload = () => {
         }
       );
 
-      // Check if the response indicates success
       const { success, errorCode, errorMsg } = res.data || {};
       const isSuccess = success === true || 
                         errorCode === -100 || 
@@ -430,7 +468,6 @@ const FrmRecoveryUpload = () => {
       enableReinitialize={true}
     >
       {({ values, setFieldValue, resetForm }) => {
-        // Set default corporation when options are loaded
         useEffect(() => {
           if (defaultCorporationId && !values.corporation) {
             setFieldValue("corporation", defaultCorporationId);
@@ -448,7 +485,6 @@ const FrmRecoveryUpload = () => {
 
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {/* Corporation - Preselected */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Corporation Name
@@ -474,7 +510,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* Department */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Department
@@ -501,7 +536,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* Sub Department */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Sub-Department
@@ -525,7 +559,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* Employee */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Employee Name
@@ -549,7 +582,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* Deduction Type - Optional */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Deduction Type
@@ -571,7 +603,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* Recovery Amount */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Recovery Amount
@@ -586,7 +617,6 @@ const FrmRecoveryUpload = () => {
                     />
                   </div>
 
-                  {/* Is Working */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Is Working?
@@ -601,7 +631,6 @@ const FrmRecoveryUpload = () => {
                     </div>
                   </div>
 
-                  {/* From Year */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       From Year
@@ -623,7 +652,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* To Year */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       To Year
@@ -645,7 +673,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* From Month */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       From Month
@@ -667,7 +694,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* To Month */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       To Month
@@ -689,7 +715,6 @@ const FrmRecoveryUpload = () => {
                     </Select>
                   </div>
 
-                  {/* Remark */}
                   <div className="space-y-2">
                     <Label className="font-semibold whitespace-nowrap">
                       Remark
@@ -738,7 +763,7 @@ const FrmRecoveryUpload = () => {
                     type="button"
                     variant="outline"
                     className="bg-gray-200 text-black hover:bg-gray-300"
-                    path="/"
+                    path="/HomePage/FrmHomePage"
                   >
                     Cancel
                   </Button>
