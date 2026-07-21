@@ -402,6 +402,7 @@ const FrmRetiredEmpRpt = () => {
         Swal.close();
         Swal.fire({
           text: "No records found",
+          icon: "info",
           confirmButtonColor: "#083c76"
         });
         setIsLoading(false);
