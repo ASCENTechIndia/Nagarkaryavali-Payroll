@@ -9,7 +9,25 @@ async function getRetiredEmployeeListRepo({
   month,
   year
 }) {
-  // Build the query with correct column names from your database
+
+  const monthNum = parseInt(month);
+  const yearNum = parseInt(year);
+
+  const firstDate = new Date(yearNum, monthNum - 1, 1);
+  const lastDate = new Date(yearNum, monthNum, 0);
+
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const firstDateStr = formatDate(firstDate);
+  const lastDateStr = formatDate(lastDate);
+
+  console.log("Date range:", { firstDateStr, lastDateStr });
+
   let sql = `
     SELECT 
       var_deptslip_code AS BILLNO,
