@@ -226,7 +226,7 @@ const FrmSalaryConsolidationBanks = () => {
                                 value={deptId}
                                 onValueChange={setDeptId}
                             >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full sm:w-64">
                                     <SelectValue value="" placeholder="-- Select Department --" />
                                 </SelectTrigger>
 
