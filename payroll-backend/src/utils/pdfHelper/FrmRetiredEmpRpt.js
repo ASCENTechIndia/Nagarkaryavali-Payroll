@@ -134,35 +134,22 @@ const RetiredEmployeePDFHelper = async ({
   console.log("Debug HTML saved to:", debugHtmlPath);
 
   
-  const browserOptions = {
-    headless: "new",
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--disable-accelerated-2d-canvas",
-      "--disable-accelerated-video-decode",
-    ],
-  };
+const chromePath = path.resolve(__dirname, "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe");
 
-  const possiblePaths = [
-    "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/chromium",
-  ];
+    const launchOptions = {
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+    };
 
-  for (const chromePath of possiblePaths) {
     if (fs.existsSync(chromePath)) {
-      browserOptions.executablePath = chromePath;
-      break;
+      launchOptions.executablePath = chromePath;
+      console.log("Using Chrome :", chromePath);
+    } else {
+      console.log("Chrome executable not found at :", chromePath);
     }
-  }
 
-  const browser = await puppeteer.launch(browserOptions);
-  const page = await browser.newPage();
+    browser = await puppeteer.launch(launchOptions);
+    const page = await browser.newPage();
 
   await page.setViewport({
     width: 1200,
