@@ -144,7 +144,7 @@ const FrmEmployeeTransfer = () => {
   //fetch to transfer dept, designation, pay band
   const fetchTransferDropdowns = async () => {
     try {
-      console.log("🔄 Fetching transfer dropdown data...");
+      console.log("Fetching transfer dropdown data...");
       
       // Fetch departments
       const deptRes = await axios.post(
@@ -221,7 +221,7 @@ const FrmEmployeeTransfer = () => {
       }
 
     } catch (error) {
-      console.error("❌ Error fetching transfer dropdowns:", error);
+      console.error("Error fetching transfer dropdowns:", error);
       await Swal.fire({
         icon: "error",
         title: "Error",

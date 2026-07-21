@@ -125,7 +125,7 @@ const FrmEsevaReport = () => {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/HomePage/FrmHomePage");
   };
 
   return (

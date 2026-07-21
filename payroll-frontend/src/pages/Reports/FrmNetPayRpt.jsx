@@ -136,7 +136,7 @@ const FrmNetPayRpt = () => {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/HomePage/FrmHomePage");
   };
 
   const months = [
