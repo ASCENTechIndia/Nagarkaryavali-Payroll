@@ -305,12 +305,15 @@ exports.generatePayHeadListPDF = asyncHandler(async (req, res) => {
         }
     }
 
+    console.log("controller result :", result)
+
     if (!hasData) {
         return res.json({
-            success: false,
-            message: "No records found for the selected criteria. Please change your search parameters.",
-            hasData: false,
-            recordCount: 0
+            success: result.success,
+            message: "No records found.",
+            count: result.count,
+            data: result.data,
+            reportType: result.reportType
         });
     }
 
