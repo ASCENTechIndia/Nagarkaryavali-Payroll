@@ -3,8 +3,8 @@ const { executeQuery } = require("../../../db/queryExecutor");
 async function getSalaryConsolidationBankReportRepo({ ulbid, fromDate, toDate, deptId, reportType }) {
   const binds = {
     ulbid,
-    fromDate: new Date(fromDate),
-    toDate: new Date(toDate),
+    fromDate: fromDate,
+    toDate: toDate,
   };
 
   const viewName = reportType === "D" ? "vw_smkcdepwisesal" : reportType === "E" ? "vw_smkcempwisesal" : null;
@@ -13,7 +13,7 @@ async function getSalaryConsolidationBankReportRepo({ ulbid, fromDate, toDate, d
   }
   const conditions = [
     "ulbid = :ulbid",
-    "DATE_SALARY_SALDATE BETWEEN :fromDate AND :toDate",
+    "DATE_SALARY_SALDATE BETWEEN TO_DATE(:fromDate,'YYYY-MM-DD') AND TO_DATE(:toDate,'YYYY-MM-DD')",
   ];
   if (deptId && Number(deptId) > 0) {
     conditions.push("DEPTID = :deptId");
@@ -25,8 +25,9 @@ async function getSalaryConsolidationBankReportRepo({ ulbid, fromDate, toDate, d
     WHERE ${conditions.join(" AND ")}
     ORDER BY DATE_SALARY_SALDATE
   `;
-
+  
   const result = await executeQuery(sql, binds);
+  console.log({sql, binds, result})
   if (!result.success) {
     throw new Error(result.error);
   }

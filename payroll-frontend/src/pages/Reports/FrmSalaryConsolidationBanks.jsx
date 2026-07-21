@@ -95,13 +95,13 @@ const FrmSalaryConsolidationBanks = () => {
 
     const handlePrint = async () => {
         try {
-            if (!deptId) {
-                Swal.fire({
-                    // icon: "warning",
-                    text: "Please Select Department",
-                });
-                return;
-            }
+            // if (!deptId) {
+            //     Swal.fire({
+            //         // icon: "warning",
+            //         text: "Please Select Department",
+            //     });
+            //     return;
+            // }
 
             const fromDate = new Date(Number(year), Number(month) - 1, 1);
             const toDate = new Date(Number(year), Number(month), 0);
@@ -139,7 +139,9 @@ const FrmSalaryConsolidationBanks = () => {
             exportToExcel(reportData);
             Swal.fire({
                 icon: "success",
-                text: `${reportData.length} records exported successfully`,
+                text: `Data records exported successfully`,
+                // text: `${reportData.length} records exported successfully`,
+                timer: 2000,
             });
         } catch (error) {
             console.error(error);
@@ -225,7 +227,7 @@ const FrmSalaryConsolidationBanks = () => {
                                 onValueChange={setDeptId}
                             >
                                 <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Department" />
+                                    <SelectValue value="" placeholder="-- Select Department --" />
                                 </SelectTrigger>
 
                                 <SelectContent>
