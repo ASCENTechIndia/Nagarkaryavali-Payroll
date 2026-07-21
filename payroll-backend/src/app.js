@@ -139,7 +139,7 @@ app.use("/api/FrmDeductionPayheadsDtls", require("./modules/Reports/FrmDeduction
 app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsevaReport.route"));
 app.use("/api/FrmDepSalBill", require("./modules/Reports/FrmDepSalBill/FrmDepSalBill.routes"));
 app.use("/api/FrmPayslip",require("./modules/Reports/FrmPayslip/FrmPayslip.routes"))
-
+app.use("/api/FrmRetiredEmpRpt", require("./modules/Reports/FrmRetiredEmpRpt/FrmRetiredEmpRpt.route"));
 
 app.use("/api/FrmSalaryConsolidationRpt", require("./modules/Reports/FrmSalaryConsolidationRpt/FrmSalaryConsolidationRpt.route"))
 app.use("/api/FrmMonthlyBankUploadReport", require("./modules/Reports/FrmMonthlyBankUploadReport/FrmMonthlyBankUploadReportRoutes"))
