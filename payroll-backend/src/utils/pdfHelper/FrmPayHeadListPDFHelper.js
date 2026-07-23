@@ -163,34 +163,52 @@ async function generatePayHeadListPDF(params) {
 
         const html = template(templateData);
 
-        const browserOptions = {
-            headless: "new",
-            args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--disable-accelerated-2d-canvas",
-                "--disable-accelerated-video-decode",
-            ],
+        // const browserOptions = {
+        //     headless: "new",
+        //     args: [
+        //         "--no-sandbox",
+        //         "--disable-setuid-sandbox",
+        //         "--disable-dev-shm-usage",
+        //         "--disable-gpu",
+        //         "--disable-accelerated-2d-canvas",
+        //         "--disable-accelerated-video-decode",
+        //     ],
+        // };
+
+        // const possiblePaths = [
+        //     "C:/Program Files/Google/Chrome/Application/chrome.exe",
+        //     "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+        //     "/usr/bin/google-chrome",
+        //     "/usr/bin/chromium-browser",
+        //     "/usr/bin/chromium",
+        // ];
+
+        // for (const chromePath of possiblePaths) {
+        //     if (fs.existsSync(chromePath)) {
+        //         browserOptions.executablePath = chromePath;
+        //         break;
+        //     }
+        // }
+
+        // browser = await puppeteer.launch(browserOptions);
+        // const page = await browser.newPage();
+
+        const chromePath = path.resolve(
+            __dirname,
+            "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe"
+        );
+        
+        const launchOptions = {
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
         };
-
-        const possiblePaths = [
-            "C:/Program Files/Google/Chrome/Application/chrome.exe",
-            "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
-            "/usr/bin/google-chrome",
-            "/usr/bin/chromium-browser",
-            "/usr/bin/chromium",
-        ];
-
-        for (const chromePath of possiblePaths) {
-            if (fs.existsSync(chromePath)) {
-                browserOptions.executablePath = chromePath;
-                break;
-            }
+        
+        if (fs.existsSync(chromePath)) {
+            launchOptions.executablePath = chromePath;
         }
-
-        browser = await puppeteer.launch(browserOptions);
+        
+        browser = await puppeteer.launch(launchOptions);
+        
         const page = await browser.newPage();
 
         await page.setViewport({ width: 1280, height: 900 });
