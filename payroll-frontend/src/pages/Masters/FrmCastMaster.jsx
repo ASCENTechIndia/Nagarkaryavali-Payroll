@@ -104,7 +104,7 @@ const FrmCastMaster = () => {
 
       Swal.close();
 
-      if (res.data?.ok || res.data?.success) {
+      if (res.data?.ok === true || res.data?.success === true) {
         Swal.fire({
           text: res.data?.data?.message || "Successfully saved",
           confirmButtonColor: "#1e3a8a",
@@ -112,18 +112,43 @@ const FrmCastMaster = () => {
           navigate("/Masters/FrmCastListMst");
         });
       } else {
-        Swal.fire({
-          text: res.data?.error || "Error saving data",
-          confirmButtonColor: "#1e3a8a",
-        });
+       let errorMessage = res.data?.out_ErrorMsg || 
+                        res.data?.error || 
+                        "Error saving data. Please try again.";
+      
+      if (errorMessage.includes("Message Code")) {
+        const match = errorMessage.match(/Message Code\s*:\s*-\d+\s*-\s*(.*)/);
+        if (match) {
+          errorMessage = match[1];
+        }
+      }
+      
+      Swal.fire({
+        text: errorMessage,
+        confirmButtonColor: "#1e3a8a",
+      });
       }
     } catch (err) {
       console.error("Save Error:", err);
       Swal.close();
-      Swal.fire({
-        text: "Error saving data. Please try again.",
-        confirmButtonColor: "#1e3a8a",
-      });
+
+      let errorMessage = err.response?.data?.out_ErrorMsg || 
+                      err.response?.data?.error || 
+                      err.response?.data?.message ||
+                      "Error saving data. Please try again.";
+    
+    // Clean the message if it contains "Message Code"
+    if (errorMessage.includes("Message Code")) {
+      const match = errorMessage.match(/Message Code\s*:\s*-\d+\s*-\s*(.*)/);
+      if (match) {
+        errorMessage = match[1];
+      }
+    }
+    
+    Swal.fire({
+      text: errorMessage,
+      confirmButtonColor: "#1e3a8a",
+    });
     }
     setSubmitting(false);
   };
