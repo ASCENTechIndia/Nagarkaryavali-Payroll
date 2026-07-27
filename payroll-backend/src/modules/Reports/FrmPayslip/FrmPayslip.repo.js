@@ -723,6 +723,9 @@ const buildFinalPaySlip = (source, ulbId) => {
     emp.totalDeduction = emp.deductions.reduce((sum, d) => sum + d.amount, 0);
 
     emp.netSalary = emp.grossSalary - emp.totalDeduction;
+
+    emp.totalLeave = Number(emp.total_days || 0) - Number(emp.num_salary_presentdays || 0);
+    
   });
 
   return employees;

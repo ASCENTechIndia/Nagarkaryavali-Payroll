@@ -43,6 +43,7 @@ const FrmPaySlip = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [yearOptions, setYearOptions] = useState([]);
   const [monthOptions, setMonthOptions] = useState([]);
+  const [employeeName, setEmployeeName] = useState("");
 
 
   const fetchYears = async () => {
@@ -139,6 +140,37 @@ const FrmPaySlip = () => {
       setCategoryOptions(res.data?.data?.data || []);
     } catch (error) {
       console.error("Category API Error:", error);
+    }
+  };
+
+  const fetchEmployeeDetails = async (empId) => {
+    try {
+      if (!empId) {
+        setEmployeeName("");
+        return;
+      }
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmPayslip/employee-details`,
+        {
+          ulbId: Number(ulbId),
+          empId: Number(empId),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.data?.success && res.data?.data?.length > 0) {
+        setEmployeeName(res.data.data[0].VAR_EMPLOYEE_MARNAME);
+      } else {
+        setEmployeeName("");
+      }
+    } catch (error) {
+      console.error(error);
+      setEmployeeName("");
     }
   };
 
@@ -303,6 +335,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {monthOptions.map((item) => (
                             <SelectItem
                               key={item.NUM_MONTH_ID}
@@ -323,6 +356,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {yearOptions.map((item) => (
                             <SelectItem
                               key={item.NUM_YEAR_ID}
@@ -338,7 +372,7 @@ const FrmPaySlip = () => {
 
                     </div>
 
-                  
+
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label
@@ -358,7 +392,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {zoneOptions.map((item) => (
                             <SelectItem
                               key={item.ZONEID}
@@ -392,6 +426,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {departmentOptions.map((item) => (
                             <SelectItem
                               key={item.DEPTID}
@@ -456,6 +491,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {categoryOptions.map((item) => (
                             <SelectItem
                               key={item.NUM_CATEGORY_ID}
@@ -468,7 +504,7 @@ const FrmPaySlip = () => {
                       </Select>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                       <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
                         <Label className="text-[15px] font-semibold text-black text-nowrap">
                           Employee Id
@@ -476,13 +512,21 @@ const FrmPaySlip = () => {
                         <span>:</span>
                       </div>
 
-                      <Input
-                        name="employeeId"
-                        value={values.employeeId}
-                        onChange={handleChange}
-                        className="w-full h-9"
-                        disabled
-                      />
+                      <div className="w-full">
+                        <Input
+                          name="employeeId"
+                          value={values.employeeId}
+                          onChange={handleChange}
+                          onBlur={() => fetchEmployeeDetails(values.employeeId)}
+                          className="w-full h-9"
+                        />
+
+                        {employeeName && (
+                          <p className="mt-1 text-sm text-blue-700 font-medium">
+                            {employeeName}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 

@@ -434,6 +434,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {departmentOptions.map((item) => (
                             <SelectItem
                               key={item.VALUE}
@@ -461,6 +462,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                        <SelectItem value="0">-- Select Option --</SelectItem>
                           {yearOptions.map((item) => (
                             <SelectItem
                               key={item.VALUE}
@@ -488,6 +490,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {monthOptions.map((item) => (
                             <SelectItem key={item.VALUE} value={item.VALUE}>
                               {item.LABEL}
@@ -517,6 +520,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
+                          <SelectItem value="0">-- Select Option --</SelectItem>
                           {payHeadOptions.map((item) => (
                             <SelectItem
                               key={item.VALUE}
