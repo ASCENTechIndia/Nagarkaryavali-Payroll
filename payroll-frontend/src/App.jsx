@@ -161,6 +161,22 @@ export const router = createBrowserRouter([
         element: <FrmRelListMst />
       },
       {
+        path: "Masters/FrmRelegionList",
+        element: <FrmRelegionList />
+      },
+      {
+        path: "Masters/FrmRelegionMst",
+        element: <FrmRelegionMst />
+      },
+      {
+        path: "Masters/FrmRelationMst",
+        element: <FrmRelationMst />
+      },
+      {
+        path: "Masters/FrmRelListMst",
+        element: <FrmRelListMst />
+      },
+      {
         path: "Masters/FrmInsuranceMstList",
         element: <FrmInsuranceMstList />
       },

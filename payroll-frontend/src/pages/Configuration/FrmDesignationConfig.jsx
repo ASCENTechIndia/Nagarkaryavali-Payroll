@@ -254,13 +254,11 @@ const FrmDesignationConfig = () => {
       const desigId = item.desigantion_id || "";
       const isChecked = item.checked || false;
       
-      // Check if this designation was initially configured
       const chkedCount = desigConfigId.filter(config => 
         String(config.DESIG_ID || config.desig_id) === String(desigId)
       ).length;
 
       if (mode === 1) {
-        // Mode 1: New configuration
         if (isChecked) {
           recStr += `${desigId}#N#Y$`;
           chkFlag = true;
@@ -268,7 +266,6 @@ const FrmDesignationConfig = () => {
           recStr += `${desigId}#N#N$`;
         }
       } else {
-        // Mode 2: Update existing configuration
         if (isChecked && chkedCount > 0) {
           recStr += `${desigId}#Y#Y$`;
           chkFlag = true;
@@ -286,14 +283,7 @@ const FrmDesignationConfig = () => {
 
     if (recStr.length > 0 && chkFlag) {
       recStr = recStr.slice(0, -1);
-    } 
-    {/* else {
-      Swal.fire({
-        text: "कृपया किमान एक चेकबॉक्स निवडा!",
-        confirmButtonText: 'OK'
-      });
-      return;
-    }*/}
+    }
 
     try {
       setLoading(true);
@@ -449,7 +439,7 @@ const FrmDesignationConfig = () => {
             <Button
               type="button"
               variant="outline"
-              path="/HomePage/FrmHomePage"
+              onClick={() => window.location.href = "/HomePage/FrmHomePage"}
               className="bg-gray-200 text-black hover:bg-gray-300"
             >
               परत

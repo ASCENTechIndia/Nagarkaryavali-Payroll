@@ -56,7 +56,7 @@ const FrmCastMaster = () => {
           castName: apiData.CASTNAME?.trim() || "",
         };
         setFormValues(newValues);
-        console.log("Fetched data:", newValues); // Debug log
+        console.log("Fetched data:", newValues);
       }
       Swal.close();
       setIsLoading(false);
@@ -77,11 +77,7 @@ const FrmCastMaster = () => {
         castName: values.castName,
         userId: user?.userId,
         castId: castIdForUpdate,
-        //castid: values.castid || mode === 2 ? values.castid : null || mode === 2 ? Number(values.castid) : null,
-        //castid: mode === 2 ? values.castid : null,
       };
-
-      console.log("Payload being sent:", payload); // Debug log
 
       Swal.fire({
         title: "Saving...",
@@ -112,8 +108,29 @@ const FrmCastMaster = () => {
           navigate("/Masters/FrmCastListMst");
         });
       } else {
-       let errorMessage = res.data?.out_ErrorMsg || 
-                        res.data?.error || 
+        let errorMessage = res.data?.out_ErrorMsg || 
+                          res.data?.error || 
+                          "Error saving data. Please try again.";
+        
+        if (errorMessage.includes("Message Code")) {
+          const match = errorMessage.match(/Message Code\s*:\s*-\d+\s*-\s*(.*)/);
+          if (match) {
+            errorMessage = match[1];
+          }
+        }
+        
+        Swal.fire({
+          text: errorMessage,
+          confirmButtonColor: "#1e3a8a",
+        });
+      }
+    } catch (err) {
+      console.error("Save Error:", err);
+      Swal.close();
+
+      let errorMessage = err.response?.data?.out_ErrorMsg || 
+                        err.response?.data?.error || 
+                        err.response?.data?.message ||
                         "Error saving data. Please try again.";
       
       if (errorMessage.includes("Message Code")) {
@@ -127,28 +144,6 @@ const FrmCastMaster = () => {
         text: errorMessage,
         confirmButtonColor: "#1e3a8a",
       });
-      }
-    } catch (err) {
-      console.error("Save Error:", err);
-      Swal.close();
-
-      let errorMessage = err.response?.data?.out_ErrorMsg || 
-                      err.response?.data?.error || 
-                      err.response?.data?.message ||
-                      "Error saving data. Please try again.";
-    
-    // Clean the message if it contains "Message Code"
-    if (errorMessage.includes("Message Code")) {
-      const match = errorMessage.match(/Message Code\s*:\s*-\d+\s*-\s*(.*)/);
-      if (match) {
-        errorMessage = match[1];
-      }
-    }
-    
-    Swal.fire({
-      text: errorMessage,
-      confirmButtonColor: "#1e3a8a",
-    });
     }
     setSubmitting(false);
   };
@@ -158,7 +153,7 @@ const FrmCastMaster = () => {
       fetchCastById(data.castid);
     }
   }, [mode, data]);
-
+  
   return (
     <Formik 
       initialValues={formValues} 
@@ -166,7 +161,7 @@ const FrmCastMaster = () => {
       onSubmit={handleSubmit}
     >
       {({ values, handleChange, isSubmitting }) => {
-        console.log("Current form values:", values); // Debug log
+        console.log("Current form values:", values);
         return (
           <Form>
             <Card className="border shadow-sm">
