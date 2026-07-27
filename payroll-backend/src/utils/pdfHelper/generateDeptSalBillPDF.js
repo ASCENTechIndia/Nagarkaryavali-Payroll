@@ -40,7 +40,9 @@ Handlebars.registerHelper("sumEmployees", function (employees, field) {
 });
 
 Handlebars.registerHelper("add", function (a, b) {
-  return (Number(a) || 0) + (Number(b) || 0);
+  const numA = typeof a === 'string' ? parseFloat(a.replace(/,/g, '')) || 0 : Number(a) || 0;
+  const numB = typeof b === 'string' ? parseFloat(b.replace(/,/g, '')) || 0 : Number(b) || 0;
+  return numA + numB;
 });
 
 Handlebars.registerHelper("eq", function (a, b) {
@@ -61,6 +63,38 @@ Handlebars.registerHelper("or", function () {
   return args.some(Boolean);
 });
 
+Handlebars.registerHelper("getDeductionValue", function (employee, colNo, fallbackColNo) {
+  const val = employee[`col${colNo}`] || 0;
+  const fallbackVal = employee[`col${fallbackColNo}`] || 0;
+  
+  if (Number(val) > 0 && Number(fallbackVal) > 0) {
+    return (Number(val) + Number(fallbackVal)).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  if (Number(val) > 0) {
+    return Number(val).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  if (Number(fallbackVal) > 0) {
+    return Number(fallbackVal).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  return "0";
+});
+
+Handlebars.registerHelper("getTotalDeductionValue", function (totals, colNo, fallbackColNo) {
+  if (!totals) return "0";
+  const val = totals[`rTotal${colNo}`] || 0;
+  const fallbackVal = totals[`rTotal${fallbackColNo}`] || 0;
+  
+  if (Number(val) > 0 && Number(fallbackVal) > 0) {
+    return (Number(val) + Number(fallbackVal)).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  if (Number(val) > 0) {
+    return Number(val).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  if (Number(fallbackVal) > 0) {
+    return Number(fallbackVal).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  return "0";
+});
 
 const generateDeptSalBillPDF = async ({ 
   reportData, 
@@ -137,7 +171,7 @@ const generateDeptSalBillPDF = async ({
         { key: 14, title: "मु. शुल्क" },             
         { key: 32, title: "घरभाडे वसली" },          
         { key: 29, title: "पाणीपट्टी" },             
-        { key: 105, title: "सण ॲडव्हान्स" },         
+        { key: 16, title: "सण ॲडव्हान्स" },         
         { key: 11, title: "इतर कपात" },              
       ];
       
@@ -171,13 +205,67 @@ const generateDeptSalBillPDF = async ({
       totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     }
 
+    // const processedEmployees = (reportData.employees || []).map((emp, index) => {
+    //   const presentDays = Number(emp.presentdays || 0);
+    //   const empCode = emp.num_employee_empid || emp.NUM_EMPLOYEE_EMPID || "";
+    //   return {
+    //     ...emp,
+    //     srNo: index + 1,
+    //     // empCode: String(empCode).padStart(5, "0"),
+    //     empCode: String(empCode),
+    //     name: emp.VAR_EMPLOYEE_ENGNAME || emp.var_employee_engname || emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
+    //     marathiName: emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
+    //     designation: emp.Designation || emp.designation || "",
+    //     presentDays: presentDays,
+    //     totalDaysInMonth: totalDaysInMonth,
+    //     leaveDays: totalDaysInMonth - presentDays,
+    //     basicPay: Number(emp.EarnBasic || emp.earnbasic || 0),
+    //     gradePay: Number(emp.GradePay || emp.gradepay || 0),
+    //     totalEarning: Number(emp.Total || emp.total || 0),
+    //     totalDeduction: Number(emp.DTotal || emp.dtotal || 0),
+    //     netPay: Number(emp.TotalPayamount || emp.totalpayamount || 0),
+
+    //     EL: Number(emp.EL || emp.el || 0),
+    //     ML: Number(emp.ML || emp.ml || 0),
+    //     CL: Number(emp.CL || emp.cl || 0),
+    //     HPL: Number(emp.HPL || emp.hpl || 0),
+    //     LWP: Number(emp.LWP || emp.lwp || 0),
+    //   };
+    // });
+
+    // const processedEmployees = (reportData.employees || []).map((emp, index) => {
+    //   const presentDays = Number(emp.presentdays || 0);
+    //   const empCode = emp.num_employee_empid || emp.NUM_EMPLOYEE_EMPID || "";
+    //   return {
+    //     ...emp,
+    //     srNo: index + 1,
+    //     empCode: String(empCode),
+    //     name: emp.VAR_EMPLOYEE_ENGNAME || emp.var_employee_engname || emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
+    //     marathiName: emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
+    //     designation: emp.Designation || emp.designation || "",
+    //     presentDays: presentDays,
+    //     totalDaysInMonth: totalDaysInMonth,
+    //     leaveDays: totalDaysInMonth - presentDays,
+
+    //     basicPay: Number(emp.basicPay || 0),
+    //     gradePay: Number(emp.gradePay || 0),
+    //     totalEarning: Number(emp.totalEarning || 0),
+    //     totalDeduction: Number(emp.totalDeduction || emp.DTotal || 0),
+    //     netPay: Number(emp.TotalPayamount || 0),
+    //     EL: Number(emp.EL || emp.el || 0),
+    //     ML: Number(emp.ML || emp.ml || 0),
+    //     CL: Number(emp.CL || emp.cl || 0),
+    //     HPL: Number(emp.HPL || emp.hpl || 0),
+    //     LWP: Number(emp.LWP || emp.lwp || 0),
+    //   };
+    // });
+
     const processedEmployees = (reportData.employees || []).map((emp, index) => {
       const presentDays = Number(emp.presentdays || 0);
       const empCode = emp.num_employee_empid || emp.NUM_EMPLOYEE_EMPID || "";
       return {
         ...emp,
         srNo: index + 1,
-        // empCode: String(empCode).padStart(5, "0"),
         empCode: String(empCode),
         name: emp.VAR_EMPLOYEE_ENGNAME || emp.var_employee_engname || emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
         marathiName: emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
@@ -185,12 +273,13 @@ const generateDeptSalBillPDF = async ({
         presentDays: presentDays,
         totalDaysInMonth: totalDaysInMonth,
         leaveDays: totalDaysInMonth - presentDays,
-        basicPay: Number(emp.EarnBasic || emp.earnbasic || 0),
-        gradePay: Number(emp.GradePay || emp.gradepay || 0),
-        totalEarning: Number(emp.Total || emp.total || 0),
-        totalDeduction: Number(emp.DTotal || emp.dtotal || 0),
-        netPay: Number(emp.TotalPayamount || emp.totalpayamount || 0),
 
+        basicPay: Number(emp.basicPay || 0),
+        gradePay: Number(emp.gradePay || 0),
+        basicGradeTotal: Number(emp.basicGradeTotal || 0),  // New field
+        totalEarning: Number(emp.totalEarning || 0),  // Original total earning from transaction
+        totalDeduction: Number(emp.totalDeduction || emp.DTotal || 0),
+        netPay: Number(emp.TotalPayamount || 0),
         EL: Number(emp.EL || emp.el || 0),
         ML: Number(emp.ML || emp.ml || 0),
         CL: Number(emp.CL || emp.cl || 0),
@@ -201,9 +290,25 @@ const generateDeptSalBillPDF = async ({
 
     const grandTotalEarn = processedEmployees.reduce((sum, emp) => sum + emp.totalEarning, 0);
     const grandTotalDeduct = processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
-    const grandNetPay = grandTotalEarn - grandTotalDeduct;
+    const grandNetPay = (grandTotalEarn - grandTotalDeduct) || 0;
 
     const numberToMarathiWords = (num) => {
+      let cleanNum;
+      
+      if (num === undefined || num === null || num === '') {
+        return "शून्य रुपये";
+      }
+      
+      if (typeof num === 'string') {
+        cleanNum = parseFloat(num.replace(/,/g, "")) || 0;
+      } else {
+        cleanNum = Number(num) || 0;
+      }
+      
+      if (isNaN(cleanNum) || cleanNum === 0) {
+        return "शून्य रुपये";
+      }
+      
       const units = [
         "", "एक", "दोन", "तीन", "चार", "पाच", "सहा", "सात", "आठ", "नऊ",
         "दहा", "अकरा", "बारा", "तेरा", "चौदा", "पंधरा", "सोळा", "सतरा", "अठरा", "एकोणीस",
@@ -220,10 +325,10 @@ const generateDeptSalBillPDF = async ({
 
       const getWords = (n) => {
         if (n === 0) return "";
-        if (n <= 100) return units[n];
+        if (n <= 100) return units[n] || "";
         if (n < 1000) {
           const rem = n % 100;
-          return units[Math.floor(n / 100)] + "शे " + (rem === 100 ? "" : getWords(rem));
+          return units[Math.floor(n / 100)] + "शे " + (rem === 0 ? "" : getWords(rem));
         }
         if (n < 100000) {
           return getWords(Math.floor(n / 1000)) + " हजार " + getWords(n % 1000);
@@ -234,15 +339,14 @@ const generateDeptSalBillPDF = async ({
         return getWords(Math.floor(n / 10000000)) + " कोटी " + getWords(n % 10000000);
       };
 
-      const cleanNum = typeof num === "string" ? parseFloat(num.replace(/,/g, "")) : num;
-      if (!cleanNum || cleanNum === 0 || isNaN(cleanNum)) return "शून्य रुपये";
-      return getWords(Math.floor(cleanNum)).trim().replace(/\s+/g, " ") + " रुपये";
+      const result = getWords(Math.floor(cleanNum)).trim().replace(/\s+/g, " ");
+      return result ? result + " रुपये" : "शून्य रुपये";
     };
 
     const templateData = {
       corporationName: corporationName || "सांगली, मिरज आणि कुपवाड शहर महानगरपालिका",
       corporationLogo: finalLogo,
-      reportTitle: reportType === "EARN" ? "वेतन पत्रक - मिळकत तपशील" : "वेतन पत्रक - कटौती",
+      reportTitle: reportType === "EARN" ? "वेतन पत्रक - मिळकत तपशील" : "वेतन पत्रक - कटाई",
       departmentName: departmentName || department || "सर्व विभाग",
       month: month || "",
       year: year || "",

@@ -250,12 +250,13 @@ thead th {
         <td class="text-right">{{getColValue this 7}}</td>
         <td class="text-right">{{getColValue this 110}}</td>
         <td class="text-right">{{getColValue this 103}}</td>
-        <td class="text-right bold">{{formatNumber this.totalEarning}}</td>
+        <!-- <td class="text-right bold">{{formatNumber this.totalEarning}}</td> -->
+        <td class="text-right bold">{{formatNumber this.basicGradeTotal}}</td>
       </tr>
       {{/each}}
 
       <!-- Grand Total Row -->
-      {{#if employees.length}}
+      <!-- {{#if employees.length}}
       <tr class="total-row">
         <td colspan="3" class="text-right">एकूण</td>
         <td class="text-right">{{formatNumber (sumEmployees employees "basicPay")}}</td>
@@ -270,6 +271,26 @@ thead th {
         <td class="text-right">{{getTotalValue reportTotals 8}}</td>
         <td class="text-right">{{getTotalValue reportTotals 9}}</td>
         <td class="text-right bold">{{formatNumber grandTotalEarn}}</td>
+      </tr>
+      {{/if}}
+      -->
+
+      {{#if employees.length}}
+      <tr class="total-row">
+        <td colspan="3" class="text-right">एकूण</td>
+        <td class="text-right">{{getTotalValue reportTotals 1}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 104}}</td>
+        <td class="text-right">{{formatNumber reportTotals.totalBasicGradeSum}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 2}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 3}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 109}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 102}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 12}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 7}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 110}}</td>
+        <td class="text-right">{{getTotalValue reportTotals 103}}</td>
+        <!-- <td class="text-right bold">{{formatNumber grandTotalEarn}}</td> -->
+        <td class="text-right bold">{{formatNumber reportTotals.totalBasicGradeSum}}</td>
       </tr>
       {{/if}}
     </tbody>
