@@ -133,25 +133,56 @@ const FrmPayHeadList = () => {
     }
   };
 
+  // const fetchPayHeads = async () => {
+  //   try {
+  //     const res = await axios.post(
+  //       `${BASE_URL}/api/FrmPayHeadConfigList/payheadmst-dropdown`,
+  //       {
+  //         ulbId: ulbId,
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+
+  //     console.log("Pay Head Response: ", res);
+
+  //     setPayHeadOptions(res.data || []);
+  //   } catch (error) {
+  //     console.error("Pay Head API Error:", error);
+  //   }
+  // };
+
   const fetchPayHeads = async () => {
     try {
       const res = await axios.post(
-        `${BASE_URL}/api/FrmPayHeadConfigList/payheadmst-dropdown`,
-        {
-          ulbId: ulbId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+          `${BASE_URL}/api/FrmPayHeadList/payhead-dropdown`,
+          {
+              ulbId: ulbId,
           },
-        },
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          },
       );
-
       console.log("Pay Head Response: ", res);
-
-      setPayHeadOptions(res.data || []);
+      if (res.data && Array.isArray(res.data)) {
+          setPayHeadOptions(res.data);
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+          setPayHeadOptions(res.data.data);
+      } else {
+          setPayHeadOptions([]);
+      }
     } catch (error) {
       console.error("Pay Head API Error:", error);
+      setPayHeadOptions([]);
+      Swal.fire({
+          text: "Failed to load payheads. Please try again.",
+          confirmButtonColor: "#1e3a8a",
+      });
     }
   };
 

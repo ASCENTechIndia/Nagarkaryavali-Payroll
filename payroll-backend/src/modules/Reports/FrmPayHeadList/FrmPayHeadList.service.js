@@ -36,6 +36,23 @@ function validateRequiredParams(params, requiredFields) {
     return true;
 }
 
+async function getPayHeadDropdownService({ ulbId }) {
+    try {
+        const data = await repo.getPayHeadDropdownRepo({ ulbId });
+        
+        return {
+            success: true,
+            data: data || []
+        };
+    } catch (error) {
+        console.error("Error in getPayHeadDropdownService:", error);
+        return {
+            success: false,
+            message: error.message || "Failed to fetch payheads"
+        };
+    }
+}
+
 async function processPFFundService(payload) {
     const {
         ulbid, month, year, categoryId, zoneId, empStatus, deptId
@@ -376,6 +393,7 @@ async function processReportService(payload) {
 }
 
 module.exports = {
+    getPayHeadDropdownService,
     processReportService,
     processPFFundService,
     processIncomeTaxService,

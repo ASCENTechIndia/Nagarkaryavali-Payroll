@@ -6,6 +6,24 @@ const { getCorporationService } = require("../../MenuAccess/MenuAccess.service")
 const { generatePayHeadListPDF } = require("../../../utils/pdfHelper/FrmPayHeadListPDFHelper");
 const path = require("path");
 
+exports.getPayHeadDropdown = asyncHandler(async (req, res) => {
+    const { ulbId } = req.body;
+    
+    if (!ulbId) {
+        throw new AppError("ulbId is required", 400);
+    }
+
+    const result = await service.getPayHeadDropdownService({
+        ulbId: parseInt(ulbId)
+    });
+
+    if (!result.success) {
+        throw new AppError(result.message || "Failed to fetch payheads", 500);
+    }
+
+    return res.json(result.data);
+});
+
 exports.processReport = asyncHandler(async (req, res) => {
     const {
         ulbid,
@@ -218,6 +236,12 @@ exports.generatePayHeadListPDF = asyncHandler(async (req, res) => {
     ];
     const monthName = monthNames[parseInt(month) - 1] || month;
 
+    const monthNamesMarathi = [
+        "जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून",
+        "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"
+    ];
+    const monthNameMarathi = monthNamesMarathi[parseInt(month) - 1] || month;
+
     let hasData = false;
     let processedData = [];
     let totalAmount = 0;
@@ -350,7 +374,7 @@ exports.generatePayHeadListPDF = asyncHandler(async (req, res) => {
         data: processedData,
         departmentGroups: departmentGroups,
         showPanColumn: showPanColumn,
-        month: monthName,
+        month: monthNameMarathi,
         year: year,
         department: departmentName,
         payHeadName: payHeadName,

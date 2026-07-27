@@ -1,6 +1,54 @@
 const oracledb = require("oracledb");
 const { executeQuery } = require("../../../db/queryExecutor");
 
+async function getPayHeadDropdownRepo({ ulbId }) {
+    let sql = "";
+    const binds = { ulbId };
+
+    if (ulbId === 2) {
+        sql = `
+            SELECT 
+                VAR_PAYHEADS_ENAME as VAR_PAYHEADS_ENAME,
+                NUM_PAYHEADS_ID as NUM_PAYHEADS_ID,
+                VAR_PAYHEADS_SHORTNAME as VAR_PAYHEADS_SHORTNAME
+            FROM aopr_payheads_def 
+            WHERE num_payheads_ulbid = :ulbId
+            UNION ALL 
+            SELECT 
+                '१०% & १४%' as VAR_PAYHEADS_ENAME,
+                99999 as NUM_PAYHEADS_ID,
+                '10% & 14%' as VAR_PAYHEADS_SHORTNAME
+            FROM dual
+            ORDER BY VAR_PAYHEADS_ENAME
+        `;
+    } else if (ulbId === 870) {
+        sql = `
+            SELECT 
+                VAR_PAYHEADS_SHORTNAME as VAR_PAYHEADS_ENAME,
+                NUM_PAYHEADS_ID as NUM_PAYHEADS_ID,
+                VAR_PAYHEADS_SHORTNAME as VAR_PAYHEADS_SHORTNAME
+            FROM aopr_payheads_def 
+            WHERE num_payheads_ulbid = :ulbId
+            ORDER BY VAR_PAYHEADS_SHORTNAME
+        `;
+    } else {
+        sql = `
+            SELECT 
+                VAR_PAYHEADS_ENAME as VAR_PAYHEADS_ENAME,
+                NUM_PAYHEADS_ID as NUM_PAYHEADS_ID,
+                VAR_PAYHEADS_SHORTNAME as VAR_PAYHEADS_SHORTNAME
+            FROM aopr_payheads_def 
+            WHERE num_payheads_ulbid = :ulbId
+            ORDER BY VAR_PAYHEADS_ENAME
+        `;
+    }
+
+    console.log("getPayHeadDropdownRepo SQL:", sql);
+    const result = await executeQuery(sql, binds);
+    if (!result.success) throw new Error(result.error);
+    return result.rows;
+}
+
 async function getPFFundRepo({
     salaryDate,
     ulbid,
@@ -821,6 +869,7 @@ async function getSubDetailProfessionalTaxRepo({
 }
 
 module.exports = {
+    getPayHeadDropdownRepo,
     getPFFundRepo,
     getIncomeTaxRepo,
     getLICRepo,

@@ -10,5 +10,6 @@ router.post("/income-tax", auth(), controller.getIncomeTaxReport);
 router.post("/lic", auth(), controller.getLICReport);
 router.post("/excel-gross-tds", auth(), controller.getExcelGrossTDSReport);
 router.post("/generate-pdf", auth(), controller.generatePayHeadListPDF);
+router.post("/payhead-dropdown", auth(), controller.getPayHeadDropdown);
 
 module.exports = router;

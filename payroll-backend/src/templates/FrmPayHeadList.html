@@ -307,13 +307,14 @@
                         {{#each this.employees}}
                         <tr>
                             <td class="center">{{srNo}}</td>
-                            <td>{{empId}}</td>
-                            <td class="left">{{employeeName}}</td>
+                            <td class="center">{{empId}}</td>
+                            <td class="center">{{employeeName}}</td>
                             
                             {{#if ../../showPanColumn}}
                                 <td class="center">{{panNo}}</td>
                             {{else}}
-                                <td class="center">{{headid}}</td>
+                                <!-- <td class="center">{{headid}}</td> -->
+                                <td class="center"></td>
                             {{/if}}
                             
                             <td class="right">{{formatAmount amount}}</td>

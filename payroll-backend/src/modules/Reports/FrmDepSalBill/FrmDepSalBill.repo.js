@@ -742,6 +742,10 @@ async function getEarningDeductionTotalData(payload) {
         LeaveBasic: Number(emp.LEAVEBASIC || emp.leavebasic) || 0,
         EarnBasic: Number(emp.EARNBASIC || emp.earnbasic) || 0,
         GradePay: Number(emp.GRADEPAY || emp.gradepay) || 0,
+        basicPay: 0,
+        gradePay: 0,
+        totalEarning: 0,
+        totalDeduction: 0,
         PfNo: emp.PFNO || emp.pfno || "",
         GPFNOPRANNO: emp.GPFNOPRANNO || emp.gpfnopranno || "",
         JOINDATE: emp.JOINDATE || emp.joindate,
@@ -778,10 +782,24 @@ async function getEarningDeductionTotalData(payload) {
 
         if (targetEmp) {
           const amt = Number(tx.NUM_SALARYDTL_AMOUNT || tx.num_salarydtl_amount) || 0;
+          
           targetEmp[`col${orderNoStr}`] = amt;
+          
+          if (orderNoStr === "1") {
+            targetEmp.basicPay = amt; 
+          }
+          
+          if (orderNoStr === "104") {
+            targetEmp.gradePay = amt;
+          }
+          
+          targetEmp.totalEarning = Number(tx.NUM_SALARY_TOTALEARN || tx.num_salary_totalearn) || 0;
+          
+          targetEmp.basicGradeTotal = (targetEmp.basicPay || 0) + (targetEmp.gradePay || 0);
+          
           targetEmp.DTotal = Number(tx.NUM_SALARY_TOTALDEDUCT || tx.num_salary_totaldeduct) || 0;
-          targetEmp.Total = Number(tx.NUM_SALARY_TOTALEARN || tx.num_salary_totalearn) || 0;
-          targetEmp.TotalPayamount = targetEmp.Total - targetEmp.DTotal;
+          targetEmp.totalDeduction = targetEmp.DTotal; 
+          targetEmp.TotalPayamount = targetEmp.totalEarning - targetEmp.totalDeduction;
           targetEmp.Designation = tx.VAR_DESIGMST_DESIGNATIONNAME || tx.var_desigmst_designationname || "";
 
           grandTotals[`rTotal${orderNoStr}`] = (grandTotals[`rTotal${orderNoStr}`] || 0) + amt;
@@ -789,9 +807,19 @@ async function getEarningDeductionTotalData(payload) {
       }
     });
 
+    // Object.values(masterEmployeeMap).forEach((emp) => {
+    //   totalEarnAccumulator += emp.totalEarning || 0;
+    //   totalDeductAccumulator += emp.totalDeduction || 0;
+    // }); 
+
+    let totalBasicPay = 0;
+    let totalGradePay = 0;
+
     Object.values(masterEmployeeMap).forEach((emp) => {
-      totalEarnAccumulator += emp.Total;
-      totalDeductAccumulator += emp.DTotal;
+      totalBasicPay += emp.basicPay || 0;
+      totalGradePay += emp.gradePay || 0;
+      totalEarnAccumulator += emp.totalEarning || 0;
+      totalDeductAccumulator += emp.totalDeduction || 0;
     });
 
     let finalSortedArray = Object.values(masterEmployeeMap);
@@ -820,7 +848,13 @@ async function getEarningDeductionTotalData(payload) {
       headers,
       reportHeaderTitle: dynamicTitleReportHeader,
       employees: finalSortedArray,
-      reportTotals: grandTotals,
+      // reportTotals: grandTotals,
+      reportTotals: {
+        ...grandTotals,
+        totalBasicPay: totalBasicPay,
+        totalGradePay: totalGradePay,
+        totalBasicGradeSum: totalBasicPay + totalGradePay
+      },
       grandEarn: totalEarnAccumulator,
       grandDeduct: totalDeductAccumulator,
       grandNet: totalEarnAccumulator - totalDeductAccumulator,
