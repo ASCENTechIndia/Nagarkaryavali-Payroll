@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useLocation } from "react-router-dom";
+import { useLocation,useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -22,7 +22,7 @@ import {
 
 const FrmMonthlyBankDeductionAuthorization = () => {
   const { state } = useLocation();
-
+const navigate = useNavigate();
   const mainId = state?.mainId;
 
   const { user } = useAuth();
@@ -42,6 +42,8 @@ const FrmMonthlyBankDeductionAuthorization = () => {
 
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+
+  const [salaryMonthName, setSalaryMonthName] = useState("");
 
   const months = [
     { value: "1", label: "January" },
@@ -132,13 +134,14 @@ const FrmMonthlyBankDeductionAuthorization = () => {
         })) || [];
 
       setTableData(rows);
-
+      console.log(rows);
       if (data?.data?.length > 0) {
         const first = data.data[0];
 
         setDepartmentName(first.DEPARTMENT || "");
         setMonth(String(first.MONTH_NUM));
         setYear(String(first.YEAR_NUM));
+        setSalaryMonthName(first.SALARY_MONTH_YEAR || first.SALARY_MONTH || "");
       }
     } catch (err) {
       Swal.fire({
@@ -200,7 +203,7 @@ const FrmMonthlyBankDeductionAuthorization = () => {
         id: mainId,
         in_str,
       };
-
+      console.log("payload", payload);
       const { data } = await axios.post(
         `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/submit`,
         payload,
@@ -218,6 +221,8 @@ const FrmMonthlyBankDeductionAuthorization = () => {
           icon: "success",
           text: data.errorMsg,
         });
+
+         navigate("/Transactions/FrmMonthlyBankDeductionUploadAuthList");
         return;
       }
 
@@ -322,17 +327,17 @@ const FrmMonthlyBankDeductionAuthorization = () => {
             <div>
               <Label text="Month" required />
 
-              <Select value={month} disabled>
+              <Select value={salaryMonthName} disabled>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Month" />
+                  <SelectValue />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {months.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
+                  {salaryMonthName && (
+                    <SelectItem value={salaryMonthName}>
+                      {salaryMonthName}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>

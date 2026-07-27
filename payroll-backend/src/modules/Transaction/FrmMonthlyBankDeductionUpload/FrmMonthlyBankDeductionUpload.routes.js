@@ -15,10 +15,19 @@ router.post("/department-list", auth(), controller.getDepartmentList);
 
 router.get("/year-list", auth(), controller.getYearList);
 
-router.post("/download-excel", auth(), controller.getMonthlyBankDeductionExcelData);
+router.post(
+  "/download-excel",
+  auth(),
+  controller.getMonthlyBankDeductionExcelData,
+);
 
 // ===============================
-router.post("/upload-excel", upload.single("file"), auth(), controller.uploadMonthlyBankDeduction);
+router.post(
+  "/upload-excel",
+  upload.single("file"),
+  auth(),
+  controller.uploadMonthlyBankDeduction,
+);
 
 router.post("/submit", auth(), controller.submitMonthlyBankDeduction);
 

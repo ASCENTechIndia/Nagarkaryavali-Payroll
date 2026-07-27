@@ -138,13 +138,12 @@ const FrmEmployeeListReport = () => {
       });
 
       const payload = {
-     
         // ulbid: 870,
         // empId: "2084",
         // categoryId: "1",
         // deptId: "459",
         // desigId: "423",
-      
+
         ulbid: user?.ulbId,
         empId: values.employeeCode?.trim() || "",
         categoryId: values.employeeType === "-1" ? "" : values.employeeType,
@@ -240,99 +239,119 @@ const FrmEmployeeListReport = () => {
             </CardHeader>
 
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {/* Department */}
-                <div className="space-y-2">
-                  <Label text={labels.department} />
+               <div className="flex items-center gap-3">
+  <div className="w-36 shrink-0">
+    <Label text={labels.department} />
+  </div>
 
-                  <Select
-                    value={values.department}
-                    onValueChange={(value) =>
-                      setFieldValue("department", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- ALL --" />
-                    </SelectTrigger>
+  <span>:</span>
 
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="-1">-- ALL --</SelectItem>
+  <div className="flex-1 min-w-0">
+    <Select
+      value={values.department}
+      onValueChange={(value) =>
+        setFieldValue("department", value)
+      }
+    >
+      <SelectTrigger className="w-full h-9">
+        <SelectValue placeholder="-- ALL --" />
+      </SelectTrigger>
 
-                      {departmentList.map((item) => (
-                        <SelectItem
-                          key={item.DEPTID}
-                          value={String(item.DEPTID)}
-                        >
-                          {item.DEPTNAME}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+      <SelectContent className="max-h-72">
+        <SelectItem value="-1">-- ALL --</SelectItem>
+
+        {departmentList.map((item) => (
+          <SelectItem
+            key={item.DEPTID}
+            value={String(item.DEPTID)}
+            className="truncate"
+          >
+            {item.DEPTNAME}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+</div>
 
                 {/* Designation */}
-                <div className="space-y-2">
-                  <Label text={labels.designation} />
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text={labels.designation} />
+                  </div>
+                  <span>:</span>
 
-                  <Select
-                    value={values.designation}
-                    onValueChange={(value) =>
-                      setFieldValue("designation", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- ALL --" />
-                    </SelectTrigger>
+                  <div className="flex-1">
+                    <Select
+                      value={values.designation}
+                      onValueChange={(value) =>
+                        setFieldValue("designation", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- ALL --" />
+                      </SelectTrigger>
 
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="-1">-- ALL --</SelectItem>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value="-1">-- ALL --</SelectItem>
 
-                      {designationList.map((item) => (
-                        <SelectItem
-                          key={item.DESIG_ID}
-                          value={String(item.DESIG_ID)}
-                        >
-                          {item.DESIG_ENAME}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {designationList.map((item) => (
+                          <SelectItem
+                            key={item.DESIG_ID}
+                            value={String(item.DESIG_ID)}
+                          >
+                            {item.DESIG_ENAME}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Employee Type */}
-                <div className="space-y-2">
-                  <Label text={labels.employeeType} />
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text={labels.employeeType} />
+                  </div>
+                  <span>:</span>
 
-                  <Select
-                    value={values.employeeType}
-                    onValueChange={(value) =>
-                      setFieldValue("employeeType", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- ALL --" />
-                    </SelectTrigger>
+                  <div className="flex-1">
+                    <Select
+                      value={values.employeeType}
+                      onValueChange={(value) =>
+                        setFieldValue("employeeType", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- ALL --" />
+                      </SelectTrigger>
 
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="-1">-- ALL --</SelectItem>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value="-1">-- ALL --</SelectItem>
 
-                      {categoryList.map((item) => (
-                        <SelectItem
-                          key={item.NUM_CATEGORY_ID}
-                          value={String(item.NUM_CATEGORY_ID)}
-                        >
-                          {item.VAR_CATEGORY_NAME}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {categoryList.map((item) => (
+                          <SelectItem
+                            key={item.NUM_CATEGORY_ID}
+                            value={String(item.NUM_CATEGORY_ID)}
+                          >
+                            {item.VAR_CATEGORY_NAME}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 {/* Employee Status */}
-                <div className="space-y-3">
-                  <Label text={labels.employeeStatus} />
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text={labels.employeeStatus} />
+                  </div>
 
-                  <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex flex-wrap gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
+                      <span>:</span>
                       <Input
                         type="radio"
                         name="employeeStatus"
@@ -374,11 +393,14 @@ const FrmEmployeeListReport = () => {
                 </div>
 
                 {/* Gender */}
-                <div className="space-y-3">
-                  <Label text={labels.gender} />
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text={labels.gender} />
+                  </div>
 
-                  <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex flex-wrap gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
+                      <span>:</span>
                       <Input
                         type="radio"
                         name="gender"
@@ -420,23 +442,30 @@ const FrmEmployeeListReport = () => {
                 </div>
 
                 {/* Employee Code */}
-                <div className="space-y-2">
-                  <Label text={labels.employeeCode} />
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text={labels.employeeCode} />
+                  </div>
+                  <span>:</span>
 
-                  <Input
-                    value={values.employeeCode}
-                    onChange={(e) =>
-                      setFieldValue("employeeCode", e.target.value)
-                    }
-                  />
+                  <div className="flex-1">
+                    <Input
+                      value={values.employeeCode}
+                      onChange={(e) =>
+                        setFieldValue("employeeCode", e.target.value)
+                      }
+                    />
+                  </div>
                 </div>
-
                 {/* Export */}
-                <div className="space-y-3 md:col-span-3">
-                  <Label text="Export To" required />
+                <div className="xl:col-span-3 flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text="Export To" required />
+                  </div>
 
-                  <div className="flex items-center gap-8">
+                  <div className="flex flex-wrap gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
+                      <span>:</span>
                       <Input
                         type="radio"
                         name="exportType"
@@ -465,6 +494,7 @@ const FrmEmployeeListReport = () => {
                 </div>
               </div>
 
+              {/* Buttons */}
               <div className="flex justify-center gap-4 mt-10">
                 <Button type="submit">Print</Button>
 
