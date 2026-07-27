@@ -78,11 +78,11 @@ const FrmPayScaleConfig = () => {
       
       const response = await axios.post(
         `${BASE_URL}/api/PayScaConfig/payscalelist`,
-        { 
-          ulbId: Number(ulbIdValue)
-        },
+        { ulbId: Number(ulbIdValue) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log("Pay Scale API Response:", response.data);
 
       let data = [];
       if (response.data?.data?.rows && Array.isArray(response.data.data.rows)) {
@@ -97,6 +97,8 @@ const FrmPayScaleConfig = () => {
         data = response.data.data;
       }
 
+      console.log("Pay Scale data:", data);
+
       if (data.length > 0) {
         const formattedData = data.map((item) => ({
           payscaleid: item.NUM_PAYSCALEMST_PAYSCALEID || item.payscaleid || "",
@@ -105,19 +107,15 @@ const FrmPayScaleConfig = () => {
           groupname: item.VAR_PAYSCALEMST_GROUPNAME || item.groupname || "-",
           groupid: item.NUM_PAYSCALEMST_GROUPID || item.groupid || "",
           status: item.VAR_PAYSLCONFIG_ACTIVEFLAG || item.status || "N",
-          checked: (item.VAR_PAYSLCONFIG_ACTIVEFLAG === 'Y' || item.status === 'Y'),
-          IsChecked: (item.VAR_PAYSLCONFIG_ACTIVEFLAG === 'Y' || item.status === 'Y'),
-          previousStatus: (item.VAR_PAYSLCONFIG_ACTIVEFLAG === 'Y' || item.status === 'Y') ? "Y" : "N",
-          currentStatus: (item.VAR_PAYSLCONFIG_ACTIVEFLAG === 'Y' || item.status === 'Y') ? "Y" : "N"
+          checked: false,
+          IsChecked: false,
+          previousStatus: "N",
+          currentStatus: "N"
         }));
         
-        setPayScaleData(formattedData);
-        setSelectedULB(ulbIdValue);
-        setPayScaleConfigId([]);
-        setMode(1);
+        console.log("Formatted Data:", formattedData);
         return formattedData;
       } else {
-        setPayScaleData([]);
         return [];
       }
     } catch (err) {
@@ -133,81 +131,101 @@ const FrmPayScaleConfig = () => {
     }
   };
 
-const setGrdRecMode = async (ulbIdValue, dtData) => {
-  try {
-    setIsLoadingList(true);
-    
-    const response = await axios.post(
-      `${BASE_URL}/api/PayScaConfig/configuredpayscalelist`,
-      { ulbId: Number(ulbIdValue) },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  const loadConfiguredData = async (ulbIdValue) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/PayScaConfig/configuredpayscalelist`,
+        { ulbId: Number(ulbIdValue) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    console.log("Configured response:", response.data);
+      console.log("Configured response:", response.data);
 
-    let configData = [];
-    if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
-      configData = response.data.data.data;
-    } else if (response.data?.data?.rows && Array.isArray(response.data.data.rows)) {
-      configData = response.data.data.rows;
-    } else if (response.data?.data && Array.isArray(response.data.data)) {
-      configData = response.data.data;
-    } else if (Array.isArray(response.data)) {
-      configData = response.data;
+      let configData = [];
+      if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
+        configData = response.data.data.data;
+      } else if (response.data?.data?.rows && Array.isArray(response.data.data.rows)) {
+        configData = response.data.data.rows;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        configData = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        configData = response.data;
+      }
+
+      console.log("Configured pay scales:", configData);
+      return configData;
+    } catch (err) {
+      console.error("Error fetching configured pay scales:", err);
+      return [];
     }
+  };
 
-    console.log("Configured pay scales:", configData);
+  const loadAllData = async (ulbIdValue) => {
+    try {
+      setIsLoadingList(true);
+      
+      const [payScaleList, configuredList] = await Promise.all([
+        getData(ulbIdValue),
+        loadConfiguredData(ulbIdValue)
+      ]);
 
-    setPayScaleConfigId(configData);
+      console.log("Pay Scale List:", payScaleList);
+      console.log("Configured List:", configuredList);
 
-    let updatedData = [...dtData];
+      if (payScaleList.length > 0) {
+        const configuredIds = new Set(
+          configuredList.map(item => String(item.CONFIPAYSCALE_ID || item.payscaleid))
+        );
 
-    const configuredIds = new Set(
-      configData.map(config => String(config.CONFIPAYSCALE_ID || config.payscaleid))
-    );
+        console.log("Configured IDs:", configuredIds);
 
-    console.log("Configured IDs set:", configuredIds);
+        const updatedData = payScaleList.map(item => {
+          const isConfigured = configuredIds.has(String(item.payscaleid));
+          return {
+            ...item,
+            checked: isConfigured,
+            IsChecked: isConfigured,
+            previousStatus: isConfigured ? "Y" : "N",
+            currentStatus: isConfigured ? "Y" : "N"
+          };
+        });
 
-    updatedData = updatedData.map(item => {
-      const isConfigured = configuredIds.has(String(item.payscaleid));
-      return {
-        ...item,
-        checked: isConfigured,
-        IsChecked: isConfigured,
-        previousStatus: isConfigured ? "Y" : "N",
-        currentStatus: isConfigured ? "Y" : "N"
-      };
-    });
+        updatedData.sort((a, b) => {
+          if (a.checked === b.checked) return 0;
+          return a.checked ? -1 : 1;
+        });
 
-    updatedData.sort((a, b) => {
-      if (a.checked === b.checked) return 0;
-      return a.checked ? -1 : 1;
-    });
-    
-    setPayScaleData(updatedData);
-    setMode(configData.length > 0 ? 2 : 1);
-    
-    return updatedData;
-  } catch (err) {
-    console.error("Error fetching pay scale config:", err);
-    return dtData;
-  } finally {
-    setIsLoadingList(false);
-  }
-};
+        console.log("Final Updated Data:", updatedData);
+
+        setPayScaleData(updatedData);
+        setPayScaleConfigId(configuredList);
+        setMode(configuredList.length > 0 ? 2 : 1);
+        setSelectedULB(ulbIdValue);
+        
+        return updatedData;
+      } else {
+        setPayScaleData([]);
+        setPayScaleConfigId([]);
+        setMode(1);
+        return [];
+      }
+    } catch (err) {
+      console.error("Error loading data:", err);
+      return [];
+    } finally {
+      setIsLoadingList(false);
+    }
+  };
 
   const handleULBChange = async (value) => {
     setSelectedULB(value);
     
     if (value && value !== "0") {
-      const data = await getData(value);
-      if (data.length > 0) {
-        await setGrdRecMode(value, data);
-      } else {
-        setPayScaleData([]);
-      }
+      await loadAllData(value);
     } else {
       setPayScaleData([]);
+      setPayScaleConfigId([]);
+      setMode(1);
     }
   };
 
@@ -237,137 +255,129 @@ const setGrdRecMode = async (ulbIdValue, dtData) => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!selectedULB || selectedULB === "0") {
-    Swal.fire({
-      text: "Select ULB Name",
-      confirmButtonText: 'OK'
-    });
-    return;
-  }
-  
-  let paramStr = "";
-  let chkFlag = false;
-
-  for (const item of payScaleData) {
-    const payScaleId = item.payscaleid || "";
-    const isChecked = item.checked || false;
+    e.preventDefault();
     
-    const chkedCount = payScaleConfigId.filter(config => 
-      String(config.CONFIPAYSCALE_ID || config.payscaleid) === String(payScaleId)
-    ).length;
+    if (!selectedULB || selectedULB === "0") {
+      Swal.fire({
+        text: "Select ULB Name",
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    let paramStr = "";
+    let chkFlag = false;
 
-    if (mode === 1) {
-      if (isChecked) {
-        paramStr += `${payScaleId}#N#Y$`;
-        chkFlag = true;
+    for (const item of payScaleData) {
+      const payScaleId = item.payscaleid || "";
+      const isChecked = item.checked || false;
+      
+      const chkedCount = payScaleConfigId.filter(config => 
+        String(config.CONFIPAYSCALE_ID || config.payscaleid) === String(payScaleId)
+      ).length;
+
+      if (mode === 1) {
+        if (isChecked) {
+          paramStr += `${payScaleId}#N#Y$`;
+          chkFlag = true;
+        } else {
+          paramStr += `${payScaleId}#N#N$`;
+        }
       } else {
-        paramStr += `${payScaleId}#N#N$`;
-      }
-    } else {
-      if (isChecked && chkedCount > 0) {
-        paramStr += `${payScaleId}#Y#Y$`;
-        chkFlag = true;
-      } else if (isChecked && chkedCount <= 0) {
-        paramStr += `${payScaleId}#N#Y$`;
-        chkFlag = true;
-      } else if (!isChecked && chkedCount > 0) {
-        paramStr += `${payScaleId}#Y#N$`;
-        chkFlag = true;
-      } else if (!isChecked && chkedCount <= 0) {
-        paramStr += `${payScaleId}#N#N$`;
-      }
-    }
-  }
-
-  if (paramStr.length > 0 && chkFlag) {
-    paramStr = paramStr.slice(0, -1);
-  } else {
-    Swal.fire({
-      text: "Select atleast one pay scale to save",
-      confirmButtonText: 'OK'
-    });
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const payload = {
-      userId: userId,
-      ulbId: Number(selectedULB),
-      payScaleStr: paramStr,
-      mode: mode
-    };
-
-    console.log("Save payload:", payload);
-
-    const res = await axios.post(
-      `${BASE_URL}/api/PayScaConfig/savepayscaleconfiguration`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const responseData = res.data?.data || res.data || {};
-    const errorCode = responseData.errorCode || responseData.ErrorCode || 0;
-    const errorMsg = responseData.errorMsg || responseData.ErrorMsg || responseData.message || "";
-
-    if (errorCode === 9999 || errorCode === 0 || responseData.success === true) {
-      Swal.fire({
-        text: errorMsg || "Pay scale configuration saved successfully",
-        confirmButtonText: 'OK'
-      });
-      
-      if (selectedULB) {
-        const freshData = await getData(selectedULB);
-        if (freshData.length > 0) {
-          await setGrdRecMode(selectedULB, freshData);
+        if (isChecked && chkedCount > 0) {
+          paramStr += `${payScaleId}#Y#Y$`;
+          chkFlag = true;
+        } else if (isChecked && chkedCount <= 0) {
+          paramStr += `${payScaleId}#N#Y$`;
+          chkFlag = true;
+        } else if (!isChecked && chkedCount > 0) {
+          paramStr += `${payScaleId}#Y#N$`;
+          chkFlag = true;
+        } else if (!isChecked && chkedCount <= 0) {
+          paramStr += `${payScaleId}#N#N$`;
         }
-        setPayScaleData([...freshData]);
       }
+    }
+
+    if (paramStr.length > 0 && chkFlag) {
+      paramStr = paramStr.slice(0, -1);
     } else {
       Swal.fire({
-        text: errorMsg || "An error occurred",
+        text: "Select atleast one pay scale to save",
         confirmButtonText: 'OK'
       });
+      return;
     }
-  } catch (error) {
-    console.error("Submit Error", error);
-    
-    const errorMessage = error.response?.data?.message || error.message || "Failed to save data";
-    if (errorMessage.toLowerCase().includes("inserted successfully") || 
-        errorMessage.toLowerCase().includes("successfully") ||
-        errorMessage.toLowerCase().includes("success") ||
-        errorMessage.toLowerCase().includes("saved")) {
-      Swal.fire({
-        text: errorMessage,
-        confirmButtonText: 'OK'
-      });
-      
-      if (selectedULB) {
-        const freshData = await getData(selectedULB);
-        if (freshData.length > 0) {
-          await setGrdRecMode(selectedULB, freshData);
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        userId: userId,
+        ulbId: Number(selectedULB),
+        payScaleStr: paramStr,
+        mode: mode
+      };
+
+      console.log("Save payload:", payload);
+
+      const res = await axios.post(
+        `${BASE_URL}/api/PayScaConfig/savepayscaleconfiguration`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-        setPayScaleData([...freshData]);
+      );
+
+      const responseData = res.data?.data || res.data || {};
+      const errorCode = responseData.errorCode || responseData.ErrorCode || 0;
+      const errorMsg = responseData.errorMsg || responseData.ErrorMsg || responseData.message || "";
+
+      if (errorCode === 9999 || errorCode === 0 || responseData.success === true) {
+        Swal.fire({
+          text: errorMsg || "Pay scale configuration saved successfully",
+          confirmButtonText: 'OK'
+        });
+        
+        if (selectedULB) {
+          await loadAllData(selectedULB);
+        }
+      } else {
+        Swal.fire({
+          text: errorMsg || "An error occurred",
+          confirmButtonText: 'OK'
+        });
       }
-    } else {
-      Swal.fire({
-        title: 'Error',
-        text: errorMessage,
-        confirmButtonText: 'OK'
-      });
+    } catch (error) {
+      console.error("Submit Error", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to save data";
+      if (errorMessage.toLowerCase().includes("inserted successfully") || 
+          errorMessage.toLowerCase().includes("successfully") ||
+          errorMessage.toLowerCase().includes("success") ||
+          errorMessage.toLowerCase().includes("saved")) {
+        Swal.fire({
+          text: errorMessage,
+          confirmButtonText: 'OK'
+        });
+        
+        if (selectedULB) {
+          await loadAllData(selectedULB);
+        }
+      } else {
+        Swal.fire({
+          title: 'Error',
+          text: errorMessage,
+          confirmButtonText: 'OK'
+        });
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="space-y-6">
@@ -452,6 +462,7 @@ const setGrdRecMode = async (ulbIdValue, dtData) => {
               type="button"
               variant="outline"
               path="/HomePage/FrmHomePage"
+              //onClick={() => window.history.back()}
               className="bg-gray-200 text-black hover:bg-gray-300"
             >
               परत

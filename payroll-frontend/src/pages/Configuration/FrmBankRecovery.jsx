@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Formik, Form } from "formik";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +16,109 @@ import { Button } from "@/components/ui/button";
 import Swal from "sweetalert2";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const SearchableSelect = ({
+  options = [],
+  value = "",
+  onChange,
+  placeholder = "Search and select...",
+  label = "",
+  className = "",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  return (
+    <div className={`relative w-full ${className}`} ref={dropdownRef}>
+      {label && (
+        <Label className="font-semibold whitespace-nowrap block mb-2">
+          {label}
+        </Label>
+      )}
+      
+      <div
+        className="w-full h-9 px-3 py-1 text-sm border border-gray-300 rounded-md bg-white cursor-pointer flex items-center justify-between hover:border-blue-400 transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={selectedOption ? "text-black" : "text-gray-400"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span className="ml-2">
+          <svg
+            className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
+          <div className="p-2 border-b">
+            <input
+              type="text"
+              className="w-full h-8 px-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+              placeholder="--Select Option--"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </div>
+
+          <div className="max-h-40 overflow-y-auto">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.value}
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors ${
+                    value === option.value ? "bg-blue-100 text-blue-700" : ""
+                  }`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                    setSearchTerm("");
+                  }}
+                >
+                  {option.label}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-500 text-center">
+                No results found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const FrmBankRecovery = () => {
   const { user } = useAuth();
@@ -417,7 +520,7 @@ const FrmBankRecovery = () => {
       
       if (formattedData.length === 0) {
         Swal.fire({
-          title: 'No Records Found',
+          //title: 'No Records Found',
           text: 'No recovery records found for this employee',
           icon: 'info',
           confirmButtonText: 'OK'
@@ -619,423 +722,402 @@ const FrmBankRecovery = () => {
     currentPage * rowsPerPage
   );
 
-  if (isPageLoading) {
-    return null; 
-  }
-
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ values, setFieldValue, resetForm }) => (
-        <Form>
-          <Card className="shadow-sm border">
-            <CardHeader className="border-b pb-3">
-              <CardTitle className="text-2xl font-semibold">
-                Employee Policy Form
-              </CardTitle>
-            </CardHeader>
+    <>
+      {isPageLoading ? null : (
+        <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+          {({ values, setFieldValue, resetForm }) => (
+            <Form>
+              <Card className="shadow-sm border">
+                <CardHeader className="border-b pb-3">
+                  <CardTitle className="text-2xl font-semibold">
+                    Employee Policy Form
+                  </CardTitle>
+                </CardHeader>
 
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Corporation Name
-                  </Label>
-                  <Select
-                    value={values.corporation}
-                    onValueChange={(value) => {
-                      setFieldValue("corporation", value);
-                      setFieldValue("employee", "");
-                      setFieldValue("department", "");
-                      setRecoveryList([]);
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {corporationOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Corporation Name
+                      </Label>
+                      <Select
+                        value={values.corporation}
+                        onValueChange={(value) => {
+                          setFieldValue("corporation", value);
+                          setFieldValue("employee", "");
+                          setFieldValue("department", "");
+                          setRecoveryList([]);
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {corporationOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-               
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Department
-                  </Label>
-                  <Select
-                    value={values.department}
-                    onValueChange={(value) => {
-                      setFieldValue("department", value);
-                      setFieldValue("subDepartment", "");
-                      setFieldValue("employee", "");
-                      setFieldValue("bank", "");
-                      setFieldValue("branch", "");
-                      setBranchOptions([]);
-                      setRecoveryList([]);
-                      fetchSubDepartments(value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departmentOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Department
+                      </Label>
+                      <Select
+                        value={values.department}
+                        onValueChange={(value) => {
+                          setFieldValue("department", value);
+                          setFieldValue("subDepartment", "");
+                          setFieldValue("employee", "");
+                          setFieldValue("bank", "");
+                          setFieldValue("branch", "");
+                          setBranchOptions([]);
+                          setRecoveryList([]);
+                          fetchSubDepartments(value);
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departmentOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Sub-Department
-                  </Label>
-                  <Select
-                    value={values.subDepartment}
-                    onValueChange={(value) => {
-                      setFieldValue("subDepartment", value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subDepartmentOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Sub-Department
+                      </Label>
+                      <Select
+                        value={values.subDepartment}
+                        onValueChange={(value) => {
+                          setFieldValue("subDepartment", value);
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subDepartmentOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-               
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Employee Name
-                  </Label>
-                  <Select
-                    value={values.employee}
-                    onValueChange={(value) => {
-                      setFieldValue("employee", value);
-                      setFieldValue("bank", "");
-                      setFieldValue("branch", "");
-                      setBranchOptions([]);
-                      if (value && values.corporation && values.department) {
-                        fetchBankRecoveryList(value);
-                      } else {
-                        setRecoveryList([]);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employeeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <SearchableSelect
+                        label="Employee Name"
+                        options={employeeOptions}
+                        value={values.employee}
+                        onChange={(value) => {
+                          setFieldValue("employee", value);
+                          setFieldValue("bank", "");
+                          setFieldValue("branch", "");
+                          setBranchOptions([]);
+                          if (value && values.corporation && values.department) {
+                            fetchBankRecoveryList(value);
+                          } else {
+                            setRecoveryList([]);
+                          }
+                        }}
+                        placeholder="--Select Option--"
+                      />
+                    </div>
 
-               
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Bank Name
-                  </Label>
-                  <Select
-                    value={values.bank}
-                    onValueChange={(value) => {
-                      setFieldValue("bank", value);
-                      setFieldValue("branch", "");
-                      if (value) {
-                        fetchBranches(value);
-                      } else {
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Bank Name
+                      </Label>
+                      <Select
+                        value={values.bank}
+                        onValueChange={(value) => {
+                          setFieldValue("bank", value);
+                          setFieldValue("branch", "");
+                          if (value) {
+                            fetchBranches(value);
+                          } else {
+                            setBranchOptions([]);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bankOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Branch Name
+                      </Label>
+                      <Select
+                        value={values.branch}
+                        onValueChange={(value) => setFieldValue("branch", value)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branchOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Recovery Amount
+                      </Label>
+                      <Input
+                        name="recoveryAmount"
+                        value={values.recoveryAmount}
+                        onChange={(e) => setFieldValue("recoveryAmount", e.target.value)}
+                        type="number"
+                        className="h-9"
+                        //placeholder="Enter recovery amount"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Is Working?
+                      </Label>
+                      <div className="flex items-center h-9">
+                        <Input
+                          type="checkbox"
+                          checked={values.isWorking}
+                          onChange={(e) => setFieldValue("isWorking", e.target.checked)}
+                          className="w-4 h-4"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        From Year
+                      </Label>
+                      <Select
+                        value={values.fromYear}
+                        onValueChange={(value) => setFieldValue("fromYear", value)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {yearOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        To Year
+                      </Label>
+                      <Select
+                        value={values.toYear}
+                        onValueChange={(value) => setFieldValue("toYear", value)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {yearOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        From Month
+                      </Label>
+                      <Select
+                        value={values.fromMonth}
+                        onValueChange={(value) => setFieldValue("fromMonth", value)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {monthOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        To Month
+                      </Label>
+                      <Select
+                        value={values.toMonth}
+                        onValueChange={(value) => setFieldValue("toMonth", value)}
+                      >
+                        <SelectTrigger className="w-full h-9">
+                          <SelectValue placeholder="-- Select Option --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {monthOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        "Accumulation"
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => {
+                        resetForm();
+                        setSubDepartmentOptions([]);
+                        setEmployeeOptions([]);
+                        setBankOptions([]);
                         setBranchOptions([]);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bankOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        setRecoveryList([]);
+                        setFieldValue("corporation", DEFAULT_CORPORATION_ID);
+                        fetchBanks();
+                        fetchEmployees();
+                      }}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Reset
+                    </Button>
 
-                
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Branch Name
-                  </Label>
-                  <Select
-                    value={values.branch}
-                    onValueChange={(value) => setFieldValue("branch", value)}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Option --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {branchOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Recovery Amount
-                  </Label>
-                  <Input
-                    name="recoveryAmount"
-                    value={values.recoveryAmount}
-                    onChange={(e) => setFieldValue("recoveryAmount", e.target.value)}
-                    type="number"
-                    className="h-9"
-                    placeholder="Enter recovery amount"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    Is Working?
-                  </Label>
-                  <div className="flex items-center h-9">
-                    <Input
-                      type="checkbox"
-                      checked={values.isWorking}
-                      onChange={(e) => setFieldValue("isWorking", e.target.checked)}
-                      className="w-4 h-4"
-                    />
-                  </div>
-                </div>
-
-               
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    From Year
-                  </Label>
-                  <Select
-                    value={values.fromYear}
-                    onValueChange={(value) => setFieldValue("fromYear", value)}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Year --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-              
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    To Year
-                  </Label>
-                  <Select
-                    value={values.toYear}
-                    onValueChange={(value) => setFieldValue("toYear", value)}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Year --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-               
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    From Month
-                  </Label>
-                  <Select
-                    value={values.fromMonth}
-                    onValueChange={(value) => setFieldValue("fromMonth", value)}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Month --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                
-                <div className="space-y-2">
-                  <Label className="font-semibold whitespace-nowrap">
-                    To Month
-                  </Label>
-                  <Select
-                    value={values.toMonth}
-                    onValueChange={(value) => setFieldValue("toMonth", value)}
-                  >
-                    <SelectTrigger className="w-full h-9">
-                      <SelectValue placeholder="-- Select Month --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    "Accumulation"
-                  )}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => {
-                    resetForm();
-                    setSubDepartmentOptions([]);
-                    setEmployeeOptions([]);
-                    setBankOptions([]);
-                    setBranchOptions([]);
-                    setRecoveryList([]);
-                    setFieldValue("corporation", DEFAULT_CORPORATION_ID);
-                    fetchBanks();
-                    fetchEmployees();
-                  }}
-                  className="bg-red-600 text-white hover:bg-red-700"
-                >
-                  Reset
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="bg-gray-200 text-black hover:bg-gray-300"
-                  path="/HomePage/FrmHomePage"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {shouldShowTable(values) && recoveryList.length > 0 && (
-            <Card className="shadow-sm border mt-6">
-              <CardHeader className="border-b pb-3">
-                <CardTitle className="text-xl font-semibold">Bank Recovery List</CardTitle>
-                {isLoadingList && (
-                  <div className="text-sm text-gray-500">Loading...</div>
-                )}
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-[#083c76] text-white">
-                        {tableHeaders.map((header, index) => (
-                          <th key={index} className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedData.map((row, rowIndex) => (
-                        <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="border border-gray-300 px-4 py-2">{row.sno}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.NUM_BANKRECOVER_ID}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.EMPLOYEE_NAME}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.BANK_NAME}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.BRANCH_NAME}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">{row.NUM_BANKRECOVER_AMOUNT}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.ISWORKING}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.FROMMONTH}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.TOMONTH}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.FROMYEAR}</td>
-                          <td className="border border-gray-300 px-4 py-2">{row.TOYEAR}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-4 mt-4">
                     <Button
                       type="button"
                       variant="outline"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(p => p - 1)}
+                      className="bg-gray-200 text-black hover:bg-gray-300"
+                      onClick={() => window.location.href = "/HomePage/FrmHomePage"}
                     >
-                      Previous
-                    </Button>
-                    <span className="font-semibold">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(p => p + 1)}
-                    >
-                      Next
+                      Cancel
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {shouldShowTable(values) && recoveryList.length > 0 && (
+                <Card className="shadow-sm border mt-6">
+                  <CardHeader className="border-b pb-3">
+                    <CardTitle className="text-xl font-semibold">Bank Recovery List</CardTitle>
+                    {isLoadingList && (
+                      <div className="text-sm text-gray-500">Loading...</div>
+                    )}
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse border border-gray-300">
+                        <thead>
+                          <tr className="bg-[#083c76] text-white">
+                            {tableHeaders.map((header, index) => (
+                              <th key={index} className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedData.map((row, rowIndex) => (
+                            <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                              <td className="border border-gray-300 px-4 py-2">{row.sno}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.NUM_BANKRECOVER_ID}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.EMPLOYEE_NAME}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.BANK_NAME}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.BRANCH_NAME}</td>
+                              <td className="border border-gray-300 px-4 py-2 text-right">{row.NUM_BANKRECOVER_AMOUNT}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.ISWORKING}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.FROMMONTH}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.TOMONTH}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.FROMYEAR}</td>
+                              <td className="border border-gray-300 px-4 py-2">{row.TOYEAR}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center gap-4 mt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(p => p - 1)}
+                        >
+                          Previous
+                        </Button>
+                        <span className="font-semibold">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(p => p + 1)}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </Form>
           )}
-        </Form>
+        </Formik>
       )}
-    </Formik>
+    </>
   );
 };
 
