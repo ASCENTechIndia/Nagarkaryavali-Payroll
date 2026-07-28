@@ -444,6 +444,429 @@ async function getDesignationStatus(payload) {
   return await executeQuery(query, { ulbId: payload.ulbId });
 }
 
+// async function getEarningDeductionTotalData(payload) {
+//   try {
+//     const { salaryDate, ulbId, zoneId, deptId, categoryId, gradeId, subDeptId, reportType } = payload;
+
+//     function convertToOracleDateFormat(dateStr) {
+//       if (!dateStr) return null;
+      
+//       if (/^\d{2}-[A-Z]{3}-\d{4}$/.test(dateStr)) {
+//         return dateStr;
+//       }
+      
+//       const monthMap = {
+//         'January': 'JAN', 'February': 'FEB', 'March': 'MAR', 'April': 'APR',
+//         'May': 'MAY', 'June': 'JUN', 'July': 'JUL', 'August': 'AUG',
+//         'September': 'SEP', 'October': 'OCT', 'November': 'NOV', 'December': 'DEC'
+//       };
+      
+//       const parts = dateStr.split(/[- ]/);
+//       if (parts.length === 3) {
+//         const day = parts[0].padStart(2, '0');
+//         const month = monthMap[parts[1]] || parts[1].toUpperCase().substring(0, 3);
+//         const year = parts[2];
+//         return `${day}-${month}-${year}`;
+//       }
+      
+//       return dateStr;
+//     }
+
+//     const oracleDate = convertToOracleDateFormat(salaryDate);
+//     console.log("Converted Date:", oracleDate);
+
+//     const bindParams = {
+//       salaryDate: oracleDate,
+//       ulbId: String(ulbId).trim(),
+//       zoneId: String(zoneId).trim(),
+//     };
+
+//     const payheadType = reportType === "EARN" ? "'E'" : reportType === "DEDUCT" ? "'D'" : "'E'";
+//     console.log("Payhead Type Filter:", payheadType);
+
+//     let query1 = `
+//       SELECT 
+//         LPAD(num_salary_empid, 5, '0') AS num_salary_empid, 
+//         var_employee_engname,
+//         var_employee_marname,
+//         num_salary_presentdays AS num_salary_calcdays,
+//         var_desigmst_designationname,
+//         var_deptmst_deptnamee,
+//         var_grademst_gradename,
+//         0 AS New_PayHeadID,
+//         var_payheads_mname, 
+//         var_payheads_Ename,
+//         VAR_PAYSUBHEADS_TYPE AS earntype,
+//         SUM(NVL(num_salarydtl_amount, 0)) AS num_salarydtl_amount,
+//         NVL(num_salary_totalearning, 0) AS num_salary_totalearn, 
+//         NVL(num_salary_totaldeduct, 0) AS num_salary_totaldeduct,
+//         num_payheads_id,
+//         OrderNo,
+//         0 AS GPFNOPRANNO,
+//         JOINDATE, 
+//         RETIREMNTDATE
+//     `;
+
+//     if (ulbId === "870") {
+//       query1 += ` , NUM_SALARYORDER_DEPTORDER, NUM_SALARYORDER_DESIGORDER `;
+//     }
+
+//     query1 += ` FROM view_paysheet `;
+
+//     if (ulbId === "870") {
+//       query1 += ` 
+//         LEFT JOIN aopr_salaryorder_det 
+//           ON NUM_SALARYORDER_ULBID = ulbid 
+//           AND NUM_SALARYORDER_DEPTID = num_salary_deptid 
+//           AND NUM_SALARYORDER_DESIGID = num_salary_desigid 
+//       `;
+//     }
+
+//     query1 += ` WHERE date_salary_saldate = TO_DATE(:salaryDate, 'DD-MON-YYYY') AND ulbid = :ulbId AND NUM_SALARY_ZONE = :zoneId `;
+
+//     if (deptId && deptId !== "-1") {
+//       query1 += ` AND num_salary_deptid = :deptId `;
+//       bindParams.deptId = String(deptId).trim();
+//     }
+
+//     if (categoryId && categoryId !== "0") {
+//       query1 += ` AND num_salary_categoryid = :categoryId `;
+//       bindParams.categoryId = String(categoryId).trim();
+//     }
+
+//     if (gradeId && gradeId !== "0") {
+//       query1 += ` AND num_salary_gradeid = :gradeId `;
+//       bindParams.gradeId = String(gradeId).trim();
+//     }
+
+//     if (subDeptId && subDeptId !== "" && subDeptId !== "-1" && subDeptId !== "0") {
+//       if (ulbId === "590") {
+//         query1 += ` 
+//           AND num_salary_empid IN (
+//             SELECT num_employeedep_empid FROM AOPR_EMPLOYEEDEP_CONF 
+//             WHERE num_employeedep_subdepid = :subDeptId 
+//               AND num_employeedep_depid = :deptId 
+//               AND num_employeedep_ulbid = :ulbId
+//           ) 
+//         `;
+//         bindParams.subDeptId = String(subDeptId).trim();
+//       }
+//     }
+
+//     query1 += ` AND VAR_PAYSUBHEADS_TYPE = ${payheadType} `;
+
+//     query1 += `
+//       GROUP BY 
+//         num_salary_empid, var_employee_engname, var_employee_marname, 
+//         num_salary_presentdays, var_desigmst_designationname, 
+//         var_deptmst_deptnamee, var_grademst_gradename, 
+//         var_payheads_mname, var_payheads_Ename, VAR_PAYSUBHEADS_TYPE, 
+//         NVL(num_salary_totalearning, 0), NVL(num_salary_totaldeduct, 0), 
+//         num_payheads_id, OrderNo, JOINDATE, RETIREMNTDATE
+//     `;
+
+//     if (ulbId === "870") {
+//       query1 += ` , NUM_SALARYORDER_DEPTORDER, NUM_SALARYORDER_DESIGORDER `;
+//     }
+
+//     if (ulbId === "870") {
+//       query1 += ` ORDER BY OrderNo, NUM_SALARYORDER_DEPTORDER, NUM_SALARYORDER_DESIGORDER `;
+//     } else {
+//       query1 += ` ORDER BY OrderNo `;
+//     }
+
+//     console.log("Query1:", query1);
+//     console.log("Bind Params:", JSON.stringify(bindParams, null, 2));
+
+//     let query2 = `
+//       SELECT 
+//         e.num_employee_empid,
+//         e.var_employee_engname,
+//         e.var_employee_marname,
+//         0 AS new_payheadid,
+//     `;
+
+//     if (ulbId === "870") {
+//       query2 += `
+//         (nvl(p.num_salary_presentdays,0) - (nvl(NUM_ATTENDENTRY_ELDAYS,0) + nvl(NUM_ATTENDENTRY_MLDAYS,0) + (nvl(NUM_ATTENDENTRY_HPDAYS,0)/2))) AS presentdays,
+//       `;
+//     } else {
+//       query2 += `
+//         (nvl(p.num_salary_presentdays,0) - (nvl(NUM_ATTENDENTRY_ELDAYS,0) + nvl(NUM_ATTENDENTRY_MLDAYS,0) + (nvl(NUM_ATTENDENTRY_HPDAYS,0)/2) + nvl(NUM_ATTENDENTRY_LWPDAYS,0))) AS presentdays,
+//       `;
+//     }
+
+//     query2 += `
+//         num_salary_calcbasic AS LeaveBasic,
+//         num_employee_basic AS EarnBasic,
+//         num_employee_gradepay AS gradepay,
+//         var_employee_panno AS pfno,
+//         var_employee_pfno AS gpfnopranno,
+//         DATE_EMPLOYEE_JOINDATE AS JOINDATE,
+//         DATE_EMPLOYEE_RETIREMNTDATE AS RETIREMNTDATE,
+//         NUM_ATTENDENTRY_ELDAYS AS EL,
+//         NUM_ATTENDENTRY_MLDAYS AS ML,
+//         0 AS CL,
+//         NUM_ATTENDENTRY_HPDAYS AS HPL,
+//         NUM_ATTENDENTRY_LWPDAYS AS LWP,
+//         var_employee_oldempno AS oldempno
+//     `;
+
+//     if (ulbId === "870") {
+//       query2 += ` , num_salaryorder_deptorder, num_salaryorder_desigorder `;
+//     }
+
+//     query2 += `
+//       FROM aopr_employee_def e
+//       INNER JOIN aopr_salary_def p 
+//         ON num_salary_ulbid = e.num_employee_ulbid 
+//         AND num_salary_empid = e.num_employee_empid 
+//         AND date_salary_saldate = TO_DATE(:salaryDate, 'DD-MON-YYYY')
+//       INNER JOIN aoms_attendanceentry_mas 
+//         ON num_attendentry_ulbid = num_salary_ulbid 
+//         AND num_employee_empid = num_attendentry_empid 
+//         AND DATE_ATTENDENRTY_ATTENDATE = date_salary_saldate
+//     `;
+
+//     if (ulbId === "870") {
+//       query2 += `
+//         LEFT JOIN aopr_salaryorder_det 
+//           ON num_salaryorder_ulbid = num_employee_ulbid 
+//           AND num_salaryorder_deptid = num_employee_deptid 
+//           AND num_salaryorder_desigid = num_employee_desigid
+//       `;
+//     }
+
+//     query2 += `
+//       WHERE e.num_employee_zone = :zoneId 
+//         AND e.num_employee_ulbid = :ulbId
+//     `;
+
+//     if (deptId && deptId !== "-1") {
+//       query2 += ` AND e.num_employee_deptid = :deptId `;
+//     }
+
+//     if (categoryId && categoryId !== "0") {
+//       query2 += ` AND e.num_employee_paysheettype = :categoryId `;
+//     }
+
+//     if (gradeId && gradeId !== "0") {
+//       query2 += ` AND e.num_employee_gradeid = :gradeId `;
+//     }
+
+//     if (subDeptId && subDeptId !== "" && subDeptId !== "-1" && subDeptId !== "0") {
+//       if (ulbId === "590") {
+//         query2 += ` 
+//           AND e.num_employee_empid IN (
+//             SELECT num_employeedep_empid FROM AOPR_EMPLOYEEDEP_CONF 
+//             WHERE num_employeedep_subdepid = :subDeptId 
+//               AND num_employeedep_depid = :deptId 
+//               AND num_employeedep_ulbid = :ulbId
+//           ) 
+//         `;
+//       }
+//     }
+
+//     query2 += ` ORDER BY e.num_employee_empid `;
+
+//     console.log("Query2:", query2);
+
+//     const [resultTx, resultEmp] = await Promise.all([
+//       executeQuery(query1, bindParams),
+//       executeQuery(query2, bindParams)
+//     ]);
+
+//     console.log("Transaction Rows:", resultTx?.rowCount || 0);
+//     console.log("Employee Rows:", resultEmp?.rowCount || 0);
+
+//     if (!resultTx.rows || resultTx.rows.length === 0) {
+//       console.log("No transaction data found");
+//       return { success: false, message: "|| Record not Found||", employees: [] };
+//     }
+//     if (!resultEmp.rows || resultEmp.rows.length === 0) {
+//       console.log("No employee data found");
+//       return { success: false, message: "Employee Records Not Found", employees: [] };
+//     }
+
+//     const queryPayhead = `
+//       SELECT 
+//         num_payheads_id,
+//         UTL_RAW.CAST_TO_VARCHAR2(HEXTORAW(REPLACE(RAWTOHEX(var_payheads_shortname),'2808DE',''))) AS payheadname,
+//         num_payheads_orderno 
+//       FROM aopr_payheads_def 
+//       INNER JOIN aopr_paysubheads_def 
+//         ON num_paysubheads_id = num_payhead_subheadid 
+//       WHERE num_payheads_ulbid = :ulbId 
+//         AND var_paysubheads_type = ${payheadType}
+//       GROUP BY num_payheads_id, var_payheads_shortname, num_payheads_orderno 
+//       ORDER BY num_payheads_orderno
+//     `;
+
+//     const payHeadResult = await executeQuery(queryPayhead, { ulbId: String(ulbId).trim() });
+//     console.log("Payhead Rows:", payHeadResult?.rowCount || 0);
+
+//     const headers = {};
+//     for (let i = 1; i <= 70; i++) headers[`header${i}`] = "";
+
+//     const payheadOrderMap = {};
+//     if (payHeadResult.rows) {
+//       payHeadResult.rows.forEach((row) => {
+//         const orderNoStr = String(row.NUM_PAYHEADS_ORDERNO || row.num_payheads_orderno || "").trim();
+//         const name = row.PAYHEADNAME || row.payheadname || "";
+//         if (orderNoStr) {
+//           payheadOrderMap[orderNoStr] = name;
+//           const oNum = parseInt(orderNoStr, 10);
+//           if (oNum >= 1 && oNum <= 32) headers[`header${oNum}`] = name;
+//           if (oNum >= 101 && oNum <= 138) headers[`header${oNum - 68}`] = name;
+//         }
+//       });
+//     }
+
+//     const masterEmployeeMap = {};
+//     const grandTotals = {};
+//     for (let i = 1; i <= 32; i++) grandTotals[`rTotal${i}`] = 0;
+//     for (let i = 101; i <= 138; i++) grandTotals[`rTotal${i}`] = 0;
+
+//     let totalEarnAccumulator = 0;
+//     let totalDeductAccumulator = 0;
+
+//     resultEmp.rows.forEach((emp) => {
+//       const rawEmpId = emp.NUM_EMPLOYEE_EMPID || emp.num_employee_empid;
+//       const paddedId = String(rawEmpId).padStart(5, "0");
+
+//       const baseRecord = {
+//         num_employee_empid: paddedId,
+//         VAR_EMPLOYEE_ENGNAME: emp.VAR_EMPLOYEE_ENGNAME || emp.var_employee_engname || "",
+//         VAR_EMPLOYEE_MARNAME: emp.VAR_EMPLOYEE_MARNAME || emp.var_employee_marname || "",
+//         presentdays: Number(emp.PRESENTDAYS || emp.presentdays) || 0,
+//         LeaveBasic: Number(emp.LEAVEBASIC || emp.leavebasic) || 0,
+//         EarnBasic: Number(emp.EARNBASIC || emp.earnbasic) || 0,
+//         GradePay: Number(emp.GRADEPAY || emp.gradepay) || 0,
+//         basicPay: 0,
+//         gradePay: 0,
+//         totalEarning: 0,
+//         totalDeduction: 0,
+//         PfNo: emp.PFNO || emp.pfno || "",
+//         GPFNOPRANNO: emp.GPFNOPRANNO || emp.gpfnopranno || "",
+//         JOINDATE: emp.JOINDATE || emp.joindate,
+//         RETIREMNTDATE: emp.RETIREMNTDATE || emp.retiremntdate,
+//         EL: Number(emp.EL || emp.el) || 0,
+//         ML: Number(emp.ML || emp.ml) || 0,
+//         CL: Number(emp.CL || emp.cl) || 0,
+//         HPL: Number(emp.HPL || emp.hpl) || 0,
+//         LWP: Number(emp.LWP || emp.lwp) || 0,
+//         oldempno: emp.OLDEMPNO || emp.oldempno || "",
+//         Total: 0,
+//         DTotal: 0,
+//         TotalPayamount: 0,
+//         Designation: "",
+//         PayScale: "",
+//       };
+
+//       if (ulbId === "870") {
+//         baseRecord.NUM_SALARYORDER_DEPTORDER = emp.NUM_SALARYORDER_DEPTORDER || emp.num_salaryorder_deptorder;
+//         baseRecord.NUM_SALARYORDER_DESIGORDER = emp.NUM_SALARYORDER_DESIGORDER || emp.num_salaryorder_desigorder;
+//       }
+
+//       for (let i = 1; i <= 32; i++) baseRecord[`col${i}`] = 0;
+//       for (let i = 101; i <= 138; i++) baseRecord[`col${i}`] = 0;
+
+//       masterEmployeeMap[paddedId] = baseRecord;
+//     });
+
+//     resultTx.rows.forEach((tx) => {
+//       const orderNoStr = String(tx.ORDERNO || tx.orderno || "").trim();
+//       if (payheadOrderMap[orderNoStr] !== undefined) {
+//         const txEmpId = String(tx.NUM_SALARY_EMPID || tx.num_salary_empid).padStart(5, "0");
+//         const targetEmp = masterEmployeeMap[txEmpId];
+
+//         if (targetEmp) {
+//           const amt = Number(tx.NUM_SALARYDTL_AMOUNT || tx.num_salarydtl_amount) || 0;
+          
+//           targetEmp[`col${orderNoStr}`] = amt;
+          
+//           if (orderNoStr === "1") {
+//             targetEmp.basicPay = amt; 
+//           }
+          
+//           if (orderNoStr === "104") {
+//             targetEmp.gradePay = amt;
+//           }
+          
+//           targetEmp.totalEarning = Number(tx.NUM_SALARY_TOTALEARN || tx.num_salary_totalearn) || 0;
+          
+//           targetEmp.basicGradeTotal = (targetEmp.basicPay || 0) + (targetEmp.gradePay || 0);
+          
+//           targetEmp.DTotal = Number(tx.NUM_SALARY_TOTALDEDUCT || tx.num_salary_totaldeduct) || 0;
+//           targetEmp.totalDeduction = targetEmp.DTotal; 
+//           targetEmp.TotalPayamount = targetEmp.totalEarning - targetEmp.totalDeduction;
+//           targetEmp.Designation = tx.VAR_DESIGMST_DESIGNATIONNAME || tx.var_desigmst_designationname || "";
+
+//           grandTotals[`rTotal${orderNoStr}`] = (grandTotals[`rTotal${orderNoStr}`] || 0) + amt;
+//         }
+//       }
+//     });
+
+//     // Object.values(masterEmployeeMap).forEach((emp) => {
+//     //   totalEarnAccumulator += emp.totalEarning || 0;
+//     //   totalDeductAccumulator += emp.totalDeduction || 0;
+//     // }); 
+
+//     let totalBasicPay = 0;
+//     let totalGradePay = 0;
+
+//     Object.values(masterEmployeeMap).forEach((emp) => {
+//       totalBasicPay += emp.basicPay || 0;
+//       totalGradePay += emp.gradePay || 0;
+//       totalEarnAccumulator += emp.totalEarning || 0;
+//       totalDeductAccumulator += emp.totalDeduction || 0;
+//     });
+
+//     let finalSortedArray = Object.values(masterEmployeeMap);
+//     if (ulbId === "870") {
+//       finalSortedArray.sort((a, b) => {
+//         const deptOrderDiff = (Number(a.NUM_SALARYORDER_DEPTORDER) || 0) - (Number(b.NUM_SALARYORDER_DEPTORDER) || 0);
+//         if (deptOrderDiff !== 0) return deptOrderDiff;
+//         return (Number(a.NUM_SALARYORDER_DESIGORDER) || 0) - (Number(b.NUM_SALARYORDER_DESIGORDER) || 0);
+//       });
+//     } else {
+//       finalSortedArray.sort((a, b) => String(a.num_employee_empid).localeCompare(String(b.num_employee_empid)));
+//     }
+
+//     const isEarnChecked = reportType === "EARN";
+//     let dynamicTitleReportHeader = "";
+//     if (ulbId === "870") {
+//       dynamicTitleReportHeader = isEarnChecked ? "वेतन पत्रक - मिळकत तपशील" : "वेतन पत्रक - कटाई";
+//     }
+
+//     console.log("Final Employee Count:", finalSortedArray.length);
+//     console.log("Grand Total Earn:", totalEarnAccumulator);
+//     console.log("Grand Total Deduct:", totalDeductAccumulator);
+
+//     return {
+//       success: true,
+//       headers,
+//       reportHeaderTitle: dynamicTitleReportHeader,
+//       employees: finalSortedArray,
+//       // reportTotals: grandTotals,
+//       reportTotals: {
+//         ...grandTotals,
+//         totalBasicPay: totalBasicPay,
+//         totalGradePay: totalGradePay,
+//         totalBasicGradeSum: totalBasicPay + totalGradePay
+//       },
+//       grandEarn: totalEarnAccumulator,
+//       grandDeduct: totalDeductAccumulator,
+//       grandNet: totalEarnAccumulator - totalDeductAccumulator,
+//       rowCount: finalSortedArray.length,
+//     };
+
+//   } catch (err) {
+//     console.error("Exception in getEarningDeductionTotalData:", err);
+//     throw err;
+//   }
+// }
+
 async function getEarningDeductionTotalData(payload) {
   try {
     const { salaryDate, ulbId, zoneId, deptId, categoryId, gradeId, subDeptId, reportType } = payload;
@@ -746,6 +1169,8 @@ async function getEarningDeductionTotalData(payload) {
         gradePay: 0,
         totalEarning: 0,
         totalDeduction: 0,
+        dbTotalEarning: 0,
+        dbTotalDeduction: 0,
         PfNo: emp.PFNO || emp.pfno || "",
         GPFNOPRANNO: emp.GPFNOPRANNO || emp.gpfnopranno || "",
         JOINDATE: emp.JOINDATE || emp.joindate,
@@ -793,13 +1218,11 @@ async function getEarningDeductionTotalData(payload) {
             targetEmp.gradePay = amt;
           }
           
-          targetEmp.totalEarning = Number(tx.NUM_SALARY_TOTALEARN || tx.num_salary_totalearn) || 0;
+          targetEmp.dbTotalEarning = Number(tx.NUM_SALARY_TOTALEARN || tx.num_salary_totalearn) || 0;
+          targetEmp.dbTotalDeduction = Number(tx.NUM_SALARY_TOTALDEDUCT || tx.num_salary_totaldeduct) || 0;
           
           targetEmp.basicGradeTotal = (targetEmp.basicPay || 0) + (targetEmp.gradePay || 0);
           
-          targetEmp.DTotal = Number(tx.NUM_SALARY_TOTALDEDUCT || tx.num_salary_totaldeduct) || 0;
-          targetEmp.totalDeduction = targetEmp.DTotal; 
-          targetEmp.TotalPayamount = targetEmp.totalEarning - targetEmp.totalDeduction;
           targetEmp.Designation = tx.VAR_DESIGMST_DESIGNATIONNAME || tx.var_desigmst_designationname || "";
 
           grandTotals[`rTotal${orderNoStr}`] = (grandTotals[`rTotal${orderNoStr}`] || 0) + amt;
@@ -807,19 +1230,56 @@ async function getEarningDeductionTotalData(payload) {
       }
     });
 
-    // Object.values(masterEmployeeMap).forEach((emp) => {
-    //   totalEarnAccumulator += emp.totalEarning || 0;
-    //   totalDeductAccumulator += emp.totalDeduction || 0;
-    // }); 
-
+    // ========== CALCULATE DISPLAYED DEDUCTION & NET PAY ==========
     let totalBasicPay = 0;
     let totalGradePay = 0;
+    let grandDeductTotal = 0;
+    let grandEarnTotal = 0;
+
+    // Regular deduction columns (excluding 16 and 120 which have special fallback logic)
+    const regularDeductionColumns = [
+      126, 127, 131, 132, 10, 20, 17, 18, 19, 21, 128, 106, 22, 
+      25, 28, 27, 14, 30, 32, 108, 29, 107, 11, 24
+    ];
 
     Object.values(masterEmployeeMap).forEach((emp) => {
-      totalBasicPay += emp.basicPay || 0;
-      totalGradePay += emp.gradePay || 0;
-      totalEarnAccumulator += emp.totalEarning || 0;
-      totalDeductAccumulator += emp.totalDeduction || 0;
+      // 1. Calculate displayed deduction from regular columns
+      let displayedDeduction = 0;
+      regularDeductionColumns.forEach((col) => {
+        displayedDeduction += Number(emp[`col${col}`] || 0);
+      });
+      
+      // 2. Handle column 16 with fallback to 120 (same logic as template helper)
+      const col16Val = Number(emp['col16'] || 0);
+      const col120Val = Number(emp['col120'] || 0);
+      
+      if (col16Val > 0 && col120Val > 0) {
+        // Both have values - show both (sum)
+        displayedDeduction += col16Val + col120Val;
+      } else if (col16Val > 0) {
+        // Only col16 has value
+        displayedDeduction += col16Val;
+      } else if (col120Val > 0) {
+        // Only col120 has value (fallback)
+        displayedDeduction += col120Val;
+      }
+      // If both are 0, add nothing
+      
+      // 3. Set displayed values for table
+      emp.DTotal = displayedDeduction;
+      emp.totalDeduction = displayedDeduction;
+      emp.totalEarning = emp.basicGradeTotal || 0;
+      
+      // 4. Net Pay uses database totals (matches dotnet behavior)
+      const dbEarning = emp.dbTotalEarning || 0;
+      const dbDeduction = emp.dbTotalDeduction || 0;
+      emp.TotalPayamount = dbEarning - dbDeduction;
+      
+      // 5. Accumulate for grand totals
+      totalBasicPay += Math.floor(emp.basicPay || 0);
+      totalGradePay += Math.floor(emp.gradePay || 0);
+      grandEarnTotal += Math.floor(emp.dbTotalEarning || 0);
+      grandDeductTotal += Math.floor(emp.dbTotalDeduction || 0);
     });
 
     let finalSortedArray = Object.values(masterEmployeeMap);
@@ -840,24 +1300,23 @@ async function getEarningDeductionTotalData(payload) {
     }
 
     console.log("Final Employee Count:", finalSortedArray.length);
-    console.log("Grand Total Earn:", totalEarnAccumulator);
-    console.log("Grand Total Deduct:", totalDeductAccumulator);
+    console.log("Grand Total Earn (from database):", grandEarnTotal);
+    console.log("Grand Total Deduct (from database):", grandDeductTotal);
 
     return {
       success: true,
       headers,
       reportHeaderTitle: dynamicTitleReportHeader,
       employees: finalSortedArray,
-      // reportTotals: grandTotals,
       reportTotals: {
         ...grandTotals,
         totalBasicPay: totalBasicPay,
         totalGradePay: totalGradePay,
         totalBasicGradeSum: totalBasicPay + totalGradePay
       },
-      grandEarn: totalEarnAccumulator,
-      grandDeduct: totalDeductAccumulator,
-      grandNet: totalEarnAccumulator - totalDeductAccumulator,
+      grandEarn: Math.floor(grandEarnTotal),
+      grandDeduct: Math.floor(grandDeductTotal),
+      grandNet: Math.floor(grandEarnTotal - grandDeductTotal),
       rowCount: finalSortedArray.length,
     };
 
