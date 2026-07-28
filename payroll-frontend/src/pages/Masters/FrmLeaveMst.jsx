@@ -125,7 +125,7 @@ const FrmLeaveMaster = () => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error?.response?.data?.message || "Something went wrong",
+        text: error?.response?.data?.error 
       });
     }
   };

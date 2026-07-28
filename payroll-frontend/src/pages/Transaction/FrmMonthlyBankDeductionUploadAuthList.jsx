@@ -40,6 +40,11 @@ const fetchAuthorizationList = async () => {
       }
     );
 
+    const formatSalaryDate = (date) => {
+  if (!date) return "";
+
+  return date.replace(/\/0001$/, "/2001");
+};
     const rows =
       res.data?.data?.map((item) => ({
         select: (
@@ -53,18 +58,20 @@ const fetchAuthorizationList = async () => {
         ),
 
         departmentName: item.DEPARTMENT,
-        salaryDate: item.SALARYDATE,
+        salaryDate: formatSalaryDate(item.SALARYDATE),
         employeeCount: item.EMPLOYEECOUNT,
         deductionAmount: item.BANKDEDUCTIONAMOUNT,
 
         mainid: item.MAINID,
         deptnamee: item.DEPARTMENT,
-        saldate: item.SALARYDATE,
+        saldate: formatSalaryDate(item.SALARYDATE),
         empcount: item.EMPLOYEECOUNT,
         bankdeductionamt: item.BANKDEDUCTIONAMOUNT,
       })) || [];
 
     setTableData(rows);
+
+    console.log("row:", rows)
   } catch (err) {
     Swal.fire({
       icon: "error",
