@@ -288,9 +288,21 @@ const generateDeptSalBillPDF = async ({
       };
     });
 
-    const grandTotalEarn = processedEmployees.reduce((sum, emp) => sum + emp.totalEarning, 0);
-    const grandTotalDeduct = processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
-    const grandNetPay = (grandTotalEarn - grandTotalDeduct) || 0;
+    // const grandTotalEarn = processedEmployees.reduce((sum, emp) => sum + emp.totalEarning, 0);
+    // const grandTotalDeduct = processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
+    // const grandNetPay = (grandTotalEarn - grandTotalDeduct) || 0;
+
+    let grandTotalEarn, grandTotalDeduct, grandNetPay;
+
+    if (reportType === "EARN") {
+      grandTotalEarn = processedEmployees.reduce((sum, emp) => sum + emp.totalEarning, 0);
+      grandTotalDeduct = processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
+      grandNetPay = (grandTotalEarn - grandTotalDeduct) || 0;
+    } else {
+      grandTotalEarn = reportData.aggregates?.earn || 0;
+      grandTotalDeduct = processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
+      grandNetPay = (grandTotalEarn - grandTotalDeduct) || 0;
+    }
 
     const numberToMarathiWords = (num) => {
       let cleanNum;
