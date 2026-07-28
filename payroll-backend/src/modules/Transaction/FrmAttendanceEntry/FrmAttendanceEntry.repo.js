@@ -84,22 +84,20 @@ async function getAttendanceListRepo({
         binds.fromDate = formattedFromDate;
         binds.toDate = formattedToDate;
     }
-    else if (ulbid == 751 || ulbid == 870) {
+    else if (ulbid == 870) { 
         const dateSql = `
             SELECT 
                 num_monthleavecal_fromdate AS fromdate,
                 num_monthleavecal_todate AS todate 
             FROM aopr_monthleavecal_mas 
             WHERE TO_CHAR(TO_DATE(:lastDate, 'DD-MON-YYYY'), 'MM') = LPAD(num_monthleavecal_monthid, 2, 0) 
-              AND num_monthleavecal_leapyearid = IS_LEAP_YEAR(SYSDATE)
+            AND num_monthleavecal_leapyearid = IS_LEAP_YEAR(SYSDATE)
         `;
         
         const dateResult = await executeQuery(dateSql, { lastDate: formattedLastDate });
         let calculatedFromDate = fromDate;
         let calculatedToDate = toDate;
 
-        console.log("dateResult: ", dateResult)
-        
         if (dateResult.success && dateResult.rows.length > 0) {
             const fromDateDigit = dateResult.rows[0].FROMDATE;
             const toDateDigit = dateResult.rows[0].TODATE;
@@ -108,12 +106,6 @@ async function getAttendanceListRepo({
             
             let fromMonth = monthNum === 1 ? 12 : monthNum - 1;
             let fromYear = monthNum === 1 ? yearNum - 1 : yearNum;
-            
-            // const fromDateObj = new Date(fromYear, fromMonth - 1, parseInt(fromDateDigit));
-            // const toDateObj = new Date(yearNum, monthNum - 1, parseInt(toDateDigit));
-            
-            // calculatedFromDate = fromDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-').toUpperCase();
-            // calculatedToDate = toDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-').toUpperCase();
 
             function formatDateForOracle(year, month, day) {
                 const yearNum = parseInt(year);
@@ -126,8 +118,6 @@ async function getAttendanceListRepo({
             
             calculatedFromDate = formatDateForOracle(fromYear, fromMonth, fromDateDigit);
             calculatedToDate = formatDateForOracle(yearNum, monthNum, toDateDigit);
-            
-            console.log('Calculated dates:', { calculatedFromDate, calculatedToDate });
         }
         
         sql = `
@@ -161,10 +151,31 @@ async function getAttendanceListRepo({
                 ED.num_employee_deptid,
                 ED.num_employee_zone,
                 0 AS monthattend_workingdays,
-                0 AS monthattend_medicalleave,
-                SUM(NVL(m.DayCNT, 0)) AS monthattend_earnedleave,
-                SUM(NVL(h.DayCNT, 0)) AS monthattend_halfday,
-                SUM(NVL(c.DayCNT, 0)) AS monthattend_withoutpay,
+                NVL(MAX(am.num_attendentry_mldays), 0) AS monthattend_medicalleave,
+                NVL(
+                    CASE 
+                        WHEN MAX(am.num_attendentry_eldays) IS NOT NULL 
+                        THEN MAX(am.num_attendentry_eldays) 
+                        ELSE SUM(m.DayCNT) 
+                    END, 
+                    0
+                ) AS monthattend_earnedleave,
+                NVL(
+                    CASE 
+                        WHEN MAX(am.num_attendentry_hpdays) IS NOT NULL 
+                        THEN MAX(am.num_attendentry_hpdays) 
+                        ELSE SUM(h.DayCNT) 
+                    END, 
+                    0
+                ) AS monthattend_halfday,
+                NVL(
+                    CASE 
+                        WHEN MAX(am.num_attendentry_lwpdays) IS NOT NULL 
+                        THEN MAX(am.num_attendentry_lwpdays) 
+                        ELSE SUM(c.DayCNT) 
+                    END, 
+                    0
+                ) AS monthattend_withoutpay,
                 NVL(var_attendentry_mlremrk, NULL) AS monthattend_remark,
                 am.num_attendentry_id AS attendentry_id,
                 var_deptslip_sequence,
@@ -179,25 +190,23 @@ async function getAttendanceListRepo({
                 ON m.num_leave_empid = ED.num_employee_empid 
                 AND m.var_leave_type IN (3, 4, 5, 15) 
                 AND TRUNC(m.ALLDATE) BETWEEN TO_DATE(:fromDate, 'DD-MON-YYYY') AND TO_DATE(:toDate, 'DD-MON-YYYY')
-                AND TO_CHAR(TO_DATE(:lastDate, 'DD-MON-YYYY'), 'YYYY') = TO_CHAR(TO_DATE(m.ALLDATE), 'YYYY') 
                 AND m.var_leave_ishalfdayleave = 'N'
             LEFT JOIN leavebal c 
                 ON c.num_leave_empid = ED.num_employee_empid 
                 AND c.var_leave_type IN (12, 13, 14) 
                 AND TRUNC(c.ALLDATE) BETWEEN TO_DATE(:fromDate, 'DD-MON-YYYY') AND TO_DATE(:toDate, 'DD-MON-YYYY')
-                AND TO_CHAR(TO_DATE(:lastDate, 'DD-MON-YYYY'), 'YYYY') = TO_CHAR(TO_DATE(c.ALLDATE), 'YYYY') 
                 AND c.var_leave_ishalfdayleave = 'N'
             LEFT JOIN leavebal h 
                 ON h.num_leave_empid = ED.num_employee_empid 
                 AND h.var_leave_type IN (3, 4, 5, 15, 12, 13, 14) 
                 AND TRUNC(h.ALLDATE) BETWEEN TO_DATE(:fromDate, 'DD-MON-YYYY') AND TO_DATE(:toDate, 'DD-MON-YYYY')
-                AND TO_CHAR(TO_DATE(:lastDate, 'DD-MON-YYYY'), 'YYYY') = TO_CHAR(TO_DATE(h.ALLDATE), 'YYYY') 
                 AND h.var_leave_ishalfdayleave = 'Y'
             LEFT JOIN aopr_deptslip_mas dsm
                 ON ED.num_employee_empid = dsm.num_deptslip_empid 
                 AND ED.num_employee_ulbid = dsm.num_deptslip_ulbid
             WHERE 1 = 1 
                 AND ED.num_employee_ulbid = :ulbid
+                AND NVL(ED.var_employee_sevanivflag, 'N') <> 'Y'
         `;
         
         binds.lastDate = formattedLastDate;
