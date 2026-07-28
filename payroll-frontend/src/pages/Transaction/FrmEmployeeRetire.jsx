@@ -43,6 +43,7 @@ const FrmEmployeeRetire = () => {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState("");
+  const [resetKey, setResetKey] = useState(0); 
 
   const initialFormValues = {
     department: "",
@@ -245,6 +246,7 @@ const FrmEmployeeRetire = () => {
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
+    debugger;
     const validationResult = FrmEmployeeRetireValidationSchema.safeParse(values);
 
     if (!validationResult.success) {
@@ -306,15 +308,24 @@ const FrmEmployeeRetire = () => {
 
       loaderSwal.close();
 
-      if (res.data?.success) {
+      console.log("res", res);
+
+      if (res.data?.data?.success && res.data?.data?.errorCode === 9999) {
         await Swal.fire({
-          text: res.data?.message || "Employee retired successfully",
+          text: res.data?.data?.message || "Employee retired successfully",
           confirmButtonColor: "#1e3a8a",
         });
-        navigate("/Transactions/FrmEmployeeRetireList");
+
+        setResetKey(prev => prev + 1);
+        setSelectedFile(null);
+        setFileName("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
+        const errorMessage = res.data?.data?.message || res.data?.message || "Failed to save entry";
         await Swal.fire({
-          text: res.data?.message || "Failed to save entry",
+          text: errorMessage,
           confirmButtonColor: "#1e3a8a",
         });
       }
@@ -369,6 +380,7 @@ const FrmEmployeeRetire = () => {
 
   return (
     <Formik
+      key={resetKey}
       initialValues={initialFormValues}
       enableReinitialize={true}
       onSubmit={handleSubmit}
