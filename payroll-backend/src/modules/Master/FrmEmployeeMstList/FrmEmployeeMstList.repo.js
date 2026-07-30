@@ -4,15 +4,11 @@ async function getEmployeeCategoryRepo() {
   console.log("📤 Repo: Fetch Employee Categories");
 
   const sql = `
-    SELECT 
-      CASE 
-        WHEN UPPER(VAR_CATEGORY_NAME) = 'REGULAR' 
-        THEN 'Permanent' 
-        ELSE VAR_CATEGORY_NAME 
-      END AS VAR_CATEGORY_NAME,
-      NUM_CATEGORY_ID
-    FROM aopr_category_mas
-    ORDER BY VAR_CATEGORY_NAME
+   SELECT 
+        num_category_id,
+        var_category_name
+      FROM aopr_category_mas
+      ORDER BY var_category_name
   `;
 
   const result = await executeQuery(sql);
