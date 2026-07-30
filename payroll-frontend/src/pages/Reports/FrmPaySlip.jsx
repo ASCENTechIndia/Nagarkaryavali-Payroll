@@ -310,7 +310,7 @@ const FrmPaySlip = () => {
               animate={{ opacity: 1 }}
               className="p-4 md:p-5 min-h-screen"
             >
-              <Card className="border-0 shadow-none rounded-none bg-transparent">
+              <Card className="border shadow-sm">
                 <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
                   <CardTitle className="text-xl font-bold">Pay Slip</CardTitle>
                 </CardHeader>
@@ -335,7 +335,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+                          
                           {monthOptions.map((item) => (
                             <SelectItem
                               key={item.NUM_MONTH_ID}
@@ -356,7 +356,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+                          
                           {yearOptions.map((item) => (
                             <SelectItem
                               key={item.NUM_YEAR_ID}
@@ -392,7 +392,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+                          
                           {zoneOptions.map((item) => (
                             <SelectItem
                               key={item.ZONEID}
@@ -426,7 +426,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+                          
                           {departmentOptions.map((item) => (
                             <SelectItem
                               key={item.DEPTID}
@@ -491,7 +491,7 @@ const FrmPaySlip = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+                          
                           {categoryOptions.map((item) => (
                             <SelectItem
                               key={item.NUM_CATEGORY_ID}
@@ -518,6 +518,7 @@ const FrmPaySlip = () => {
                           value={values.employeeId}
                           onChange={handleChange}
                           onBlur={() => fetchEmployeeDetails(values.employeeId)}
+                          disabled={values.department}
                           className="w-full h-9"
                         />
 
