@@ -72,7 +72,7 @@ async function saveEmployeeLeaveBalanceService(
     );
   }
 
-  if (result.errorCode !== -100) {
+  if (result.errorCode != "9999") {
 
     throw new AppError(
       result.errorMsg,
