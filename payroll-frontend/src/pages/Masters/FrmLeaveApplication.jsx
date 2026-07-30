@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 
 import axios from "axios";
 
@@ -16,16 +16,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Button } from "@/components/ui/button";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { useAuth } from "@/context/AuthContext";
 import { DatePicker } from "@/components/ui/calendar";
+import SearchableSelect from "@/components/SearchableSelect";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const FrmLeaveApplication = () => {
   const { token, user } = useAuth();
@@ -38,14 +34,13 @@ const FrmLeaveApplication = () => {
 
   const [showDetails, setShowDetails] = useState(false);
 
-  const [employeeList, setEmployeeList] = useState([]);
-
+  
   const [departmentList, setDepartmentList] = useState([]);
-
+  
   const [designationList, setDesignationList] = useState([]);
-
+  
   const [leaveList, setLeaveList] = useState([]);
-  const [visibleEmployees, setVisibleEmployees] = useState([]);
+const [employeeList, setEmployeeList] = useState([]);
   const [leaveSummary, setLeaveSummary] = useState([]);
 
   const axiosConfig = {
@@ -94,51 +89,54 @@ const FrmLeaveApplication = () => {
   useEffect(() => {
     if (!token || !ulbId) return;
 
-    const loadMasterData = async () => {
-      try {
-        showLoader("Loading...");
+   const loadMasterData = async () => {
+  try {
+    showLoader("Loading...");
 
-        const [employeeRes, departmentRes, designationRes, leaveRes] =
-          await Promise.all([
-            axios.post(
-              `${baseUrl}/api/LeaveApplication/employeelist`,
-              { ulbId },
-              axiosConfig,
-            ),
-            axios.get(
-              `${baseUrl}/api/LeaveApplication/departmentlist`,
-              axiosConfig,
-            ),
-            axios.get(
-              `${baseUrl}/api/LeaveApplication/designationlist`,
-              axiosConfig,
-            ),
-            axios.post(
-              `${baseUrl}/api/LeaveApplication/leavelist`,
-              { ulbId },
-              axiosConfig,
-            ),
-          ]);
+    const [employeeRes, departmentRes, designationRes, leaveRes] =
+      await Promise.all([
+        axios.post(
+          `${baseUrl}/api/LeaveApplication/employeelist`,
+          { ulbId },
+          axiosConfig
+        ),
+        axios.get(
+          `${baseUrl}/api/LeaveApplication/departmentlist`,
+          axiosConfig
+        ),
+        axios.get(
+          `${baseUrl}/api/LeaveApplication/designationlist`,
+          axiosConfig
+        ),
+        axios.post(
+          `${baseUrl}/api/LeaveApplication/leavelist`,
+          { ulbId },
+          axiosConfig
+        ),
+      ]);
 
-        const employees = employeeRes?.data?.data?.data || [];
-
-        setEmployeeList(employees);
-
-        // initially load only first 50
-        setVisibleEmployees(employees.slice(0, 50));
-        setDepartmentList(departmentRes?.data?.data?.data || []);
-        setDesignationList(designationRes?.data?.data?.data || []);
-        setLeaveList(leaveRes?.data?.data?.data || []);
-      } catch (error) {
-        console.log("Master API Error", error);
-      } finally {
-        hideLoader();
-      }
-    };
+    setEmployeeList(employeeRes?.data?.data?.data || []);
+    setDepartmentList(departmentRes?.data?.data?.data || []);
+    setDesignationList(designationRes?.data?.data?.data || []);
+    setLeaveList(leaveRes?.data?.data?.data || []);
+  } catch (error) {
+    console.log("Master API Error", error);
+  } finally {
+    hideLoader();
+  }
+};
 
     loadMasterData();
   }, [token, ulbId]);
 
+  const employeeOptions = useMemo(
+  () =>
+    employeeList.map((item) => ({
+      value: String(item.NUM_EMPLOYEE_EMPID),
+      label: item.EMPNAME,
+    })),
+  [employeeList]
+);
   /* -------------------------------------------------------------------------- */
   /*                            EMPLOYEE DETAILS API                            */
   /* -------------------------------------------------------------------------- */
@@ -156,12 +154,13 @@ const FrmLeaveApplication = () => {
         axiosConfig,
       );
 
-      if(response?.data?.data?.count == 0 
-        || response?.data?.data?.data?.length === 0
-      ){
-       await Swal.fire({
-          text: "|| Record Not Found ||"
-        })
+      if (
+        response?.data?.data?.count == 0 ||
+        response?.data?.data?.data?.length === 0
+      ) {
+        await Swal.fire({
+          text: "|| Record Not Found ||",
+        });
       }
 
       const employeeData = response?.data?.data?.data?.[0];
@@ -224,10 +223,10 @@ const FrmLeaveApplication = () => {
         axiosConfig,
       );
 
-      if(response?.data?.data?.count === 0){
+      if (response?.data?.data?.count === 0) {
         Swal.fire({
-          text: "No Data Found for Selected Leave Type"
-        })
+          text: "No Data Found for Selected Leave Type",
+        });
       }
 
       const balanceData = response?.data?.data?.data?.[0];
@@ -250,7 +249,6 @@ const FrmLeaveApplication = () => {
         },
         axiosConfig,
       );
-      
 
       setLeaveSummary(response?.data?.data?.data || []);
     } catch (error) {
@@ -350,50 +348,13 @@ const FrmLeaveApplication = () => {
                     required
                   />
 
-                  <Select
-                    value={values.employee}
-                    disabled={showDetails}
-                    onValueChange={(value) => setFieldValue("employee", value)}
-                  >
-                    <SelectTrigger className="w-full h-10">
-                      <SelectValue placeholder="Select Employee" />
-                    </SelectTrigger>
-
-                    <SelectContent
-                      className="max-h-72 overflow-y-auto"
-                      onScroll={(e) => {
-                        const target = e.target;
-
-                        if (
-                          target.scrollTop + target.clientHeight >=
-                          target.scrollHeight - 20
-                        ) {
-                          if (visibleEmployees.length < employeeList.length) {
-                            setVisibleEmployees((prev) => [
-                              ...prev,
-                              ...employeeList.slice(
-                                prev.length,
-                                prev.length + 50,
-                              ),
-                            ]);
-                          }
-                        }
-                      }}
-                    >
-                      {visibleEmployees?.length > 0 ? (
-                        visibleEmployees.map((item) => (
-                          <SelectItem
-                            key={item.NUM_EMPLOYEE_EMPID}
-                            value={String(item.NUM_EMPLOYEE_EMPID)}
-                          >
-                            {item.EMPNAME}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <div className="p-3 text-sm">No Employees Found</div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                 <SearchableSelect
+  value={values.employee}
+  options={employeeOptions}
+  placeholder="Select Employee"
+  disabled={showDetails}
+  onChange={(value) => setFieldValue("employee", value)}
+/>
                 </div>
 
                 {/* Search */}
@@ -525,8 +486,11 @@ const FrmLeaveApplication = () => {
                             "balancedLeaves",
                             leaveData?.BALANCE_LEAVE || 0,
                           );
-                          await getEmployeeLeaveBalance(values.employee, selectedLeave?.LEAVEID, setFieldValue)
-
+                          await getEmployeeLeaveBalance(
+                            values.employee,
+                            selectedLeave?.LEAVEID,
+                            setFieldValue,
+                          );
                         }}
                       >
                         <SelectTrigger className="w-full h-10">
@@ -671,9 +635,13 @@ const FrmLeaveApplication = () => {
                   {/* Buttons */}
 
                   <div className="flex justify-center gap-4 pt-4">
-                    <Button type="submit" >Submit</Button>
+                    <Button type="submit">Submit</Button>
 
-                    <Button type="button" variant="secondary" path="/HomePage/FrmHomePage">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      path="/HomePage/FrmHomePage"
+                    >
                       Back
                     </Button>
                   </div>
