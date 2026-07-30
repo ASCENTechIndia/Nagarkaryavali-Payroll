@@ -320,7 +320,7 @@ const FrmPayHeadList = () => {
                           <SelectTrigger className="w-full h-9">
                               <SelectValue placeholder="Select Month" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent showDefaultOption={false}>
                               {monthOptions.map((option) => (
                               <SelectItem key={option.value} value={option.value}>
                                   {option.label}
@@ -335,7 +335,7 @@ const FrmPayHeadList = () => {
                           <SelectTrigger className="w-28 h-9">
                               <SelectValue placeholder="Year" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent showDefaultOption={false}>
                               {yearOptions.map((option) => (
                               <SelectItem key={option.value} value={option.value}>
                                   {option.label}

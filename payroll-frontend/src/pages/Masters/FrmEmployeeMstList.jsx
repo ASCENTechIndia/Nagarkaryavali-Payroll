@@ -45,8 +45,14 @@ const FrmEmployeeMstList = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/FrmEmployeeMstList/employee-category-list`,
+      // const res = await axios.get(
+      //   `${BASE_URL}/api/FrmEmployeeMstList/employee-category-list`,
+      //   { headers: { Authorization: `Bearer ${token}` } }
+      // );
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmSalaryCalulation/category`,
+        { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -149,6 +155,11 @@ const FrmEmployeeMstList = () => {
     setHasSearched(true);
     setLoading(true);
     try {
+      if (!ulbId) {
+        Swal.fire({ text: "ULB ID not found", confirmButtonColor: "#1e3a8a" });
+        return;
+      }
+
       if (!ulbId) {
         Swal.fire({ text: "ULB ID not found", confirmButtonColor: "#1e3a8a" });
         return;
@@ -303,7 +314,7 @@ const FrmEmployeeMstList = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {categoryOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -325,7 +336,7 @@ const FrmEmployeeMstList = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {zoneOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -347,7 +358,7 @@ const FrmEmployeeMstList = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {departmentOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -397,7 +408,7 @@ const FrmEmployeeMstList = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {subDepartmentOptions.length > 0 ? (
                           subDepartmentOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>

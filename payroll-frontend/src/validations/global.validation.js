@@ -134,6 +134,9 @@ export const FrmDepSalBillValidationSchema = z.object({
     category: z.string().min(1, "Category is required").refine((val) => val !== "-1", {
       message: "Please select a category",
     }),
+    zone: z.string().min(1, "Zone is required").refine((val) => val !== "-1", {
+      message: "Please select a zone",
+    }),
     department: z.string().optional(),
     subDepartment: z.string().optional(),
     billNo: z.string().optional(),

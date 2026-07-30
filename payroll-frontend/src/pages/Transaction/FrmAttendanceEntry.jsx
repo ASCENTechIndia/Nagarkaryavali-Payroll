@@ -737,7 +737,7 @@ const FrmAttendanceEntry = () => {
                       <SelectTrigger className="w-full! h-9 overflow-hidden">
                         <SelectValue placeholder="Select Year" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {yearOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -759,7 +759,7 @@ const FrmAttendanceEntry = () => {
                       <SelectTrigger className="w-full! h-9 overflow-hidden">
                         <SelectValue placeholder="Select Month" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {monthOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
