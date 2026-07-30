@@ -62,6 +62,7 @@ function SelectContent({
   children,
   position = "item-aligned",
   align = "center",
+  showDefaultOption = true,
   ...props
 }) {
   return (
@@ -84,9 +85,11 @@ function SelectContent({
             "data-[position=popper]:h-(--radix-select-trigger-height) data-[position=popper]:w-full data-[position=popper]:min-w-(--radix-select-trigger-width)",
             position === "popper" && ""
           )}>
-          <SelectItem value="__empty__">
-            ---SELECT OPTION---
-          </SelectItem>
+          {showDefaultOption && (
+            <SelectItem value="__empty__">
+              -- Select Option --
+            </SelectItem>
+          )}
           {children}
         </SelectPrimitive.Viewport>
         <SelectScrollDownButton />
