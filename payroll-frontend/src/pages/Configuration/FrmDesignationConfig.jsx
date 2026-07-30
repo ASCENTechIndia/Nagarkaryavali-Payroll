@@ -25,11 +25,13 @@ const FrmDesignationConfig = () => {
   const [corporationOptions, setCorporationOptions] = useState([]);
   const [designationData, setDesignationData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isLoadingList, setIsLoadingList] = useState(false);
   const [selectedULB, setSelectedULB] = useState("");
   const [mode, setMode] = useState(1);
   const [desigConfigId, setDesigConfigId] = useState([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
+  // Table configuration
   const tableHeaders = [
     "निवडा",
     "पदनाम इंग्रजी मध्ये",
@@ -48,11 +50,52 @@ const FrmDesignationConfig = () => {
     "पदनाम मराठी मध्ये": { width: "45%", minWidth: "200px" }
   };
 
+  let swalLoader = null;
+
   useEffect(() => {
     if (ulbId && token) {
-      fetchCorporation();
+      showLoader();
+      fetchAllData();
+    } else {
+      setIsPageLoading(false);
     }
   }, [ulbId, token]);
+
+  const showLoader = () => {
+    Swal.fire({
+      title: 'Loading...',
+      text: 'Please wait while data is being loaded',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  };
+
+  const hideLoader = () => {
+    Swal.close();
+    setIsPageLoading(false);
+  };
+
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        fetchCorporation(),
+      ]);
+      
+      hideLoader();
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+      hideLoader();
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to load initial data. Please refresh the page.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
 
   const fetchCorporation = async () => {
     try {
@@ -77,8 +120,6 @@ const FrmDesignationConfig = () => {
 
   const getData = async (ulbIdValue) => {
     try {
-      setIsLoadingList(true);
-      
       const response = await axios.post(
         `${BASE_URL}/api/FrmDesignationConfig/get-designation-data`,
         { 
@@ -108,32 +149,18 @@ const FrmDesignationConfig = () => {
           previousStatus: "N",
           currentStatus: "N"
         }));
-        setDesignationData(formattedData);
-        setSelectedULB(ulbIdValue);
-        setDesigConfigId([]);
-        setMode(1);
         return formattedData;
       } else {
-        setDesignationData([]);
         return [];
       }
     } catch (err) {
       console.error("Error fetching designation data:", err);
-      Swal.fire({
-        title: 'Error',
-        text: "Failed to fetch designation data",
-        confirmButtonText: 'OK'
-      });
-      return [];
-    } finally {
-      setIsLoadingList(false);
+      throw err;
     }
   };
 
-  const setGrdRecMode = async (ulbIdValue, dtData) => {
+  const getDesignationConfig = async (ulbIdValue) => {
     try {
-      setIsLoadingList(true);
-      
       const response = await axios.post(
         `${BASE_URL}/api/FrmDesignationConfig/get-designation-config`,
         { 
@@ -153,47 +180,85 @@ const FrmDesignationConfig = () => {
         configData = response.data.data;
       }
 
-      setDesigConfigId(configData);
-
-      let updatedData = [...dtData];
-
-      if (configData.length > 0) {
-        setMode(2);
-        updatedData = updatedData.map(item => {
-          const found = configData.some(config => 
-            String(config.DESIG_ID || config.desig_id) === String(item.desigantion_id)
-          );
-          return {
-            ...item,
-            checked: found,
-            IsChecked: found,
-            previousStatus: found ? "Y" : "N",
-            currentStatus: found ? "Y" : "N"
-          };
-        });
-      } else {
-        setMode(1);
-        updatedData = updatedData.map(item => ({
-          ...item,
-          checked: false,
-          IsChecked: false,
-          previousStatus: "N",
-          currentStatus: "N"
-        }));
-      }
-
-      updatedData.sort((a, b) => {
-        if (a.checked === b.checked) return 0;
-        return a.checked ? -1 : 1;
-      });
-
-      setDesignationData(updatedData);
-      return updatedData;
+      return configData;
     } catch (err) {
       console.error("Error fetching designation config:", err);
-      return dtData;
-    } finally {
-      setIsLoadingList(false);
+      throw err;
+    }
+  };
+
+  const loadAllData = async (ulbIdValue) => {
+    try {
+     
+      swalLoader = Swal.fire({
+        title: 'Loading...',
+        text: 'Please wait while data is being loaded',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const [designationList, configuredList] = await Promise.all([
+        getData(ulbIdValue),
+        getDesignationConfig(ulbIdValue)
+      ]);
+
+     
+      if (swalLoader) {
+        swalLoader.close();
+      }
+
+      if (designationList.length > 0) {
+        const configuredIds = new Set(
+          configuredList.map(item => String(item.DESIG_ID || item.desig_id))
+        );
+
+        const updatedData = designationList.map(item => {
+          const isConfigured = configuredIds.has(String(item.desigantion_id));
+          return {
+            ...item,
+            checked: isConfigured,
+            IsChecked: isConfigured,
+            previousStatus: isConfigured ? "Y" : "N",
+            currentStatus: isConfigured ? "Y" : "N"
+          };
+        });
+
+        updatedData.sort((a, b) => {
+          if (a.checked === b.checked) return 0;
+          return a.checked ? -1 : 1;
+        });
+
+        setDesignationData(updatedData);
+        setDesigConfigId(configuredList);
+        setMode(configuredList.length > 0 ? 2 : 1);
+        setSelectedULB(ulbIdValue);
+        setIsDataLoaded(true);
+        
+        return updatedData;
+      } else {
+        setDesignationData([]);
+        setDesigConfigId([]);
+        setMode(1);
+        setIsDataLoaded(true);
+        return [];
+      }
+    } catch (err) {
+      
+      if (swalLoader) {
+        swalLoader.close();
+      }
+      
+      console.error("Error loading data:", err);
+      Swal.fire({
+        title: 'Error',
+        text: err.response?.data?.error || err.response?.data?.message || "Failed to load data",
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      setIsDataLoaded(false);
+      return [];
     }
   };
 
@@ -201,14 +266,12 @@ const FrmDesignationConfig = () => {
     setSelectedULB(value);
     
     if (value && value !== "0") {
-      const data = await getData(value);
-      if (data.length > 0) {
-        await setGrdRecMode(value, data);
-      } else {
-        setDesignationData([]);
-      }
+      await loadAllData(value);
     } else {
       setDesignationData([]);
+      setDesigConfigId([]);
+      setMode(1);
+      setIsDataLoaded(false);
     }
   };
 
@@ -242,11 +305,12 @@ const FrmDesignationConfig = () => {
     
     if (!selectedULB || selectedULB === "0") {
       Swal.fire({
-        text: "Select ULB Name",
+        text: "कृपया नगरपालिकेचे नाव निवडा",
         confirmButtonText: 'OK'
       });
       return;
     }
+
     let recStr = "";
     let chkFlag = false;
 
@@ -283,10 +347,25 @@ const FrmDesignationConfig = () => {
 
     if (recStr.length > 0 && chkFlag) {
       recStr = recStr.slice(0, -1);
+    } else {
+      Swal.fire({
+        text: "कृपया किमान एक चेकबॉक्स निवडा!",
+        confirmButtonText: 'OK'
+      });
+      return;
     }
 
     try {
       setLoading(true);
+
+      swalLoader = Swal.fire({
+        title: 'Saving...',
+        text: 'Please wait while data is being saved',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
       const payload = {
         userId: userId,
@@ -306,28 +385,38 @@ const FrmDesignationConfig = () => {
         }
       );
 
+      if (swalLoader) {
+        swalLoader.close();
+      }
+
       const responseData = res.data?.data || res.data || {};
       const errorCode = responseData.errorCode || responseData.ErrorCode || 0;
       const errorMsg = responseData.errorMsg || responseData.ErrorMsg || responseData.message || "";
 
-      if (errorCode === 9999 || responseData.success === true) {
-        Swal.fire({
+      if (errorCode === 9999 || errorCode === 0 || responseData.success === true) {
+        await Swal.fire({
+          //title: 'यशस्वी',
           text: errorMsg || "Configuration saved successfully",
+          icon: 'success',
           confirmButtonText: 'OK'
         });
+        
         if (selectedULB) {
-          const data = await getData(selectedULB);
-          if (data.length > 0) {
-            await setGrdRecMode(selectedULB, data);
-          }
+          await loadAllData(selectedULB);
         }
       } else {
-        Swal.fire({
+        await Swal.fire({
+          title: 'Error',
           text: errorMsg || "An error occurred",
+          icon: 'error',
           confirmButtonText: 'OK'
         });
       }
     } catch (error) {
+      if (swalLoader) {
+        swalLoader.close();
+      }
+      
       console.error("Submit Error", error);
       
       const errorMessage = error.response?.data?.message || error.message || "Failed to save data";
@@ -335,20 +424,21 @@ const FrmDesignationConfig = () => {
           errorMessage.toLowerCase().includes("successfully") ||
           errorMessage.toLowerCase().includes("success") ||
           errorMessage.toLowerCase().includes("saved")) {
-        Swal.fire({
+        await Swal.fire({
+          title: 'यशस्वी',
           text: errorMessage,
+          icon: 'success',
           confirmButtonText: 'OK'
         });
+        
         if (selectedULB) {
-          const data = await getData(selectedULB);
-          if (data.length > 0) {
-            await setGrdRecMode(selectedULB, data);
-          }
+          await loadAllData(selectedULB);
         }
       } else {
-        Swal.fire({
+        await Swal.fire({
           title: 'Error',
           text: errorMessage,
+          icon: 'error',
           confirmButtonText: 'OK'
         });
       }
@@ -367,84 +457,79 @@ const FrmDesignationConfig = () => {
         </CardHeader>
 
         <CardContent className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="w-full max-w-md space-y-2">
-              <Label className="font-semibold whitespace-nowrap">
-                नगरपालिकेचे नाव
-              </Label>
-              <Select
-                value={selectedULB}
-                onValueChange={handleULBChange}
-              >
-                <SelectTrigger className="w-full h-10">
-                  <SelectValue placeholder="-- Select Option --" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">-- Select Option --</SelectItem>
-                  {corporationOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          
+          <div className="flex items-center gap-4 mb-6">
+            <Label className="font-semibold whitespace-nowrap min-w-[140px]">
+              नगरपालिकेचे नाव :
+            </Label>
+            <Select
+              value={selectedULB}
+              onValueChange={handleULBChange}
+            >
+              <SelectTrigger className="flex-1 max-w-md h-10">
+                <SelectValue placeholder="-- Select Option --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">-- Select Option --</SelectItem>
+                {corporationOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
+          {/* Table Section */}
           {designationData.length > 0 && (
             <div className="mt-4">
-              {isLoadingList ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading...</span>
-                </div>
-              ) : (
-                <ShadCNTable
-                  headers={tableHeaders}
-                  data={designationData}
-                  keyMapping={keyMapping}
-                  columnStyles={columnStyles}
-                  pagination={false}
-                  onSelectAllChange={handleSelectAllChange}
-                  onRowCheckChange={handleRowCheckChange}
-                  className="border border-gray-300 rounded-lg overflow-hidden"
-                />
-              )}
+              <ShadCNTable
+                headers={tableHeaders}
+                data={designationData}
+                keyMapping={keyMapping}
+                columnStyles={columnStyles}
+                pagination={false}
+                onSelectAllChange={handleSelectAllChange}
+                onRowCheckChange={handleRowCheckChange}
+                className="border border-gray-300 rounded-lg overflow-hidden"
+              />
             </div>
           )}
 
-          {!isLoadingList && selectedULB && selectedULB !== "0" && designationData.length === 0 && (
+          {selectedULB && selectedULB !== "0" && designationData.length === 0 && isDataLoaded && (
             <div className="text-center py-8 text-gray-500">
               निवडलेल्या नगरपालिकेसाठी कोणताही पदनाम डेटा उपलब्ध नाही.
             </div>
           )}
 
-          <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                "साठवा"
-              )}
-            </Button>
+          {isDataLoaded && designationData.length > 0 && (
+            <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  "साठवा"
+                )}
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => window.location.href = "/HomePage/FrmHomePage"}
-              className="bg-gray-200 text-black hover:bg-gray-300"
-            >
-              परत
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                path="/HomePage/FrmHomePage"
+                className="bg-gray-200 text-black hover:bg-gray-300"
+              >
+                परत
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

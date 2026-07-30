@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form } from "formik";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -14,111 +14,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import Swal from "sweetalert2";
+import SearchableSelect from "@/components/SearchableSelect";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-
-const SearchableSelect = ({
-  options = [],
-  value = "",
-  onChange,
-  placeholder = "Search and select...",
-  label = "",
-  className = "",
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const dropdownRef = useRef(null);
-
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div className={`relative w-full ${className}`} ref={dropdownRef}>
-      {label && (
-        <Label className="font-semibold whitespace-nowrap block mb-2">
-          {label}
-        </Label>
-      )}
-      
-      <div
-        className="w-full h-9 px-3 py-1 text-sm border border-gray-300 rounded-md bg-white cursor-pointer flex items-center justify-between hover:border-blue-400 transition-colors"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className={selectedOption ? "text-black" : "text-gray-400"}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <span className="ml-2">
-          <svg
-            className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </span>
-      </div>
-
-      {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
-          <div className="p-2 border-b">
-            <input
-              type="text"
-              className="w-full h-8 px-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-              placeholder="--Select Option--"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              autoFocus
-            />
-          </div>
-
-          <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <div
-                  key={option.value}
-                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors ${
-                    value === option.value ? "bg-blue-100 text-blue-700" : ""
-                  }`}
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                    setSearchTerm("");
-                  }}
-                >
-                  {option.label}
-                </div>
-              ))
-            ) : (
-              <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                No results found
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const FrmBankRecovery = () => {
   const { user } = useAuth();
@@ -520,7 +418,7 @@ const FrmBankRecovery = () => {
       
       if (formattedData.length === 0) {
         Swal.fire({
-          //title: 'No Records Found',
+          title: 'No Records Found',
           text: 'No recovery records found for this employee',
           icon: 'info',
           confirmButtonText: 'OK'
@@ -817,11 +715,15 @@ const FrmBankRecovery = () => {
                       </Select>
                     </div>
 
+                    {/* Employee Name - Searchable Dropdown */}
                     <div className="space-y-2">
+                      <Label className="font-semibold whitespace-nowrap">
+                        Employee Name
+                      </Label>
                       <SearchableSelect
-                        label="Employee Name"
-                        options={employeeOptions}
                         value={values.employee}
+                        options={employeeOptions}
+                        placeholder="Search employee..."
                         onChange={(value) => {
                           setFieldValue("employee", value);
                           setFieldValue("bank", "");
@@ -833,7 +735,6 @@ const FrmBankRecovery = () => {
                             setRecoveryList([]);
                           }
                         }}
-                        placeholder="--Select Option--"
                       />
                     </div>
 
@@ -897,7 +798,6 @@ const FrmBankRecovery = () => {
                         onChange={(e) => setFieldValue("recoveryAmount", e.target.value)}
                         type="number"
                         className="h-9"
-                        //placeholder="Enter recovery amount"
                       />
                     </div>
 
@@ -924,7 +824,7 @@ const FrmBankRecovery = () => {
                         onValueChange={(value) => setFieldValue("fromYear", value)}
                       >
                         <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="-- Select Option --" />
+                          <SelectValue placeholder="-- Select Year --" />
                         </SelectTrigger>
                         <SelectContent>
                           {yearOptions.map((option) => (
@@ -945,7 +845,7 @@ const FrmBankRecovery = () => {
                         onValueChange={(value) => setFieldValue("toYear", value)}
                       >
                         <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="-- Select Option --" />
+                          <SelectValue placeholder="-- Select Year --" />
                         </SelectTrigger>
                         <SelectContent>
                           {yearOptions.map((option) => (
@@ -966,7 +866,7 @@ const FrmBankRecovery = () => {
                         onValueChange={(value) => setFieldValue("fromMonth", value)}
                       >
                         <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="-- Select Option --" />
+                          <SelectValue placeholder="-- Select Month --" />
                         </SelectTrigger>
                         <SelectContent>
                           {monthOptions.map((option) => (
@@ -987,7 +887,7 @@ const FrmBankRecovery = () => {
                         onValueChange={(value) => setFieldValue("toMonth", value)}
                       >
                         <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="-- Select Option --" />
+                          <SelectValue placeholder="-- Select Month --" />
                         </SelectTrigger>
                         <SelectContent>
                           {monthOptions.map((option) => (

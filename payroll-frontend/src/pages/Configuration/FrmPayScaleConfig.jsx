@@ -25,11 +25,12 @@ const FrmPayScaleConfig = () => {
   const [corporationOptions, setCorporationOptions] = useState([]);
   const [payScaleData, setPayScaleData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isLoadingList, setIsLoadingList] = useState(false);
   const [selectedULB, setSelectedULB] = useState("");
   const [mode, setMode] = useState(1);
   const [payScaleConfigId, setPayScaleConfigId] = useState([]);
-
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true); 
+  
   const tableHeaders = [
     "निवडा",
     "Pay Scale"
@@ -45,11 +46,60 @@ const FrmPayScaleConfig = () => {
     "Pay Scale": { width: "90%", minWidth: "200px" }
   };
 
-  useEffect(() => {
-    if (ulbId && token) {
-      fetchCorporation();
-    }
-  }, [ulbId, token]);
+  let swalLoader = null;
+
+  // useEffect(() => {
+  //   if (ulbId && token) {
+  //     fetchCorporation();
+  //   }
+  // }, [ulbId, token]);
+
+    
+  
+    useEffect(() => {
+      if (ulbId && token) {
+        showLoader();
+        fetchAllData();
+      } else {
+        setIsPageLoading(false);
+      }
+    }, [ulbId, token]);
+        
+    const showLoader = () => {
+      Swal.fire({
+        title: 'Loading...',
+        text: 'Please wait while data is being loaded',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    };
+    
+    const hideLoader = () => {
+      Swal.close();
+      setIsPageLoading(false);
+    };
+  
+    const fetchAllData = async () => {
+      try {
+        await Promise.all([
+          fetchCorporation(),
+        ]);
+        
+        hideLoader();
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+        hideLoader();
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to load initial data. Please refresh the page.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    };
 
   const fetchCorporation = async () => {
     try {
@@ -74,8 +124,6 @@ const FrmPayScaleConfig = () => {
 
   const getData = async (ulbIdValue) => {
     try {
-      setIsLoadingList(true);
-      
       const response = await axios.post(
         `${BASE_URL}/api/PayScaConfig/payscalelist`,
         { ulbId: Number(ulbIdValue) },
@@ -120,14 +168,7 @@ const FrmPayScaleConfig = () => {
       }
     } catch (err) {
       console.error("Error fetching pay scale data:", err);
-      Swal.fire({
-        title: 'Error',
-        text: err.response?.data?.error || err.response?.data?.message || "Failed to fetch pay scale data",
-        confirmButtonText: 'OK'
-      });
-      return [];
-    } finally {
-      setIsLoadingList(false);
+      throw err;
     }
   };
 
@@ -156,14 +197,22 @@ const FrmPayScaleConfig = () => {
       return configData;
     } catch (err) {
       console.error("Error fetching configured pay scales:", err);
-      return [];
+      throw err;
     }
   };
 
   const loadAllData = async (ulbIdValue) => {
     try {
-      setIsLoadingList(true);
-      
+      // Show loader
+      swalLoader = Swal.fire({
+        title: 'Loading...',
+        text: 'Please wait while data is being loaded',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       const [payScaleList, configuredList] = await Promise.all([
         getData(ulbIdValue),
         loadConfiguredData(ulbIdValue)
@@ -171,6 +220,11 @@ const FrmPayScaleConfig = () => {
 
       console.log("Pay Scale List:", payScaleList);
       console.log("Configured List:", configuredList);
+
+      // Close loader
+      if (swalLoader) {
+        swalLoader.close();
+      }
 
       if (payScaleList.length > 0) {
         const configuredIds = new Set(
@@ -201,19 +255,31 @@ const FrmPayScaleConfig = () => {
         setPayScaleConfigId(configuredList);
         setMode(configuredList.length > 0 ? 2 : 1);
         setSelectedULB(ulbIdValue);
+        setIsDataLoaded(true);
         
         return updatedData;
       } else {
         setPayScaleData([]);
         setPayScaleConfigId([]);
         setMode(1);
+        setIsDataLoaded(true);
         return [];
       }
     } catch (err) {
+      // Close loader on error
+      if (swalLoader) {
+        swalLoader.close();
+      }
+      
       console.error("Error loading data:", err);
+      Swal.fire({
+        title: 'Error',
+        text: err.response?.data?.error || err.response?.data?.message || "Failed to load data",
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      setIsDataLoaded(false);
       return [];
-    } finally {
-      setIsLoadingList(false);
     }
   };
 
@@ -226,6 +292,7 @@ const FrmPayScaleConfig = () => {
       setPayScaleData([]);
       setPayScaleConfigId([]);
       setMode(1);
+      setIsDataLoaded(false);
     }
   };
 
@@ -312,6 +379,16 @@ const FrmPayScaleConfig = () => {
     try {
       setLoading(true);
 
+    
+      swalLoader = Swal.fire({
+        title: 'Saving...',
+        text: 'Please wait while data is being saved',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       const payload = {
         userId: userId,
         ulbId: Number(selectedULB),
@@ -332,13 +409,20 @@ const FrmPayScaleConfig = () => {
         }
       );
 
+     
+      if (swalLoader) {
+        swalLoader.close();
+      }
+
       const responseData = res.data?.data || res.data || {};
       const errorCode = responseData.errorCode || responseData.ErrorCode || 0;
       const errorMsg = responseData.errorMsg || responseData.ErrorMsg || responseData.message || "";
 
       if (errorCode === 9999 || errorCode === 0 || responseData.success === true) {
-        Swal.fire({
+        await Swal.fire({
+          title: 'Success',
           text: errorMsg || "Pay scale configuration saved successfully",
+          icon: 'success',
           confirmButtonText: 'OK'
         });
         
@@ -346,12 +430,19 @@ const FrmPayScaleConfig = () => {
           await loadAllData(selectedULB);
         }
       } else {
-        Swal.fire({
+        await Swal.fire({
+          title: 'Error',
           text: errorMsg || "An error occurred",
+          icon: 'error',
           confirmButtonText: 'OK'
         });
       }
     } catch (error) {
+      
+      if (swalLoader) {
+        swalLoader.close();
+      }
+      
       console.error("Submit Error", error);
       
       const errorMessage = error.response?.data?.message || error.message || "Failed to save data";
@@ -359,8 +450,10 @@ const FrmPayScaleConfig = () => {
           errorMessage.toLowerCase().includes("successfully") ||
           errorMessage.toLowerCase().includes("success") ||
           errorMessage.toLowerCase().includes("saved")) {
-        Swal.fire({
+        await Swal.fire({
+          title: 'Success',
           text: errorMessage,
+          icon: 'success',
           confirmButtonText: 'OK'
         });
         
@@ -368,9 +461,10 @@ const FrmPayScaleConfig = () => {
           await loadAllData(selectedULB);
         }
       } else {
-        Swal.fire({
+        await Swal.fire({
           title: 'Error',
           text: errorMessage,
+          icon: 'error',
           confirmButtonText: 'OK'
         });
       }
@@ -389,85 +483,78 @@ const FrmPayScaleConfig = () => {
         </CardHeader>
 
         <CardContent className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="w-full max-w-md space-y-2">
-              <Label className="font-semibold whitespace-nowrap">
-                नगरपालिकेचे नाव
-              </Label>
-              <Select
-                value={selectedULB}
-                onValueChange={handleULBChange}
-              >
-                <SelectTrigger className="w-full h-10">
-                  <SelectValue placeholder="-- Select Option --" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">-- Select Option --</SelectItem>
-                  {corporationOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex items-center gap-4 mb-6">
+            <Label className="font-semibold whitespace-nowrap min-w-[140px]">
+              नगरपालिकेचे नाव :
+            </Label>
+            <Select
+              value={selectedULB}
+              onValueChange={handleULBChange}
+            >
+              <SelectTrigger className="flex-1 max-w-md h-10">
+                <SelectValue placeholder="-- Select Option --" />
+              </SelectTrigger>
+              <SelectContent>
+                {corporationOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
+          {/* Table Section */}
           {payScaleData.length > 0 && (
             <div className="mt-4">
-              {isLoadingList ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading...</span>
-                </div>
-              ) : (
-                <ShadCNTable
-                  headers={tableHeaders}
-                  data={payScaleData}
-                  keyMapping={keyMapping}
-                  columnStyles={columnStyles}
-                  pagination={false}
-                  onSelectAllChange={handleSelectAllChange}
-                  onRowCheckChange={handleRowCheckChange}
-                  className="border border-gray-300 rounded-lg overflow-hidden"
-                />
-              )}
+              <ShadCNTable
+                headers={tableHeaders}
+                data={payScaleData}
+                keyMapping={keyMapping}
+                columnStyles={columnStyles}
+                pagination={false}
+                onSelectAllChange={handleSelectAllChange}
+                onRowCheckChange={handleRowCheckChange}
+                className="border border-gray-300 rounded-lg overflow-hidden"
+              />
             </div>
           )}
 
-          {!isLoadingList && selectedULB && selectedULB !== "0" && payScaleData.length === 0 && (
+          {selectedULB && selectedULB !== "0" && payScaleData.length === 0 && isDataLoaded && (
             <div className="text-center py-8 text-gray-500">
               निवडलेल्या नगरपालिकेसाठी कोणतीही वेतनश्रेणी डेटा उपलब्ध नाही.
             </div>
           )}
 
-          <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                "साठवा"
-              )}
-            </Button>
+          {/* Buttons - Only shown when data is loaded */}
+          {isDataLoaded && payScaleData.length > 0 && (
+            <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  "साठवा"
+                )}
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              path="/HomePage/FrmHomePage"
-              //onClick={() => window.history.back()}
-              className="bg-gray-200 text-black hover:bg-gray-300"
-            >
-              परत
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                path="/HomePage/FrmHomePage"
+                className="bg-gray-200 text-black hover:bg-gray-300"
+              >
+                परत
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -113,7 +113,7 @@ const FrmRetiredEmpRpt = () => {
         label: item.ZONENAME,
         value: String(item.ZONEID),
       }));
-      setZoneOptions([{ value: "0", label: "-- Select Option --" }, ...formatted]);
+      setZoneOptions(formatted);
     } catch (err) {
       console.error("Error fetching zones:", err);
       throw err;
@@ -527,7 +527,7 @@ const FrmRetiredEmpRpt = () => {
 
               
               <div className="flex flex-col gap-2">
-                <Label className="font-semibold">Zone *</Label>
+                <Label className="font-semibold">Zone </Label>
                 <Select
                   value={values.zone}
                   onValueChange={(value) => setFieldValue("zone", value)}
@@ -555,7 +555,8 @@ const FrmRetiredEmpRpt = () => {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="-- All --" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent showDefaultOption={false}>
+                    
                     {departmentOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
