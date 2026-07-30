@@ -21,8 +21,8 @@ import * as XLSX from "xlsx";
 const initialValues = {
   Year: "",
   Month: "",
-  Zone: "",
-  department: "",
+  Zone: "-1",
+  department: "-1",
   reportType: "",
   status: "PDF",
 };
