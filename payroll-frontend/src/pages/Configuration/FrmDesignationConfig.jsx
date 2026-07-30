@@ -470,7 +470,7 @@ const FrmDesignationConfig = () => {
                 <SelectValue placeholder="-- Select Option --" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">-- Select Option --</SelectItem>
+                {/* <SelectItem value="0">-- Select Option --</SelectItem> */}
                 {corporationOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
