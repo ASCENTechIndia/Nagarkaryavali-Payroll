@@ -309,7 +309,7 @@ const FrmPayrollReport = () => {
               animate={{ opacity: 1 }}
               className="p-4 md:p-5 min-h-screen"
             >
-              <Card className="border-0 shadow-none rounded-none bg-transparent">
+              <Card className="border shadow-sm">
                 <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
                   <CardTitle className="text-xl font-bold">
                     Payroll Report
@@ -398,7 +398,7 @@ const FrmPayrollReport = () => {
                           <SelectValue placeholder="-- ALL --" />
                         </SelectTrigger>
 
-                        <SelectContent>
+                        <SelectContent showDefaultOption={false}>
                           <SelectItem value="-1"> -- ALL -- </SelectItem>
                           {zoneOptions.map((item) => (
                             <SelectItem
@@ -431,7 +431,7 @@ const FrmPayrollReport = () => {
                           <SelectValue placeholder="-- ALL --" />
                         </SelectTrigger>
 
-                        <SelectContent>
+                        <SelectContent showDefaultOption={false}>
                           <SelectItem value="-1"> -- ALL -- </SelectItem>
                           {departmentOptions.map((item) => (
                             <SelectItem
@@ -492,9 +492,6 @@ const FrmPayrollReport = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">
-                            --Select Report Type--
-                          </SelectItem>
                           <SelectItem value="1">Bank List</SelectItem>
                           <SelectItem value="2">Bank Deduction</SelectItem>
                           <SelectItem value="4">

@@ -112,12 +112,16 @@ const FrmMonthlyBankDeductionUpload = () => {
         didOpen: () => Swal.showLoading(),
       });
 
+      const selectedYear = yearOptions.find(
+        (item) => item.VALUE.toString() === values.year
+      );
+
       const payload = {
         ulbId: Number(ulbId),
         payHeadId: Number(values.deductionPayHead),
         departmentId: Number(values.department),
         month: Number(values.month),
-        year: values.year,
+        year: selectedYear?.LABEL,
         employeeStatus:
           values.status === "Active"
             ? "A"
@@ -311,88 +315,88 @@ const FrmMonthlyBankDeductionUpload = () => {
 
 
   const handleSubmit = async (values, resetForm) => {
-  try {
-    if (uploadedData.length === 0) {
-      Swal.fire({
-        text: "Please upload Excel first.",
-      });
-      return;
-    }
-
-    Swal.fire({
-      title: "Submitting...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
-
-    const in_str = uploadedData
-      .map((row) => {
-        return [
-          row.Employee_Code ?? "",
-          row.Employee_Name ?? "",
-          row.Department ?? "",
-          row.Salary_Month_Year ?? "",
-          row.Deduction_Payhead ?? "",
-          row.Deduction_Amount ?? "",
-          row.Remarks ?? "",
-        ].join("$");
-      })
-      .join("#");
-
-    const payload = {
-      userId: userId,
-      month: Number(values.month),
-      year: Number(values.year),
-      mode: 1,
-      id: 0,
-      in_str,
-    };
-
-    console.log("Submit Payload", payload);
-
-    const res = await axios.post(
-      `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/submit`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      if (uploadedData.length === 0) {
+        Swal.fire({
+          text: "Please upload Excel first.",
+        });
+        return;
       }
-    );
 
-    console.log("Submit Response", res.data);
-
-    if (res.data?.success || res.data?.ok) {
       Swal.fire({
-        text:
-          res.data.errorMsg ||
-          res.data.data?.errorMsg ||
-          "Submitted Successfully",
-      }).then(() => {
-        resetForm(); 
-        setUploadedData([]);
-        setExcelFile(null);
+        title: "Submitting...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
       });
-      navigate("/Transactions/FrmMonthlyBankDeductionUpload")
-    } else {
+
+      const in_str = uploadedData
+        .map((row) => {
+          return [
+            row.Employee_Code ?? "",
+            row.Employee_Name ?? "",
+            row.Department ?? "",
+            row.Salary_Month_Year ?? "",
+            row.Deduction_Payhead ?? "",
+            row.Deduction_Amount ?? "",
+            row.Remarks ?? "",
+          ].join("$");
+        })
+        .join("#");
+
+      const payload = {
+        userId: userId,
+        month: Number(values.month),
+        year: Number(values.year),
+        mode: 1,
+        id: 0,
+        in_str,
+      };
+
+      console.log("Submit Payload", payload);
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmMonthlyBankDeductionUpload/submit`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Submit Response", res.data);
+
+      if (res.data?.success || res.data?.ok) {
+        Swal.fire({
+          text:
+            res.data.errorMsg ||
+            res.data.data?.errorMsg ||
+            "Submitted Successfully",
+        }).then(() => {
+          resetForm();
+          setUploadedData([]);
+          setExcelFile(null);
+        });
+        navigate("/Transactions/FrmMonthlyBankDeductionUpload")
+      } else {
+        Swal.fire({
+          text:
+            res.data.errorMsg ||
+            res.data.data?.errorMsg ||
+            "Submission Failed",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+
       Swal.fire({
         text:
-          res.data.errorMsg ||
-          res.data.data?.errorMsg ||
-          "Submission Failed",
+          error.response?.data?.errorMsg ||
+          error.response?.data?.data?.errorMsg ||
+          "Failed to submit data.",
       });
     }
-  } catch (error) {
-    console.error(error);
-
-    Swal.fire({
-      text:
-        error.response?.data?.errorMsg ||
-        error.response?.data?.data?.errorMsg ||
-        "Failed to submit data.",
-    });
-  }
-};
+  };
 
   return (
     <Formik
@@ -408,7 +412,7 @@ const FrmMonthlyBankDeductionUpload = () => {
               animate={{ opacity: 1 }}
               className="p-4 md:p-5 min-h-screen"
             >
-              <Card className="border-0 shadow-none rounded-none bg-transparent">
+              <Card className="border shadow-sm">
                 <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
                   <CardTitle className="text-xl font-bold">
                     Monthly Bank Deduction
@@ -434,7 +438,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+
                           {departmentOptions.map((item) => (
                             <SelectItem
                               key={item.VALUE}
@@ -462,7 +466,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                        <SelectItem value="0">-- Select Option --</SelectItem>
+
                           {yearOptions.map((item) => (
                             <SelectItem
                               key={item.VALUE}
@@ -490,7 +494,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+
                           {monthOptions.map((item) => (
                             <SelectItem key={item.VALUE} value={item.VALUE}>
                               {item.LABEL}
@@ -520,7 +524,7 @@ const FrmMonthlyBankDeductionUpload = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="0">-- Select Option --</SelectItem>
+
                           {payHeadOptions.map((item) => (
                             <SelectItem
                               key={item.VALUE}
