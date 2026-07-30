@@ -60,6 +60,24 @@ const FrmEmployeeTransfer = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
 
+  // Swal loader functions
+  const showSwalLoader = (message = "Loading...") => {
+    Swal.fire({
+      title: message,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      willOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  };
+
+  const closeSwalLoader = () => {
+    if (Swal.isVisible()) {
+      Swal.close();
+    }
+  };
+
   useEffect(() => {
     if (ulbId && token) {
       fetchDepartments();
@@ -72,9 +90,12 @@ const FrmEmployeeTransfer = () => {
   //fetch dept by emp id
   const fetchDepartments = async () => {
     try {
+      showSwalLoader("Loading Departments...");
       const res = await axios.get(`${BASE_URL}/api/FrmEmployeeTransfer/department-list?ulbId=${ulbId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      closeSwalLoader();
+      
       if (res.data?.data) {
         const options = res.data.data.map(item => ({
           label: item.DEPTNAME || item.deptname,
@@ -83,6 +104,7 @@ const FrmEmployeeTransfer = () => {
         setDepartmentOptions(options);
       }
     } catch (error) {
+      closeSwalLoader();
       console.error("Error fetching departments:", error);
     }
   };
@@ -90,9 +112,12 @@ const FrmEmployeeTransfer = () => {
   //fetch designation by emp id
   const fetchDesignations = async () => {
     try {
+      showSwalLoader("Loading Designations...");
       const res = await axios.get(`${BASE_URL}/api/FrmEmployeeTransfer/designation-list?ulbId=${ulbId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      closeSwalLoader();
+      
       if (res.data?.data) {
         const options = res.data.data.map(item => ({
           label: item.DESIG_ENAME || item.desig_ename,
@@ -101,6 +126,7 @@ const FrmEmployeeTransfer = () => {
         setDesignationOptions(options);
       }
     } catch (error) {
+      closeSwalLoader();
       console.error("Error fetching designations:", error);
     }
   };
@@ -108,9 +134,12 @@ const FrmEmployeeTransfer = () => {
   //fetch pay band by emp id
   const fetchGrades = async () => {
     try {
+      showSwalLoader("Loading Pay Bands...");
       const res = await axios.get(`${BASE_URL}/api/FrmEmployeeTransfer/grade-list?ulbId=${ulbId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      closeSwalLoader();
+      
       if (res.data?.data) {
         const options = res.data.data.map(item => ({
           label: item.VAR_GRADEMST_GRADENAME || item.var_grademst_gradename,
@@ -119,6 +148,7 @@ const FrmEmployeeTransfer = () => {
         setGradeOptions(options);
       }
     } catch (error) {
+      closeSwalLoader();
       console.error("Error fetching grades:", error);
     }
   };
@@ -126,9 +156,12 @@ const FrmEmployeeTransfer = () => {
   //fetch transfer type to transfer
   const fetchTransferTypes = async () => {
     try {
+      showSwalLoader("Loading Transfer Types...");
       const res = await axios.get(`${BASE_URL}/api/FrmEmployeeTransfer/transfer-types`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      closeSwalLoader();
+      
       if (res.data?.data) {
         const options = res.data.data.map(item => ({
           label: item.VAR_TRANSFERTYPE_TRANSFERNAME || item.var_transfertype_transfername,
@@ -137,24 +170,48 @@ const FrmEmployeeTransfer = () => {
         setTransferTypeOptions(options);
       }
     } catch (error) {
+      closeSwalLoader();
       console.error("Error fetching transfer types:", error);
     }
   };
 
   //fetch to transfer dept, designation, pay band
   const fetchTransferDropdowns = async () => {
+    let loaderShown = false;
+    
     try {
+      // Show loader before starting all API calls
+      showSwalLoader("Loading Transfer Options...");
+      loaderShown = true;
+      
       console.log("Fetching transfer dropdown data...");
       
-      // Fetch departments
-      const deptRes = await axios.post(
-        `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
-        { ulbid: ulbId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // Execute all API calls in parallel
+      const [deptRes, desigRes, gradeRes] = await Promise.all([
+        axios.post(
+          `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
+          { ulbid: ulbId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        ),
+        axios.post(
+          `${BASE_URL}/api/FrmIncreamentPramotionMst/designation-list`,
+          { ulbid: ulbId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        ),
+        axios.get(
+          `${BASE_URL}/api/FrmIncreamentPramotionMst/grade-list`,
+          { 
+            params: { ulbid: ulbId },
+            headers: { Authorization: `Bearer ${token}` } 
+          }
+        )
+      ]);
+
       console.log("Department full response:", deptRes.data);
+      console.log("Designation full response:", desigRes.data);
+      console.log("Grade full response:", gradeRes.data);
       
-      // Extract department data
+      // Process department data
       const deptData = extractDataFromResponse(deptRes.data);
       console.log("Extracted department data:", deptData);
       
@@ -170,15 +227,7 @@ const FrmEmployeeTransfer = () => {
         setTransferDepartmentOptions([]);
       }
 
-      // Fetch designations
-      const desigRes = await axios.post(
-        `${BASE_URL}/api/FrmIncreamentPramotionMst/designation-list`,
-        { ulbid: ulbId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      console.log("Designation full response:", desigRes.data);
-      
-      // Extract designation data
+      // Process designation data
       const desigData = extractDataFromResponse(desigRes.data);
       console.log("Extracted designation data:", desigData);
       
@@ -194,17 +243,7 @@ const FrmEmployeeTransfer = () => {
         setTransferDesignationOptions([]);
       }
 
-      // Fetch grades
-      const gradeRes = await axios.get(
-        `${BASE_URL}/api/FrmIncreamentPramotionMst/grade-list`,
-        { 
-          params: { ulbid: ulbId },
-          headers: { Authorization: `Bearer ${token}` } 
-        }
-      );
-      console.log("Grade full response:", gradeRes.data);
-      
-      // Extract grade data
+      // Process grade data
       const gradeData = extractDataFromResponse(gradeRes.data);
       console.log("Extracted grade data:", gradeData);
       
@@ -220,7 +259,14 @@ const FrmEmployeeTransfer = () => {
         setTransferGradeOptions([]);
       }
 
+      // Close loader only after ALL API calls are complete
+      closeSwalLoader();
+
     } catch (error) {
+      // Close loader on error
+      if (loaderShown) {
+        closeSwalLoader();
+      }
       console.error("Error fetching transfer dropdowns:", error);
       await Swal.fire({
         icon: "error",
@@ -260,11 +306,15 @@ const FrmEmployeeTransfer = () => {
     setTransferData(null);
 
     try {
+      showSwalLoader("Searching Employee...");
+      
       const res = await axios.post(
         `${BASE_URL}/api/FrmEmployeeTransfer/search-employee`,
         { empId, ulbId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      closeSwalLoader();
 
       if (res.data?.success && res.data?.data) {
         const data = res.data.data;
@@ -309,6 +359,7 @@ const FrmEmployeeTransfer = () => {
         });
       }
     } catch (error) {
+      closeSwalLoader();
       console.error("Search error:", error);
       await Swal.fire({
         icon: "error",
@@ -383,6 +434,8 @@ const FrmEmployeeTransfer = () => {
     setLoading(true);
 
     try {
+      showSwalLoader("Submitting Transfer...");
+      
       const empId = employeeData?.EMPID || employeeData?.empId || employeeData?.num_employee_empid;
       
       let formattedDoj = formValues.doj;
@@ -426,6 +479,8 @@ const FrmEmployeeTransfer = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      closeSwalLoader();
+
       console.log("Submit response:", res.data);
 
       // Check for success based on the stored procedure response
@@ -439,7 +494,9 @@ const FrmEmployeeTransfer = () => {
         
         if (transferId) {
           // Fetch transfer details to display in table
+          showSwalLoader("Fetching Transfer Details...");
           await fetchTransferDetails(transferId);
+          closeSwalLoader();
         } else {
           console.warn("No transfer ID returned from server");
         }
@@ -467,6 +524,7 @@ const FrmEmployeeTransfer = () => {
         });
       }
     } catch (error) {
+      closeSwalLoader();
       console.error("❌ Submit error:", error);
       console.error("Error response:", error.response);
       
@@ -514,26 +572,26 @@ const FrmEmployeeTransfer = () => {
     setFormValues(prev => ({ ...prev, [field]: value }));
   };
 
-const formatDate = (dateValue) => {
-  if (!dateValue) return "N/A";
-  
-  try {
-    const date = new Date(dateValue);
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "N/A";
     
-    if (isNaN(date.getTime())) {
-      return dateValue; // Return as is if can't parse
+    try {
+      const date = new Date(dateValue);
+      
+      if (isNaN(date.getTime())) {
+        return dateValue; // Return as is if can't parse
+      }
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}-${month}-${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateValue || "N/A";
     }
-    
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    
-    return `${day}-${month}-${year}`;
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return dateValue || "N/A";
-  }
-};
+  };
 
   return (
     <Card className="shadow-sm border">
@@ -574,6 +632,14 @@ const formatDate = (dateValue) => {
                 <Label className="font-semibold whitespace-nowrap">Employee Number</Label>
                 <Input 
                   value={formValues.employeeNo} 
+                  className="h-9 bg-gray-100" 
+                  disabled
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-semibold whitespace-nowrap">Employee Name</Label>
+                <Input 
+                  value={employeeData?.EMPNAME || employeeData?.empName || employeeData?.var_employee_marname || ""} 
                   className="h-9 bg-gray-100" 
                   disabled
                 />
@@ -654,7 +720,7 @@ const formatDate = (dateValue) => {
                 <Label className="font-semibold whitespace-nowrap">New Department</Label>
                 <Select value={formValues.newDept} onValueChange={(value) => handleInputChange("newDept", value)}>
                   <SelectTrigger className="w-full h-9">
-                    <SelectValue placeholder="-- Select Option --" />
+                    <SelectValue placeholder="-- Select Department --" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">-- Select --</SelectItem>
@@ -673,7 +739,7 @@ const formatDate = (dateValue) => {
                 <Label className="font-semibold whitespace-nowrap">New Designation</Label>
                 <Select value={formValues.newDesig} onValueChange={(value) => handleInputChange("newDesig", value)}>
                   <SelectTrigger className="w-full h-9">
-                    <SelectValue placeholder="-- Select Option --" />
+                    <SelectValue placeholder="-- Select Designation --" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">-- Select --</SelectItem>
@@ -692,7 +758,7 @@ const formatDate = (dateValue) => {
                 <Label className="font-semibold whitespace-nowrap">Transfer Type</Label>
                 <Select value={formValues.transType} onValueChange={(value) => handleInputChange("transType", value)}>
                   <SelectTrigger className="w-full h-9">
-                    <SelectValue placeholder="-- Select Option --" />
+                    <SelectValue placeholder="-- Select Transfer Type --" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">-- Select --</SelectItem>
@@ -711,7 +777,7 @@ const formatDate = (dateValue) => {
                 <Label className="font-semibold whitespace-nowrap">Pay Band</Label>
                 <Select value={formValues.newGrade} onValueChange={(value) => handleInputChange("newGrade", value)}>
                   <SelectTrigger className="w-full h-9">
-                    <SelectValue placeholder="-- Select Option --" />
+                    <SelectValue placeholder="-- Select Pay Band --" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">-- Select --</SelectItem>
@@ -746,7 +812,7 @@ const formatDate = (dateValue) => {
               </div>
 
               <div className="space-y-2 md:col-span-1">
-                <Label className="font-semibold whitespace-nowrap">Job Chart</Label>
+                <Label className="font-semibold whitespace-nowrap">New Job Chart</Label>
                 <Input
                   value={formValues.newJobChart}
                   onChange={(e) => handleInputChange("newJobChart", e.target.value)}
@@ -755,7 +821,7 @@ const formatDate = (dateValue) => {
               </div>
 
               <div className="space-y-2 md:col-span-1">
-                <Label className="font-semibold whitespace-nowrap">Job Table No</Label>
+                <Label className="font-semibold whitespace-nowrap">New Job Table No</Label>
                 <Input
                   value={formValues.newJobTableNo}
                   onChange={(e) => handleInputChange("newJobTableNo", e.target.value)}

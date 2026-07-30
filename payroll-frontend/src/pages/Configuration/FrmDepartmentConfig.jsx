@@ -25,11 +25,13 @@ const FrmDepartmentConfig = () => {
   const [corporationOptions, setCorporationOptions] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isLoadingList, setIsLoadingList] = useState(false);
   const [selectedULB, setSelectedULB] = useState("");
   const [mode, setMode] = useState(1);
   const [deptConfigId, setDeptConfigId] = useState([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
+  // Table configuration
   const tableHeaders = [
     "निवडा",
     "विभाग इंग्रजी मध्ये",
@@ -48,11 +50,52 @@ const FrmDepartmentConfig = () => {
     "विभाग मराठी मध्ये": { width: "45%", minWidth: "200px" }
   };
 
+  let swalLoader = null;
+
   useEffect(() => {
     if (ulbId && token) {
-      fetchCorporation();
+      showLoader();
+      fetchAllData();
+    } else {
+      setIsPageLoading(false);
     }
   }, [ulbId, token]);
+
+  const showLoader = () => {
+    Swal.fire({
+      title: 'Loading...',
+      text: 'Please wait while data is being loaded',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  };
+
+  const hideLoader = () => {
+    Swal.close();
+    setIsPageLoading(false);
+  };
+
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        fetchCorporation(),
+      ]);
+      
+      hideLoader();
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+      hideLoader();
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to load initial data. Please refresh the page.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
 
   const fetchCorporation = async () => {
     try {
@@ -77,14 +120,11 @@ const FrmDepartmentConfig = () => {
 
   const getData = async (ulbIdValue) => {
     try {
-      setIsLoadingList(true);
-      
       const response = await axios.get(
         `${BASE_URL}/api/FrmDeptconfig/departmentlist/${ulbIdValue}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Fix: Access data from response.data.data.rows
       let data = [];
       if (response.data?.data?.rows && Array.isArray(response.data.data.rows)) {
         data = response.data.data.rows;
@@ -98,51 +138,34 @@ const FrmDepartmentConfig = () => {
         data = response.data.data;
       }
 
-      console.log("Department data:", data); // Debug log
-
       if (data.length > 0) {
         const formattedData = data.map((item) => ({
           deptid: item.DEPTID || item.deptid || item.NUM_DEPTMST_DEPTID || "",
           deptename: item.DEPTENAME || item.deptename || item.VAR_DEPTMST_DEPTNAMEM || "-",
           deptmname: item.DEPTMNAME || item.deptmname || item.VAR_DEPTMST_DEPTNAMEM || "-",
           status: item.STATUS || item.status || "N",
-          checked: item.STATUS === 'Y' || item.status === 'Y',
-          IsChecked: item.STATUS === 'Y' || item.status === 'Y',
-          previousStatus: item.STATUS === 'Y' || item.status === 'Y' ? "Y" : "N",
-          currentStatus: item.STATUS === 'Y' || item.status === 'Y' ? "Y" : "N"
+          checked: false,
+          IsChecked: false,
+          previousStatus: "N",
+          currentStatus: "N"
         }));
-        setDepartmentData(formattedData);
-        setSelectedULB(ulbIdValue);
-        setDeptConfigId([]);
-        setMode(1);
         return formattedData;
       } else {
-        setDepartmentData([]);
         return [];
       }
     } catch (err) {
       console.error("Error fetching department data:", err);
-      Swal.fire({
-        title: 'Error',
-        text: "Failed to fetch department data",
-        confirmButtonText: 'OK'
-      });
-      return [];
-    } finally {
-      setIsLoadingList(false);
+      throw err;
     }
   };
 
-  const setGrdRecMode = async (ulbIdValue, dtData) => {
+  const getDepartmentConfig = async (ulbIdValue) => {
     try {
-      setIsLoadingList(true);
-      
       const response = await axios.get(
         `${BASE_URL}/api/FrmDeptconfig/configureddepartments/${ulbIdValue}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Fix: Access data from response.data.data.rows
       let configData = [];
       if (response.data?.data?.rows && Array.isArray(response.data.data.rows)) {
         configData = response.data.data.rows;
@@ -156,49 +179,82 @@ const FrmDepartmentConfig = () => {
         configData = response.data.data;
       }
 
-      console.log("Configured departments:", configData); // Debug log
-
-      setDeptConfigId(configData);
-
-      let updatedData = [...dtData];
-
-      if (configData.length > 0) {
-        setMode(2);
-        updatedData = updatedData.map(item => {
-          const found = configData.some(config => 
-            String(config.DEPTID || config.deptid) === String(item.deptid)
-          );
-          return {
-            ...item,
-            checked: found,
-            IsChecked: found,
-            previousStatus: found ? "Y" : "N",
-            currentStatus: found ? "Y" : "N"
-          };
-        });
-      } else {
-        setMode(1);
-        updatedData = updatedData.map(item => ({
-          ...item,
-          checked: false,
-          IsChecked: false,
-          previousStatus: "N",
-          currentStatus: "N"
-        }));
-      }
-
-      updatedData.sort((a, b) => {
-        if (a.checked === b.checked) return 0;
-        return a.checked ? -1 : 1;
-      });
-
-      setDepartmentData(updatedData);
-      return updatedData;
+      return configData;
     } catch (err) {
       console.error("Error fetching department config:", err);
-      return dtData;
-    } finally {
-      setIsLoadingList(false);
+      throw err;
+    }
+  };
+
+  const loadAllData = async (ulbIdValue) => {
+    try {
+      swalLoader = Swal.fire({
+        title: 'Loading...',
+        text: 'Please wait while data is being loaded',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const [departmentList, configuredList] = await Promise.all([
+        getData(ulbIdValue),
+        getDepartmentConfig(ulbIdValue)
+      ]);
+
+      if (swalLoader) {
+        swalLoader.close();
+      }
+
+      if (departmentList.length > 0) {
+        const configuredIds = new Set(
+          configuredList.map(item => String(item.DEPTID || item.deptid))
+        );
+
+        const updatedData = departmentList.map(item => {
+          const isConfigured = configuredIds.has(String(item.deptid));
+          return {
+            ...item,
+            checked: isConfigured,
+            IsChecked: isConfigured,
+            previousStatus: isConfigured ? "Y" : "N",
+            currentStatus: isConfigured ? "Y" : "N"
+          };
+        });
+
+        updatedData.sort((a, b) => {
+          if (a.checked === b.checked) return 0;
+          return a.checked ? -1 : 1;
+        });
+
+        setDepartmentData(updatedData);
+        setDeptConfigId(configuredList);
+        setMode(configuredList.length > 0 ? 2 : 1);
+        setSelectedULB(ulbIdValue);
+        setIsDataLoaded(true);
+        
+        return updatedData;
+      } else {
+        setDepartmentData([]);
+        setDeptConfigId([]);
+        setMode(1);
+        setIsDataLoaded(true);
+        return [];
+      }
+    } catch (err) {
+      if (swalLoader) {
+        swalLoader.close();
+      }
+      
+      console.error("Error loading data:", err);
+      Swal.fire({
+        title: 'Error',
+        text: err.response?.data?.error || err.response?.data?.message || "Failed to load data",
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      setIsDataLoaded(false);
+      return [];
     }
   };
 
@@ -206,14 +262,12 @@ const FrmDepartmentConfig = () => {
     setSelectedULB(value);
     
     if (value && value !== "0") {
-      const data = await getData(value);
-      if (data.length > 0) {
-        await setGrdRecMode(value, data);
-      } else {
-        setDepartmentData([]);
-      }
+      await loadAllData(value);
     } else {
       setDepartmentData([]);
+      setDeptConfigId([]);
+      setMode(1);
+      setIsDataLoaded(false);
     }
   };
 
@@ -247,12 +301,12 @@ const FrmDepartmentConfig = () => {
     
     if (!selectedULB || selectedULB === "0") {
       Swal.fire({
-        text: "Select ULB Name",
+        text: "कृपया नगरपालिकेचे नाव निवडा",
         confirmButtonText: 'OK'
       });
       return;
     }
-    
+
     let paramStr = "";
     let chkFlag = false;
 
@@ -260,13 +314,11 @@ const FrmDepartmentConfig = () => {
       const deptId = item.deptid || "";
       const isChecked = item.checked || false;
       
-      // Check if this department was initially configured
       const chkedCount = deptConfigId.filter(config => 
         String(config.DEPTID || config.deptid) === String(deptId)
       ).length;
 
       if (mode === 1) {
-        // Mode 1: New configuration
         if (isChecked) {
           paramStr += `${deptId}#N#Y$`;
           chkFlag = true;
@@ -274,7 +326,6 @@ const FrmDepartmentConfig = () => {
           paramStr += `${deptId}#N#N$`;
         }
       } else {
-        // Mode 2: Update existing configuration
         if (isChecked && chkedCount > 0) {
           paramStr += `${deptId}#Y#Y$`;
           chkFlag = true;
@@ -303,6 +354,15 @@ const FrmDepartmentConfig = () => {
     try {
       setLoading(true);
 
+      swalLoader = Swal.fire({
+        title: 'Saving...',
+        text: 'Please wait while data is being saved',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       const payload = {
         userId: userId,
         ulbId: Number(selectedULB),
@@ -323,28 +383,37 @@ const FrmDepartmentConfig = () => {
         }
       );
 
+      if (swalLoader) {
+        swalLoader.close();
+      }
+
       const responseData = res.data?.data || res.data || {};
       const errorCode = responseData.errorCode || responseData.ErrorCode || 0;
       const errorMsg = responseData.errorMsg || responseData.ErrorMsg || responseData.message || "";
 
       if (errorCode === 9999 || errorCode === 0 || responseData.success === true) {
-        Swal.fire({
+        await Swal.fire({
           text: errorMsg || "Configuration saved successfully",
+          icon: 'success',
           confirmButtonText: 'OK'
         });
+        
         if (selectedULB) {
-          const data = await getData(selectedULB);
-          if (data.length > 0) {
-            await setGrdRecMode(selectedULB, data);
-          }
+          await loadAllData(selectedULB);
         }
       } else {
-        Swal.fire({
+        await Swal.fire({
+          title: 'Error',
           text: errorMsg || "An error occurred",
+          icon: 'error',
           confirmButtonText: 'OK'
         });
       }
     } catch (error) {
+      if (swalLoader) {
+        swalLoader.close();
+      }
+      
       console.error("Submit Error", error);
       
       const errorMessage = error.response?.data?.message || error.message || "Failed to save data";
@@ -352,20 +421,21 @@ const FrmDepartmentConfig = () => {
           errorMessage.toLowerCase().includes("successfully") ||
           errorMessage.toLowerCase().includes("success") ||
           errorMessage.toLowerCase().includes("saved")) {
-        Swal.fire({
+        await Swal.fire({
+          title: 'यशस्वी',
           text: errorMessage,
+          icon: 'success',
           confirmButtonText: 'OK'
         });
+        
         if (selectedULB) {
-          const data = await getData(selectedULB);
-          if (data.length > 0) {
-            await setGrdRecMode(selectedULB, data);
-          }
+          await loadAllData(selectedULB);
         }
       } else {
-        Swal.fire({
+        await Swal.fire({
           title: 'Error',
           text: errorMessage,
+          icon: 'error',
           confirmButtonText: 'OK'
         });
       }
@@ -384,84 +454,77 @@ const FrmDepartmentConfig = () => {
         </CardHeader>
 
         <CardContent className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="w-full max-w-md space-y-2">
-              <Label className="font-semibold whitespace-nowrap">
-                नगरपालिकेचे नाव
-              </Label>
-              <Select
-                value={selectedULB}
-                onValueChange={handleULBChange}
-              >
-                <SelectTrigger className="w-full h-10">
-                  <SelectValue placeholder="-- Select Option --" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">-- Select Option --</SelectItem>
-                  {corporationOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex items-center gap-4 mb-6">
+            <Label className="font-semibold whitespace-nowrap min-w-[140px]">
+              नगरपालिकेचे नाव :
+            </Label>
+            <Select
+              value={selectedULB}
+              onValueChange={handleULBChange}
+            >
+              <SelectTrigger className="flex-1 max-w-md h-10">
+                <SelectValue placeholder="-- Select Option --" />
+              </SelectTrigger>
+              <SelectContent>
+                {corporationOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
+          {/* Table Section */}
           {departmentData.length > 0 && (
             <div className="mt-4">
-              {isLoadingList ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading...</span>
-                </div>
-              ) : (
-                <ShadCNTable
-                  headers={tableHeaders}
-                  data={departmentData}
-                  keyMapping={keyMapping}
-                  columnStyles={columnStyles}
-                  pagination={false}
-                  onSelectAllChange={handleSelectAllChange}
-                  onRowCheckChange={handleRowCheckChange}
-                  className="border border-gray-300 rounded-lg overflow-hidden"
-                />
-              )}
+              <ShadCNTable
+                headers={tableHeaders}
+                data={departmentData}
+                keyMapping={keyMapping}
+                columnStyles={columnStyles}
+                pagination={false}
+                onSelectAllChange={handleSelectAllChange}
+                onRowCheckChange={handleRowCheckChange}
+                className="border border-gray-300 rounded-lg overflow-hidden"
+              />
             </div>
           )}
 
-          {!isLoadingList && selectedULB && selectedULB !== "0" && departmentData.length === 0 && (
+          {selectedULB && selectedULB !== "0" && departmentData.length === 0 && isDataLoaded && (
             <div className="text-center py-8 text-gray-500">
               निवडलेल्या नगरपालिकेसाठी कोणताही विभाग डेटा उपलब्ध नाही.
             </div>
           )}
 
-          <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                "साठवा"
-              )}
-            </Button>
+          {isDataLoaded && departmentData.length > 0 && (
+            <div className="flex justify-center gap-3 mt-8 pt-4 border-t">
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  "साठवा"
+                )}
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              path="/HomePage/FrmHomePage"
-              className="bg-gray-200 text-black hover:bg-gray-300"
-            >
-              परत
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                path="/HomePage/FrmHomePage"
+                className="bg-gray-200 text-black hover:bg-gray-300"
+              >
+                परत
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
