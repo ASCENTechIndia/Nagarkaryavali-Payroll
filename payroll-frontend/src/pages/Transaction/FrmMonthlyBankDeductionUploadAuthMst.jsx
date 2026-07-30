@@ -129,7 +129,7 @@ const navigate = useNavigate();
           salaryMonth: item.SALARY_MONTH_YEAR,
           deductionHead: item.DEDUCTION_PAYHEAD,
           deductionAmount: item.DEDUCTION_AMOUNT,
-          remarks: item.REMARKS || "",
+          remarks: item.REMARKS || "-",
           monthId: item.MONTH_NUM,
         })) || [];
 
