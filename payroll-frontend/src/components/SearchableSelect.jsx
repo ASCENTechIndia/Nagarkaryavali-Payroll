@@ -16,6 +16,8 @@ const SearchableSelect = ({
   loading = false,
   className = "",
   onChange,
+  defaultOptionLabel = "-- Select Option --",
+  showDefaultOption = true,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -23,22 +25,31 @@ const SearchableSelect = ({
   const triggerRef = useRef(null);
   const [triggerWidth, setTriggerWidth] = useState(0);
 
+  const defaultOption = { value: "", label: defaultOptionLabel };
+
   const selectedOption = useMemo(() => {
+    if (value === "") {
+      return defaultOption;
+    }
+    
     return options.find(
       (item) => String(item.value) === String(value)
     );
-  }, [options, value]);
+  }, [options, value, defaultOption]);
 
   const filteredOptions = useMemo(() => {
-    if (!search.trim()) return options;
+    if (!search.trim()) {
+      return showDefaultOption ? [defaultOption, ...options] : options;
+    }
 
-    return options.filter((item) =>
+    const filtered = options.filter((item) =>
       item.label.toLowerCase().includes(search.toLowerCase())
     );
-  }, [options, search]);
+    
+    return showDefaultOption ? [defaultOption, ...filtered] : filtered;
+  }, [options, search, defaultOption, showDefaultOption]);
 
   useEffect(() => {
-
     if (triggerRef.current) {
         setTriggerWidth(triggerRef.current.offsetWidth);
     }
@@ -115,7 +126,7 @@ const SearchableSelect = ({
           ) : (
             filteredOptions.map((item) => (
               <div
-                key={item.value}
+                key={item.value || "__empty__"}
                 onClick={() => {
                   onChange(item.value);
                   setOpen(false);
