@@ -137,40 +137,57 @@ const FrmLeaveMaster = () => {
       onSubmit={handleSubmit}
     >
       {({ values, handleChange, resetForm }) => (
-        <Form>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xl font-bold">Leave Master</CardTitle>
-            </CardHeader>
+       <Form>
+  <Card>
+    <CardHeader className="pb-3">
+      <CardTitle className="text-xl font-bold">
+        Leave Master
+      </CardTitle>
+    </CardHeader>
 
-            <CardContent className="space-y-8">
-              <div className="flex justify-center">
-                <div className="w-full max-w-xl space-y-2">
-                  <Label text="Leave Name" required />
+ <CardContent className="space-y-6">
+  <div className="flex justify-start">
+    <div className="w-full max-w-2xl">
+      <div className="grid grid-cols-12 items-center gap-3">
+        {/* Label */}
+        <div className="col-span-3">
+          <Label text="Leave Name" required />
+        </div>
 
-                  <Input
-                    name="leaveName"
-                    value={values.leaveName}
-                    onChange={handleChange}
-                    className="h-10"
-                  />
-                </div>
-              </div>
+        {/* Colon */}
+        <div className="col-span-1 flex justify-center">
+          :
+        </div>
 
-              <div className="flex justify-center gap-4">
-                <Button type="submit">{leaveId > 0 ? "Update" : "Save"}</Button>
+        {/* Input */}
+        <div className="col-span-8">
+          <Input
+            name="leaveName"
+            value={values.leaveName}
+            onChange={handleChange}
+            className="h-10"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => navigate("/Masters/FrmLeaveList")}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </Form>
+  <div className="flex justify-center gap-4">
+    <Button type="submit">
+      {leaveId > 0 ? "Update" : "Save"}
+    </Button>
+
+    <Button
+      type="button"
+      variant="secondary"
+      onClick={() => navigate("/Masters/FrmLeaveList")}
+    >
+      Cancel
+    </Button>
+  </div>
+</CardContent>
+  </Card>
+</Form>
       )}
     </Formik>
   );
