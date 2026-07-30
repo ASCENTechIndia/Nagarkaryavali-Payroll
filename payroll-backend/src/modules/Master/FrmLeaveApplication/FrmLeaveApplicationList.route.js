@@ -5,7 +5,7 @@ const auth = require("../../../middlewares/auth.middleware");
 
 
 router.post(
-  "/leavelist",auth(),
+  "/leavelist",
   controller.getLeaveList
 );
 
@@ -47,7 +47,7 @@ router.post(
 
 
 router.post(
-  "/employeeleavebalance",auth(),
+  "/employeeleavebalance",
   controller.getEmployeeLeaveBalance
 );
 

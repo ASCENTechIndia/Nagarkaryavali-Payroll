@@ -168,29 +168,72 @@ async function getEmployeeLeaveSummaryRepo(payload) {
 }
 
 async function getEmployeeLeaveBalanceRepo(payload) {
+  const specialUlbs = ["751", "1690", "4", "1670"];
+  let query
+  // Normal ULBs
+  if (!specialUlbs) {
+     query = `
+      SELECT
+          num_empleavebal_empbalid,
+          num_empleavebal_empid,
+          var_empleavebal_leavetype_id,
+          num_empleavebal_balance,
+          num_empleavebal_allotted
+      FROM AOPR_EMPLOYEE_EMPLEAVE_BAL
+      WHERE num_empleavebal_empid = :EmployeeId
+        AND var_empleavebal_leavetype_id = :LeaveTypeId
+    `;
+    console.log({query, specialUlbs })
+    const result = await executeQuery(query, {
+      EmployeeId: payload.employeeId,
+      LeaveTypeId: payload.leaveTypeId
+    });
 
-  const query = `
+    return result.rows;
+  }
+
+  // Special ULBs (751,1690,4,1670)
+   query = `
     SELECT
-       num_empleavebal_empbalid,
-       num_empleavebal_empid,
-       var_empleavebal_leavetype_id,
-       num_empleavebal_balance,
-       num_empleavebal_allotted
-    FROM AOPR_EMPLOYEE_EMPLEAVE_BAL
-    WHERE num_empleavebal_empid = :EmployeeId
-      AND var_empleavebal_leavetype_id = :LeaveTypeId
-      AND :YourTargetUlbId NOT IN ('751', '1690', '4', '1670')
+      NVL(a.num_empleave_PL,0) PL,
+      NVL(a.num_empleave_MEDLEAVE,0) MEDLEAVE,
+      NVL(a.num_empleave_HPMleave,0) HPMleave,
+      NVL(a.num_empleave_MetLeave1,0) MetLeave1,
+      NVL(a.num_empleave_MetLeave2,0) MetLeave2,
+      NVL(a.num_empleave_splleave,0) splleave,
+      NVL(a.num_empleave_OptionalLeave,0) OptionalLeave,
+      NVL(a.num_empleave_adhyayan,0) adhyayan,
+      NVL(a.num_empleave_ChildCare,0) ChildCare,
+      NVL(a.num_empleave_UnexpecLeave,0) UnexpecLeave,
+      NVL(a.num_empleave_SPLUnexpLeave,0) SPLUnexpLeave,
+      NVL(a.num_empleave_nosaldeduct,0) nosaldeduct,
+      NVL(a.num_empleave_casualleave,0) casualleave,
+
+      NVL(b.num_empleave_PL,0) bPL,
+      NVL(b.num_empleave_MEDLEAVE,0) bMEDLEAVE,
+      NVL(b.num_empleave_HPMleave,0) bHPMleave,
+      NVL(b.num_empleave_MetLeave1,0) bMetLeave1,
+      NVL(b.num_empleave_MetLeave2,0) bMetLeave2,
+      NVL(b.num_empleave_splleave,0) bsplleave,
+      NVL(b.num_empleave_OptionalLeave,0) bOptionalLeave,
+      NVL(b.num_empleave_adhyayan,0) badhyayan,
+      NVL(b.num_empleave_ChildCare,0) bChildCare,
+      NVL(b.num_empleave_UnexpecLeave,0) bUnexpecLeave,
+      NVL(b.num_empleave_SPLUnexpLeave,0) bSPLUnexpLeave,
+      NVL(b.num_empleave_nosaldeduct,0) bnosaldeduct,
+      NVL(b.num_empleave_casualleave,0) bcasualleave
+    FROM aopr_empleave_mas a
+    INNER JOIN aopr_empleave_det b
+      ON a.num_empleave_id = b.num_empleave_id
+    WHERE a.num_empleave_empid = :EmployeeId
+      AND a.num_empleave_ulbid = :UlbId
   `;
 
-  const result = await executeQuery(
-    query,
-    {
-      EmployeeId: payload.employeeId,
-      LeaveTypeId: payload.leaveTypeId,
-      YourTargetUlbId: payload.ulbId
-    }
-  );
-
+  const result = await executeQuery(query, {
+    EmployeeId: payload.employeeId,
+    UlbId: payload.ulbId
+  });
+    console.log({query})
   return result.rows;
 }
 

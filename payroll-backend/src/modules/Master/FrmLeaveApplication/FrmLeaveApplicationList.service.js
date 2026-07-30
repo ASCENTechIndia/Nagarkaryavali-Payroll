@@ -191,40 +191,74 @@ async function getEmployeeLeaveSummaryService(payload) {
 async function getEmployeeLeaveBalanceService(payload) {
 
   if (!payload.employeeId) {
-
-    throw new AppError(
-      "Employee ID is required",
-      400
-    );
+    throw new AppError("Employee ID is required", 400);
   }
 
-  if (!payload.leaveTypeId) {
-
-    throw new AppError(
-      "Leave Type ID is required",
-      400
-    );
-  }
+  // if (!payload.leaveTypeId) {
+  //   throw new AppError("Leave Type ID is required", 400);
+  // }
 
   if (!payload.ulbId) {
-
-    throw new AppError(
-      "ULB ID is required",
-      400
-    );
+    throw new AppError("ULB ID is required", 400);
   }
 
-  const data =
-    await repo.getEmployeeLeaveBalanceRepo(payload);
+  const data = await repo.getEmployeeLeaveBalanceRepo(payload);
+  console.log({data})
+  const specialUlbs = ["751", "1690", "4", "1670"];
+
+  // Normal ULB
+  if (!specialUlbs.includes(String(payload.ulbId))) {
+    return {
+      success: true,
+      count: data.length,
+      data
+    };
+  }
+
+ 
+  const row = data[0];
+
+  const leaveMap = {
+    "1": ["MEDLEAVE", "bMEDLEAVE"],
+    "2": ["casualleave", "bcasualleave"],
+    "3": ["casualleave", "bcasualleave"],
+    "4": ["PL", "bPL"],
+    "5": ["MEDLEAVE", "bMEDLEAVE"],
+    "6": ["MetLeave1", "bMetLeave1"],
+    "7": ["MetLeave2", "bMetLeave2"],
+    "8": ["splleave", "bsplleave"],
+    "9": ["OptionalLeave", "bOptionalLeave"],
+    "10": ["adhyayan", "badhyayan"],
+    "11": ["ChildCare", "bChildCare"],
+    "12": ["UnexpecLeave", "bUnexpecLeave"],
+    "13": ["nosaldeduct", "bnosaldeduct"],
+    "14": ["SPLUnexpLeave", "bSPLUnexpLeave"],
+    "15": ["HPMleave", "bHPMleave"],
+    "17": ["PL", "bPL"]
+  };
+
+  const mapping = leaveMap[String(payload.leaveTypeId)];
+
+  if (!mapping) {
+    return {
+      success: true,
+      count: 1,
+      data: [{
+        allotted: 0,
+        balance: 0
+      }]
+    };
+  }
+
+  const [allottedField, balanceField] = mapping;
 
   return {
-
     success: true,
-
-    count: data.length,
-
-    data
-
+    count: 1,
+    data: [{
+      allotted: Number(row[allottedField] || 0),
+      balance: Number(row[balanceField] || 0)
+    }]
   };
 }
 

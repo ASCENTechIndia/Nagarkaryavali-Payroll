@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 import axios from "axios";
 
@@ -16,31 +16,27 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Button } from "@/components/ui/button";
 
-
 import { useAuth } from "@/context/AuthContext";
 import { DatePicker } from "@/components/ui/calendar";
 import SearchableSelect from "@/components/SearchableSelect";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const FrmLeaveApplication = () => {
   const { token, user } = useAuth();
-
   const baseUrl = import.meta.env.VITE_BASE_URL;
-
   const ulbId = user?.ulbId;
-
   const userId = user?.userId;
-
   const [showDetails, setShowDetails] = useState(false);
-
-  
   const [departmentList, setDepartmentList] = useState([]);
-  
   const [designationList, setDesignationList] = useState([]);
-  
   const [leaveList, setLeaveList] = useState([]);
-const [employeeList, setEmployeeList] = useState([]);
+  const [employeeList, setEmployeeList] = useState([]);
   const [leaveSummary, setLeaveSummary] = useState([]);
 
   const axiosConfig = {
@@ -68,9 +64,7 @@ const [employeeList, setEmployeeList] = useState([]);
     halfDay: false,
   };
 
-  /* -------------------------------------------------------------------------- */
-  /*                                 PAGE LOAD                                  */
-  /* -------------------------------------------------------------------------- */
+
   const showLoader = (title = "Please Wait...") => {
     Swal.fire({
       title,
@@ -89,57 +83,55 @@ const [employeeList, setEmployeeList] = useState([]);
   useEffect(() => {
     if (!token || !ulbId) return;
 
-   const loadMasterData = async () => {
-  try {
-    showLoader("Loading...");
+    const loadMasterData = async () => {
+      try {
+        showLoader("Loading...");
 
-    const [employeeRes, departmentRes, designationRes, leaveRes] =
-      await Promise.all([
-        axios.post(
-          `${baseUrl}/api/LeaveApplication/employeelist`,
-          { ulbId },
-          axiosConfig
-        ),
-        axios.get(
-          `${baseUrl}/api/LeaveApplication/departmentlist`,
-          axiosConfig
-        ),
-        axios.get(
-          `${baseUrl}/api/LeaveApplication/designationlist`,
-          axiosConfig
-        ),
-        axios.post(
-          `${baseUrl}/api/LeaveApplication/leavelist`,
-          { ulbId },
-          axiosConfig
-        ),
-      ]);
+        const [employeeRes, departmentRes, designationRes, leaveRes] =
+          await Promise.all([
+            axios.post(
+              `${baseUrl}/api/LeaveApplication/employeelist`,
+              { ulbId },
+              axiosConfig,
+            ),
+            axios.get(
+              `${baseUrl}/api/LeaveApplication/departmentlist`,
+              axiosConfig,
+            ),
+            axios.get(
+              `${baseUrl}/api/LeaveApplication/designationlist`,
+              axiosConfig,
+            ),
+            axios.post(
+              `${baseUrl}/api/LeaveApplication/leavelist`,
+              { ulbId },
+              axiosConfig,
+            ),
+          ]);
 
-    setEmployeeList(employeeRes?.data?.data?.data || []);
-    setDepartmentList(departmentRes?.data?.data?.data || []);
-    setDesignationList(designationRes?.data?.data?.data || []);
-    setLeaveList(leaveRes?.data?.data?.data || []);
-  } catch (error) {
-    console.log("Master API Error", error);
-  } finally {
-    hideLoader();
-  }
-};
+        setEmployeeList(employeeRes?.data?.data?.data || []);
+        setDepartmentList(departmentRes?.data?.data?.data || []);
+        setDesignationList(designationRes?.data?.data?.data || []);
+        setLeaveList(leaveRes?.data?.data?.data || []);
+      } catch (error) {
+        console.log("Master API Error", error);
+      } finally {
+        hideLoader();
+      }
+    };
 
     loadMasterData();
   }, [token, ulbId]);
 
   const employeeOptions = useMemo(
-  () =>
-    employeeList.map((item) => ({
-      value: String(item.NUM_EMPLOYEE_EMPID),
-      label: item.EMPNAME,
-    })),
-  [employeeList]
-);
-  /* -------------------------------------------------------------------------- */
-  /*                            EMPLOYEE DETAILS API                            */
-  /* -------------------------------------------------------------------------- */
+    () =>
+      employeeList.map((item) => ({
+        value: String(item.NUM_EMPLOYEE_EMPID),
+        label: item.EMPNAME,
+      })),
+    [employeeList],
+  );
+ 
 
   const getEmployeeDetails = async (employeeId, setFieldValue) => {
     try {
@@ -203,41 +195,66 @@ const [employeeList, setEmployeeList] = useState([]);
     }
   };
 
-  /* -------------------------------------------------------------------------- */
-  /*                          EMPLOYEE LEAVE BALANCE                            */
-  /* -------------------------------------------------------------------------- */
+const getEmployeeLeaveBalance = async (
+  employeeId,
+  leaveId,
+  setFieldValue,
+) => {
+  try {
+    const response = await axios.post(
+      `${baseUrl}/api/LeaveApplication/employeeleavebalance`,
+      {
+        ulbId,
+        employeeId: Number(employeeId),
+        leaveTypeId: leaveId,
+      },
+      axiosConfig,
+    );
 
-  const getEmployeeLeaveBalance = async (
-    employeeId,
-    leaveId,
-    setFieldValue,
-  ) => {
-    try {
-      const response = await axios.post(
-        `${baseUrl}/api/LeaveApplication/employeeleavebalance`,
-        {
-          ulbId,
-          employeeId: Number(employeeId),
-          leaveTypeId: leaveId,
-        },
-        axiosConfig,
-      );
-
-      if (response?.data?.data?.count === 0) {
-        Swal.fire({
-          text: "No Data Found for Selected Leave Type",
-        });
-      }
-
-      const balanceData = response?.data?.data?.data?.[0];
-
-      setFieldValue("balancedLeaves", balanceData?.BALANCE_LEAVE || 0);
-
-      setFieldValue("allottedLeaves", balanceData?.TOTAL_LEAVE || 0);
-    } catch (error) {
-      console.log("Leave Balance Error", error);
+    if (response?.data?.data?.count === 0) {
+      Swal.fire({
+        text: "No Data Found for Selected Leave Type",
+      });
+      return;
     }
-  };
+
+    const row = response?.data?.data?.data?.[0];
+
+    const leaveMap = {
+      "1": ["MEDLEAVE", "BMEDLEAVE"],
+      "2": ["CASUALLEAVE", "BCASUALLEAVE"],
+      "3": ["CASUALLEAVE", "BCASUALLEAVE"],
+      "4": ["PL", "BPL"],
+      "5": ["MEDLEAVE", "BMEDLEAVE"],
+      "6": ["METLEAVE1", "BMETLEAVE1"],
+      "7": ["METLEAVE2", "BMETLEAVE2"],
+      "8": ["SPLLEAVE", "BSPLLEAVE"],
+      "9": ["OPTIONALLEAVE", "BOPTIONALLEAVE"],
+      "10": ["ADHYAYAN", "BADHYAYAN"],
+      "11": ["CHILDCARE", "BCHILDCARE"],
+      "12": ["UNEXPECLEAVE", "BUNEXPECLEAVE"],
+      "13": ["NOSALDEDUCT", "BNOSALDEDUCT"],
+      "14": ["SPLUNEXPLEAVE", "BSPLUNEXPLEAVE"],
+      "15": ["HPMLEAVE", "BHPMLEAVE"],
+      "17": ["PL", "BPL"],
+    };
+
+    const fields = leaveMap[String(leaveId)];
+
+    if (fields) {
+      const [allottedField, balanceField] = fields;
+
+      setFieldValue("allottedLeaves", row?.[allottedField] ?? 0);
+      setFieldValue("balancedLeaves", row?.[balanceField] ?? 0);
+    } else {
+      setFieldValue("allottedLeaves", 0);
+      setFieldValue("balancedLeaves", 0);
+    }
+
+  } catch (error) {
+    console.log("Leave Balance Error", error);
+  }
+};
 
   const getEmployeeLeaveSummary = async (employeeId) => {
     try {
@@ -256,10 +273,6 @@ const [employeeList, setEmployeeList] = useState([]);
     }
   };
 
-  /* -------------------------------------------------------------------------- */
-  /*                             CALCULATE TOTAL DAYS                           */
-  /* -------------------------------------------------------------------------- */
-
   const calculateDays = (fromDate, toDate, setFieldValue) => {
     if (!fromDate || !toDate) return;
 
@@ -271,10 +284,6 @@ const [employeeList, setEmployeeList] = useState([]);
 
     setFieldValue("totalDays", diff > 0 ? diff : 0);
   };
-
-  /* -------------------------------------------------------------------------- */
-  /*                                  SAVE API                                  */
-  /* -------------------------------------------------------------------------- */
 
   const handleSubmit = async (values, resetForm) => {
     try {
@@ -348,13 +357,13 @@ const [employeeList, setEmployeeList] = useState([]);
                     required
                   />
 
-                 <SearchableSelect
-  value={values.employee}
-  options={employeeOptions}
-  placeholder="Select Employee"
-  disabled={showDetails}
-  onChange={(value) => setFieldValue("employee", value)}
-/>
+                  <SearchableSelect
+                    value={values.employee}
+                    options={employeeOptions}
+                    placeholder="Select Employee"
+                    disabled={showDetails}
+                    onChange={(value) => setFieldValue("employee", value)}
+                  />
                 </div>
 
                 {/* Search */}
