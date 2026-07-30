@@ -51,8 +51,14 @@ const FrmPayHeadConfigList = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/FrmEmployeeMstList/employee-category-list`,
+      // const res = await axios.get(
+      //   `${BASE_URL}/api/FrmEmployeeMstList/employee-category-list`,
+      //   { headers: { Authorization: `Bearer ${token}` } }
+      // );
+
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmSalaryCalulation/category`,
+        { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

@@ -91,9 +91,9 @@ const FrmSalaryEditCalulation = () => {
   const initialFormValues = {
     month: "-1",
     year: "-1",
-    category: "-1",
-    department: "-1",
-    subDepartment: "-1",
+    category: "",
+    department: "",
+    subDepartment: "",
     billNo: "0",
     employeeCode: "",
     employeeName: "",
@@ -142,7 +142,7 @@ const FrmSalaryEditCalulation = () => {
           label: item.VAR_CATEGORY_NAME,
           value: String(item.NUM_CATEGORY_ID),
         }));
-        setCategoryOptions([{ value: "-1", label: "-- ALL --" }, ...formatted]);
+        setCategoryOptions(formatted);
       }
     } catch (err) {
       console.error("Error fetching categories:", err);
@@ -166,7 +166,7 @@ const FrmSalaryEditCalulation = () => {
           label: item.DEPTNAME,
           value: String(item.DEPTID),
         }));
-        setDepartmentOptions([{ value: "-1", label: "-- ALL --" }, ...formatted]);
+        setDepartmentOptions(formatted);
       }
     } catch (err) {
       console.error("Error fetching departments:", err);
@@ -247,7 +247,7 @@ const FrmSalaryEditCalulation = () => {
   };
 
   const handleSearch = async (values) => {
-    if (values.category === "-1") {
+    if (values.category === "") {
       Swal.fire({ text: "Please Select Category.", confirmButtonColor: "#1e3a8a" });
       return;
     }
@@ -942,7 +942,7 @@ const FrmSalaryEditCalulation = () => {
                         <SelectTrigger className="w-full h-9">
                           <SelectValue placeholder="Select Month" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent showDefaultOption={false}>
                           {monthOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
@@ -957,7 +957,7 @@ const FrmSalaryEditCalulation = () => {
                         <SelectTrigger className="w-28 h-9">
                           <SelectValue placeholder="Year" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent showDefaultOption={false}>
                           {yearOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}

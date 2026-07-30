@@ -278,7 +278,7 @@ const FrmEmpPayHeadListRpt = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {categoryOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -300,7 +300,7 @@ const FrmEmpPayHeadListRpt = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {zoneOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -322,7 +322,7 @@ const FrmEmpPayHeadListRpt = () => {
                       <SelectTrigger className="w-full h-9">
                         <SelectValue placeholder="-- विकल्प निवडा --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent showDefaultOption={false}>
                         {departmentOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
