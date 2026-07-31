@@ -28,7 +28,7 @@ const Navbar = () => {
   const ulbId = user?.ulbId;
   const navigate = useNavigate();
 
-  const MENU_KEY = `ACCOUNTS_MENU_${user?.userId}`;
+  const MENU_KEY = `PAYROLL_MENU_${user?.userId}`;
 
   const fetchMenus = async () => {
     try {
@@ -108,6 +108,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem(MENU_KEY);
+    sessionStorage.removeItem("PayrollPopup");
     logout();
   };
 

@@ -74,7 +74,6 @@ import FrmNetPayRpt from '@/pages/Reports/FrmNetPayRpt';
 import FrmRetiredEmpRpt from '@/pages/Reports/FrmRetiredEmpRpt';
 import FrmAttendanceEntry from './pages/Transaction/FrmAttendanceEntry';
 import FrmGenericSearch from './pages/Search/FrmGenericSearch';
-
 import FrmBankLoanMst from './pages/Loan/FrmBankLoanMst';
 import FrmBankLoanMstList from './pages/Loan/FrmBankLoanMstList';
 import FrmIncreamentPramotionMst from './pages/Loan/FrmIncrementPromotion';
@@ -93,19 +92,10 @@ import FrmMonthlyBankDeductionUploadAuthList from "./pages/Transaction/FrmMonthl
 import FrmMonthlyBankDeductionUploadAuthMst from "./pages/Transaction/FrmMonthlyBankDeductionUploadAuthMst"
 import FrmDashboard from './pages/FrmHomePage';
 import FrmAttendanceEntryUpdate from './pages/Transaction/FrmAttendanceEntryUpdate';
-
 import FrmSalaryConsolidationReport from "./pages/Reports/FrmSalaryConsolidationRpt"
 import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadReport';
-
-
-
-const Home = () => {
-  return (
-    <>
-      <Label text="Welcome" />
-    </>
-  );
-};
+import FrmPayrollDashboard from './pages/HomePopup/FrmPayrollDashboard';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 export const router = createBrowserRouter([
   {
@@ -117,13 +107,9 @@ export const router = createBrowserRouter([
     element: <Layout />,
     children: [
       // {
-      //   path: "/HomePage/FrmHomePage",
+      //   index: true,
       //   element: <Home />
       // },
-      {
-        index: true,
-        element: <Home />
-      },
       {
         path: "/HomePage/FrmHomePage",
         element: <FrmDashboard />,
@@ -197,22 +183,6 @@ export const router = createBrowserRouter([
         path: "Masters/FrmDeptOrder",
         element: <FrmDeptOrder />
       },
-      // {
-      //   path: "Masters/FrmEmpLeaveList",
-      //   element: <FrmEmpLeaveList />
-      // },
-      // {
-      //   path: "Masters/FrmLeaveApprove",
-      //   element: <FrmLeaveApprove />
-      // },
-      // {
-      //   path: "Masters/FrmLeaveApprovalList",
-      //   element: <FrmLeaveApprovalList />
-      // },
-      // {
-      //   path: "Masters/FrmLeaveApplication",
-      //   element: <FrmLeaveApplication />
-      // },
       {
         path: "Masters/FrmLeaveList",
         element: <FrmLeaveList />
@@ -527,11 +497,11 @@ export const router = createBrowserRouter([
         element: <FrmRetiredEmpRpt />
       },
       {
-        path:"ReportsForm/FrmSalaryConsolidationRpt",
-        element: <FrmSalaryConsolidationReport/>
+        path: "ReportsForm/FrmSalaryConsolidationRpt",
+        element: <FrmSalaryConsolidationReport />
       },
       {
-        path:"Transactions/FrmMonthlyBankUploadReport",
+        path: "Transactions/FrmMonthlyBankUploadReport",
         element: <FrmMonthlyBankUploadReport />
       },
 
@@ -542,7 +512,11 @@ export const router = createBrowserRouter([
       }
 
     ]
-  }
+  },
+   {
+    path: "ReportsForm/FrmPayrollDashbord",
+    element: (<ProtectedRoute><FrmPayrollDashboard/></ProtectedRoute>),
+  },
 ])
 
 function App() {
