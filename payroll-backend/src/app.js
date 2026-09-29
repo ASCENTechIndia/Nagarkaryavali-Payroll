@@ -119,6 +119,10 @@ app.use("/api/FrmSalDeduction", require("./modules/Transaction/FrmSalDeduction/F
 app.use("/api/FrmEmployeeRetire", require("./modules/Transaction/FrmEmployeeRetire/FrmEmployeeRetire.routes"))
 app.use("/api/FrmBillGeneration", require("./modules/Transaction/FrmBillGeneration/FrmBillGeneration.route"));
 app.use("/api/FrmAttendanceEntryUpdate", require("./modules/Transaction/FrmAttendanceEntryUpdate/FrmAttendanceEntryUpdate.route"));
+app.use("/api/FrmESevaEmpMaster", require("./modules/Transaction/FrmESevaEmpMaster/FrmESevaEmpMaster.routes"));
+app.use("/api/FrmESevaEmpEducationalInformation", require("./modules/Transaction/FrmESevaEmpEducationalInformation/FrmESevaEmpEducationalInformation.routes"));
+app.use("/api/FrmESevaEmpNomin", require("./modules/Transaction/FrmESevaEmpNomin/FrmESevaEmpNomin.routes"));
+app.use("/api/FrmESevaEmpPostingRecord", require("./modules/Transaction/FrmESevaEmpPostingRecord/FrmESevaEmpPostingRecord.routes"));
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
