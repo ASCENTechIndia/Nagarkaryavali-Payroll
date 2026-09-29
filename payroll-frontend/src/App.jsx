@@ -94,6 +94,7 @@ import FrmDashboard from './pages/FrmHomePage';
 import FrmAttendanceEntryUpdate from './pages/Transaction/FrmAttendanceEntryUpdate';
 import FrmSalaryConsolidationReport from "./pages/Reports/FrmSalaryConsolidationRpt"
 import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadReport';
+import FrmBankListReport from './pages/Reports/FrmBankListReport';
 import FrmPayrollDashboard from './pages/HomePopup/FrmPayrollDashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
 
@@ -503,6 +504,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmMonthlyBankUploadReport",
         element: <FrmMonthlyBankUploadReport />
+      },
+      {
+        path: "ReportsForm/FrmBankList",
+        element: <FrmBankListReport />
       },
 
       // Loan and Advance 

@@ -143,6 +143,7 @@ app.use("/api/FrmRetiredEmpRpt", require("./modules/Reports/FrmRetiredEmpRpt/Frm
 
 app.use("/api/FrmSalaryConsolidationRpt", require("./modules/Reports/FrmSalaryConsolidationRpt/FrmSalaryConsolidationRpt.route"))
 app.use("/api/FrmMonthlyBankUploadReport", require("./modules/Reports/FrmMonthlyBankUploadReport/FrmMonthlyBankUploadReportRoutes"))
+app.use("/api/FrmBankListReport", require("./modules/Reports/FrmBankListReport/FrmBankListReport.route"))
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
 app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))
