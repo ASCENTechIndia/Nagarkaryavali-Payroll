@@ -9,62 +9,71 @@ exports.searchEmployee = asyncHandler(async (req, res) => {
   const { ulbId, empCode } = req.body;
 
   if (!ulbId) {
-    throw new AppError("ulbId is required", 400);
+    throw new AppError("ULB ID is required", 400);
   }
 
-  if (!empCode || empCode.trim() === "") {
+  if (!empCode || String(empCode).trim() === "") {
     throw new AppError("Employee code is required", 400);
   }
 
   const data = await service.searchEmployeeService({
     ulbId,
-    empCode: empCode.trim()
+    empCode: String(empCode).trim(),
   });
 
   return ok(res, data, "Employee data fetched successfully");
 });
 
 exports.generateEsevaReport = asyncHandler(async (req, res) => {
-  const { ulbId, empCode } = req.body;
+  const {
+    ulbId,
+    empCode,
+    corporationName,
+    brNameMar,
+    brAddMar,
+    userId,
+    userName,
+  } = req.body;
 
   if (!ulbId) {
-    throw new AppError("ulbId is required", 400);
+    throw new AppError("ULB ID is required", 400);
   }
 
-  if (!empCode || empCode.trim() === "") {
+  if (!empCode || String(empCode).trim() === "") {
     throw new AppError("Employee code is required", 400);
   }
 
-  // Get all employee report data
   const reportData = await service.getCompleteEsevaReportService({
     ulbId,
-    empCode: empCode.trim(),
-    userId: req.user.userId,
-    userName: req.user.userName || req.user.name,
-    corporationName: req.user.corporationName || "Municipal Corporation"
+    empCode: String(empCode).trim(),
+    corporationName: corporationName || "",
+    brNameMar: brNameMar || "",
+    brAddMar: brAddMar || "",
+    userId: userId || req.user?.userId || "",
+    userName: userName || req.user?.userName || req.user?.name || "",
   });
 
-  if (!reportData || !reportData.personalInfo || reportData.personalInfo.length === 0) {
-    throw new AppError("No records found for the given employee code", 404);
+  if (!reportData || !reportData.personalInfo) {
+    throw new AppError("Employee record not found", 404);
   }
 
-  // Generate PDF
   const pdf = await EsevaReportPDFHelper({
     reportData,
-    ulbId,
-    userId: req.user.userId,
-    userName: req.user.userName || req.user.name,
-    corporationName: req.user.corporationName || "Municipal Corporation"
+    corporationName: corporationName || "Municipal Corporation",
+    brNameMar: brNameMar || "",
+    brAddMar: brAddMar || "",
+    userId: userId || req.user?.userId || "",
+    userName: userName || req.user?.userName || req.user?.name || "",
   });
 
   const baseUrl = `${req.protocol}://${req.get("host")}`;
   const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
-  return res.json({
+  return res.status(200).json({
     success: true,
-    message: "PDF Generated Successfully",
+    message: "E-Seva report generated successfully",
     fileName: pdf.fileName,
     pdfUrl,
-    employeeDetails: reportData.personalInfo[0]
+    employeeDetails: reportData.personalInfo,
   });
 });

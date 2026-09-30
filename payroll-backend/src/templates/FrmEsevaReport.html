@@ -1,665 +1,1358 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-    <meta charset="UTF-8">
-    <title>E-Seva Employee Report</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>E-Seva Employee Service Book</title>
     <style>
-        @page {
-            size: A4;
-            margin: 15mm 12mm;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            font-size: 10px;
-            margin: 0;
-            padding: 0;
-            line-height: 1.4;
-        }
-
-        /* Header Styles */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-        }
-
-        .corporation-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .report-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 5px;
-            color: #2c3e50;
-        }
-
-        .report-subtitle {
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        /* Section Styles */
-        .section {
-            margin-bottom: 20px;
-            page-break-inside: avoid;
-        }
-
-        .section-title {
-            font-size: 12px;
-            font-weight: bold;
-            background-color: #2c3e50;
-            color: white;
-            padding: 6px 10px;
-            margin-bottom: 10px;
-            border-radius: 3px;
-        }
-
-        /* Table Styles */
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-        }
-
-        .info-table td, .info-table th {
-            border: 1px solid #ddd;
-            padding: 6px 8px;
-            vertical-align: top;
-        }
-
-        .info-table td:first-child {
-            width: 30%;
-            font-weight: bold;
-            background-color: #f5f5f5;
-        }
-
-        .info-table td:last-child {
-            width: 70%;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            font-size: 9px;
-        }
-
-        .data-table th {
-            border: 1px solid #333;
-            padding: 6px 5px;
-            background-color: #34495e;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .data-table td {
-            border: 1px solid #ddd;
-            padding: 5px;
-        }
-
-        .data-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        /* Utility Classes */
-        .center {
-            text-align: center;
-        }
-
-        .right {
-            text-align: right;
-        }
-
-        .left {
-            text-align: left;
-        }
-
-        .bold {
-            font-weight: bold;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 30px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            font-size: 8px;
-            text-align: center;
-            border-top: 1px solid #ddd;
-            padding-top: 8px;
-        }
-
-        .page-number:before {
-            content: "Page " counter(page);
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 10px;
-            color: #999;
-            font-style: italic;
-        }
-
-        .signature-section {
-            margin-top: 30px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .signature-box {
-            text-align: center;
-            width: 45%;
-        }
-
-        .signature-line {
-            margin-top: 40px;
-            border-top: 1px solid #333;
-            width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-        }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111;
+      }
+      body {
+        font-size: 11px;
+        line-height: 1.15;
+      }
+      .page {
+        width: 210mm;
+        height: 297mm;
+        padding: 10mm 11mm 9mm 11mm;
+        position: relative;
+        overflow: hidden;
+        page-break-after: always;
+        background: #fff;
+      }
+      .page:last-child {
+        page-break-after: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      td,
+      th {
+        border: 1px solid #222;
+        padding: 3px 4px;
+        vertical-align: middle;
+        word-wrap: break-word;
+      }
+      th {
+        font-weight: bold;
+        text-align: center;
+      }
+      .center {
+        text-align: center;
+      }
+      .right {
+        text-align: right;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .top-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 7px;
+      }
+      .logo {
+        width: 35px;
+        height: 35px;
+        object-fit: contain;
+      }
+      .book-title {
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 18px;
+      }
+      .book-subtitle {
+        font-size: 15px;
+        line-height: 14px;
+      }
+      .section-head {
+        height: 24px;
+        background: #c6c6c6;
+        border: 1px solid #aaa;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 5px 3px;
+        margin-top: 6px;
+      }
+      .sub-head {
+        height: 21px;
+        background: #c6c6c6;
+        border: 1px solid #aaa;
+        text-align: center;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 4px 3px;
+        margin-top: 5px;
+      }
+      .part {
+        text-align: right;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 2px 1px 3px;
+      }
+      .small {
+        font-size: 10px;
+      }
+      .tiny {
+        font-size: 9px;
+      }
+      .no-border td {
+        border: 0;
+      }
+      .photo-title {
+        font-size: 11px;
+        margin-top: 5px;
+      }
+      .photo-box {
+        height: 112px;
+        width: 105px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .photo-box img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      .label-cell {
+        font-weight: normal;
+      }
+      .gray {
+        background: #eee;
+      }
+      .inner-table {
+        margin: 0;
+      }
+      .inner-table td,
+      .inner-table th {
+        padding: 3px 3px;
+      }
+      .signature {
+        text-align: center;
+        margin-top: 23px;
+      }
+      .signature-line {
+        display: inline-block;
+        border-top: 1px dotted #222;
+        width: 150px;
+        padding-top: 2px;
+      }
+      .footer {
+        position: absolute;
+        bottom: 5mm;
+        left: 11mm;
+        right: 11mm;
+        font-size: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .spacer {
+        height: 4px;
+      }
+      .break {
+        page-break-before: always;
+      }
     </style>
-</head>
+  </head>
+  <body>
+    <!-- PAGE 1 -->
+    <div class="page">
+      <div class="top-title">
+        <img class="logo" src="{{ulbLogo}}" alt="" />
+        <div>
+          <div class="book-title">PAYROLL</div>
+          <div class="book-subtitle">E-Seva Book</div>
+        </div>
+      </div>
 
-<body>
-    <!-- Header -->
-    <div class="header">
-        <div class="corporation-name">{{corporationName}}</div>
-        <div class="report-title">E-Seva Employee Service Book</div>
-        <div class="report-subtitle">(As per Maharashtra Civil Services Rules)</div>
-    </div>
-
-    <!-- Report Info -->
-    <table class="info-table" style="margin-bottom: 15px;">
+      <div class="section-head">PERSONAL INFORMATION</div>
+      <table>
         <tr>
-            <td>Report Date:</td>
-            <td>{{reportDate}} at {{currentTime}}</td>
-            <td>Generated By:</td>
-            <td>{{userName}} ({{userId}})</td>
+          <td style="width: 31%">नाम (श्री/श्रीमती)</td>
+          <td>{{personalInfo.ESEVAEMP_NAME}}</td>
         </tr>
-    </table>
+        <tr>
+          <td>Designation</td>
+          <td>{{personalInfo.DESIGNATIONNAME}}</td>
+        </tr>
+        <tr>
+          <td>Date Of Joining (Gov. Service)</td>
+          <td>{{formatDate personalInfo.JOINDATE}}</td>
+        </tr>
+        <tr>
+          <td>Office</td>
+          <td>{{personalInfo.CORPORATION_ADDRESS}}</td>
+        </tr>
+      </table>
 
-    <!-- Section 1: Personal Information -->
-    <div class="section">
-        <div class="section-title">1. PERSONAL INFORMATION</div>
-        <table class="info-table">
-            <tr><td>Employee Name</td><td>{{personalInfo.ESEVAEMP_NAME}} - {{personalInfo.empcode}}</td></tr>
-            <tr><td>Designation</td><td>{{personalInfo.DESIGNATIONNAME}}</td></tr>
-            <tr><td>Father's Name</td><td>{{personalInfo.FATHERNAME}}</td></tr>
-            <tr><td>Mother's Name</td><td>{{personalInfo.MOTHERNAME}}</td></tr>
-            <tr><td>Date of Birth</td><td>{{formatDate personalInfo.DOB}}</td></tr>
-            <tr><td>Date of Joining</td><td>{{formatDate personalInfo.JOINDATE}}</td></tr>
-            <tr><td>Date of Superannuation</td><td>{{formatDate personalInfo.DATEOFSUPERANNUATION}}</td></tr>
-            <tr><td>Aadhar Number</td><td>{{personalInfo.AADHARNO}}</td></tr>
-            <tr><td>PAN Number</td><td>{{personalInfo.PANNO}}</td></tr>
-            <tr><td>Nationality</td><td>{{personalInfo.NATIONALITY}}</td></tr>
-            <tr><td>Category</td><td>{{personalInfo.CATEGORY}}</td></tr>
-            <tr><td>Email</td><td>{{personalInfo.EMAIL}}</td></tr>
-        </table>
-    </div>
+      <div class="photo-title">PHOTOGRAPH</div>
+      <div class="small">Attested By Head Of Office Before Pasting</div>
+      <div class="photo-box">
+        <img
+          src="{{employeePhoto}}"
+          alt="Employee Photo"
+        />
+      </div>
 
-    <!-- Section 2: Address Details -->
-    <div class="section">
-        <div class="section-title">2. ADDRESS DETAILS</div>
-        <table class="info-table">
-            <tr><td>Permanent Address</td><td>{{addressDetails.PARMADDRES}}, {{addressDetails.PCITY}}, {{addressDetails.DISTRICT}}, {{addressDetails.STATE}} - {{addressDetails.PINCODE}}</td></tr>
-            <tr><td>Correspondence Address</td><td>{{addressDetails.COMMADDRESS}}, {{addressDetails.COMMDISTRICT}}, {{addressDetails.COMMSTATE}} - {{addressDetails.COMMPINCODE}}</td></tr>
-            <tr><td>Mobile Number</td><td>{{addressDetails.MOBNO}} / {{addressDetails.ALTERMOBNO}}</td></tr>
-            <tr><td>Telephone Number</td><td>{{addressDetails.TELNUMBER}}</td></tr>
-            <tr><td>Spouse Name</td><td>{{addressDetails.SPOUSENAME}}</td></tr>
-        </table>
-    </div>
-
-    <!-- Section 3: Emergency Contact -->
-    <div class="section">
-        <div class="section-title">3. EMERGENCY CONTACT DETAILS</div>
-        {{#if emergencyDetails}}
-        <table class="info-table">
-            <tr><td>Name</td><td>{{emergencyDetails.EMERG_NAME}}</td>
-                <td>Relationship</td><td>{{emergencyDetails.EMERG_RELATION}}</td>
-            </tr>
-            <tr><td>Address</td><td colspan="3">{{emergencyDetails.EMERG_ADDRESS}}</td></tr>
-            <tr><td>Contact Number</td><td colspan="3">{{emergencyDetails.EMERG_MOBILE}}</td></tr>
-        </table>
-        {{else}}
-        <div class="no-data">No emergency contact details found</div>
-        {{/if}}
-    </div>
-
-    <!-- Section 4: Family Details -->
-    <div class="section">
-        <div class="section-title">4. FAMILY DETAILS</div>
-        {{#if hasFamily}}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th width="5%">Sr No</th>
-                    <th width="30%">Member Name</th>
-                    <th width="20%">Relationship</th>
-                    <th width="15%">Date of Birth</th>
-                    <th width="30%">Occupation</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each familyDetails}}
-                <tr>
-                    <td class="center">{{increment @index}}</td>
-                    <td>{{FAM_NAME}}</td>
-                    <td>{{FAM_RELATION}}</td>
-                    <td class="center">{{formatDate FAM_DOB}}</td>
-                    <td>{{FAM_OCCUPATION}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-        {{else}}
-        <div class="no-data">No family details found</div>
-        {{/if}}
-    </div>
-
-    <!-- Section 5: Education Details -->
-    <div class="section">
-        <div class="section-title">5. EDUCATION DETAILS</div>
-        {{#if hasEducation}}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th width="5%">Sr No</th>
-                    <th width="35%">Degree/Course</th>
-                    <th width="35%">University/Board</th>
-                    <th width="25%">Passing Year</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each educationDetails}}
-                <tr>
-                    <td class="center">{{increment @index}}</td>
-                    <td>{{DEGREE}}</td>
-                    <td>{{UNIVERSITY}}</td>
-                    <td class="center">{{PASSYEAR}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-        {{else}}
-        <div class="no-data">No education details found</div>
-        {{/if}}
-    </div>
-
-    <!-- Section 6: Additional Training -->
-    <div class="section">
-        <div class="section-title">6. ADDITIONAL TRAINING</div>
-        {{#if hasAdditionalTraining}}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th width="5%">Sr No</th>
-                    <th width="35%">Course Name</th>
-                    <th width="40%">Organization Details</th>
-                    <th width="20%">Commencement Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each additionalTraining}}
-                <tr>
-                    <td class="center">{{increment @index}}</td>
-                    <td>{{COURSENAME}}</td>
-                    <td>{{ORGDETAILS}}</td>
-                    <td class="center">{{formatDate COMMENCEDATE}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-        {{else}}
-        <div class="no-data">No additional training records found</div>
-        {{/if}}
-    </div>
-
-    <!-- Section 7: Previous Training (for SMKC) -->
-    {{#if hasTraining}}
-    <div class="section">
-        <div class="section-title">7. TRAINING DETAILS</div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th width="5%">Sr No</th>
-                    <th width="30%">Training Name</th>
-                    <th width="30%">Institution</th>
-                    <th width="20%">From Date</th>
-                    <th width="15%">To Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each training}}
-                <tr>
-                    <td class="center">{{increment @index}}</td>
-                    <td>{{TRAINING_NAME}}</td>
-                    <td>{{INSTITUTION}}</td>
-                    <td class="center">{{formatDate FROM_DATE}}</td>
-                    <td class="center">{{formatDate TO_DATE}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-    </div>
-    {{/if}}
-
-    <!-- Section 8: Nomination Details -->
-    <div class="section">
-        <div class="section-title">8. NOMINATION DETAILS</div>
-        {{#if hasNomination}}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th width="5%">Sr No</th>
-                    <th width="25%">Nominee Name</th>
-                    <th width="15%">Relationship</th>
-                    <th width="15%">Date of Birth</th>
-                    <th width="20%">Share Percentage</th>
-                    <th width="20%">Minor Guardian</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each nominationDetails}}
-                <tr>
-                    <td class="center">{{increment @index}}</td>
-                    <td>{{NOMINEE_NAME}}</td>
-                    <td>{{RELATIONSHIP}}</td>
-                    <td class="center">{{formatDate NOMINEE_DOB}}</td>
-                    <td class="center">{{SHARE_PERCENTAGE}}%</td>
-                    <td>{{MINOR_GUARDIAN}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-        {{else}}
-        <div class="no-data">No nomination details found</div>
-        {{/if}}
-    </div>
-
-    <!-- Section 9: Posting/Service Records -->
-    <div class="section">
-        <div class="section-title">9. SERVICE & POSTING RECORDS</div>
-        
-        {{#if postingRecords.previousService.length}}
-        <div style="margin-bottom: 15px;">
-            <div class="bold" style="margin-bottom: 8px;">A) Previous Service Records:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="5%">Sr No</th>
-                        <th width="20%">Posting Place</th>
-                        <th width="20%">Designation</th>
-                        <th width="15%">From Date</th>
-                        <th width="15%">To Date</th>
-                        <th width="25%">Remarks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each postingRecords.previousService}}
-                    <tr>
-                        <td class="center">{{increment @index}}</td>
-                        <td>{{POSTING_PLACE}}</td>
-                        <td>{{DESIGNATION}}</td>
-                        <td class="center">{{formatDate FROM_DATE}}</td>
-                        <td class="center">{{formatDate TO_DATE}}</td>
-                        <td>{{REMARKS}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
+      <table>
+        <tr>
+          <td style="width: 5%" class="center">1</td>
+          <td style="width: 20%">आधार क्रमांक</td>
+          <td>{{personalInfo.AADHARNO}}</td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td>पॅन क्रमांक</td>
+          <td>{{personalInfo.PANNO}}</td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td>वडिलांचे व आईचे संपूर्ण नाव</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <td style="width: 22%">Father's Name :</td>
+                <td style="width: 28%">{{personalInfo.FATHERNAME}}</td>
+                <td style="width: 20%">Mother's Name :</td>
+                <td>{{personalInfo.MOTHERNAME}}</td>
+              </tr>
             </table>
-        </div>
-        {{/if}}
+          </td>
+        </tr>
+        <tr>
+          <td class="center">4</td>
+          <td>Date of Birth</td>
+          <td>{{formatDate personalInfo.DOB}}</td>
+        </tr>
+        <tr>
+          <td class="center">5</td>
+          <td>Date of Superannuation</td>
+          <td>{{formatDate personalInfo.DATEOFSUPERANNUATION}}</td>
+        </tr>
+        <tr>
+          <td class="center">6</td>
+          <td>Nationality</td>
+          <td>{{personalInfo.NATIONALITY}}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Category</td>
+          <td>{{personalInfo.CATEGORY}}</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Gender</td>
+          <td>{{personalInfo.GENDER}}</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>दूरध्वनी क्रमांक</td>
+          <td>{{addressDetails.MOBNO}}</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>मातृभाषा</td>
+          <td>{{personalInfo.MOTHERLANGUAGE}}</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>अन्नत भाषा</td>
+          <td>{{personalInfo.OTHERLANGUAGE}}</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td>जन्मस्थळ</td>
+          <td>{{personalInfo.BIRTHPLACE}}</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td>बँक</td>
+          <td>{{personalInfo.BANKNAME}}</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td>शाखा</td>
+          <td>{{personalInfo.BRANCHNAME}}</td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td>खाते क्रमांक</td>
+          <td>{{personalInfo.ACCNO}}</td>
+        </tr>
+      </table>
+    </div>
 
-        {{#if postingRecords.foreignService.length}}
-        <div style="margin-bottom: 15px;">
-            <div class="bold" style="margin-bottom: 8px;">B) Foreign Service Records:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="5%">Sr No</th>
-                        <th width="25%">Organization</th>
-                        <th width="20%">Designation</th>
-                        <th width="15%">From Date</th>
-                        <th width="15%">To Date</th>
-                        <th width="20%">Remarks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each postingRecords.foreignService}}
-                    <tr>
-                        <td class="center">{{increment @index}}</td>
-                        <td>{{ORGANIZATION}}</td>
-                        <td>{{DESIGNATION}}</td>
-                        <td class="center">{{formatDate FROM_DATE}}</td>
-                        <td class="center">{{formatDate TO_DATE}}</td>
-                        <td>{{REMARKS}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
+    <!-- PAGE 2 -->
+    <div class="page">
+      <table>
+        <tr>
+          <td style="width: 4%" class="center">9.</td>
+          <td style="width: 14%">Qualifications :</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <th>Degree</th>
+                <th>Institute/University</th>
+                <th>Passing Year</th>
+              </tr>
+              {{#each educationDetails}}
+              <tr>
+                <td class="center">{{DEGREE}}</td>
+                <td>{{UNIVERSITY}}</td>
+                <td class="center">{{PASSYEAR}}</td>
+              </tr>
+              {{/each}}
             </table>
-        </div>
-        {{/if}}
+          </td>
+        </tr>
+        <tr>
+          <td class="center">10.</td>
+          <td>At the Time Of Appointment, Including Training And Skill Test</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <th>Course Name</th>
+                <th>Organization Details</th>
+                <th>Comm. Date</th>
+              </tr>
+              {{#each additionalTraining}}
+              <tr>
+                <td>{{COURSENAME}}</td>
+                <td>{{ORGDETAILS}}</td>
+                <td class="center">{{formatDate COMMENCEDATE}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </td>
+        </tr>
+      </table>
 
-        {{#if postingRecords.verifiedService.length}}
+      <table style="margin-top: 7px">
+        <tr>
+          <td style="width: 4%" class="center">11.</td>
+          <td style="width: 14%">
+            Subsequently Acquired Qualifications Including Professional &amp;
+            Technical Qualifications, Including Training And
+          </td>
+          <td style="padding: 0">
+            <div class="sub-head" style="margin-top: 0">
+              Subsequent Qualification
+            </div>
+            <table class="inner-table">
+              <tr>
+                <th>Degree</th>
+                <th>Institute / University</th>
+                <th>Passing Year</th>
+              </tr>
+              {{#each subsequentQualifications}}
+              <tr>
+                <td>{{DEGREE}}</td>
+                <td>{{UNIVERSITY}}</td>
+                <td class="center">{{PASSYEAR}}</td>
+              </tr>
+              {{/each}}
+            </table>
+            <div style="height: 45px"></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="center">12.</td>
+          <td>Employee Training Details</td>
+          <td style="padding: 0">
+            <div class="sub-head" style="margin-top: 0">
+              Employee Training Details
+            </div>
+            <table class="inner-table">
+              <tr>
+                <th style="width: 9%">अ.क्र.</th>
+                <th>प्रशिक्षणाचे नाव</th>
+                <th>प्रशिक्षण कालावधी</th>
+                <th>प्रशिक्षण कालावधी</th>
+                <th>सक्षम अधिकारीचे नाव व पदनाम</th>
+              </tr>
+              {{#each training}}
+              <tr>
+                <td class="center">{{increment @index}}</td>
+                <td>{{TRAINING_NAME}}</td>
+                <td>{{FROM_DATE}}</td>
+                <td>{{TO_DATE}}</td>
+                <td>{{OFFICER_NAME}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- PAGE 3 -->
+    <div class="page">
+      <table>
+        <tr>
+          <td style="width: 5%" class="center">11</td>
+          <td style="width: 18%">Marital Status</td>
+          <td>{{personalInfo.MARITALSTATUS}}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>If Married, Name Of Spouse</td>
+          <td>{{addressDetails.SPOUSENAME}}</td>
+        </tr>
+        <tr>
+          <td class="center">12</td>
+          <td>New Permanent Address</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <td style="width: 22%">Address Line 1 :</td>
+                <td>{{addressDetails.PARMADDRES}}</td>
+              </tr>
+              <tr>
+                <td>Address Line 2 :</td>
+                <td>{{addressDetails.PARMADDRESS2}}</td>
+              </tr>
+              <tr>
+                <td>City :</td>
+                <td>{{addressDetails.PCITY}}</td>
+              </tr>
+              <tr>
+                <td>District :</td>
+                <td>{{addressDetails.DISTRICT}}</td>
+              </tr>
+              <tr>
+                <td>State :</td>
+                <td>{{addressDetails.STATE}}</td>
+              </tr>
+              <tr>
+                <td>Country :</td>
+                <td>{{addressDetails.COUNTRY}}</td>
+              </tr>
+              <tr>
+                <td>Post Office :</td>
+                <td>{{addressDetails.PO}}</td>
+              </tr>
+              <tr>
+                <td>Pincode :</td>
+                <td>{{addressDetails.PINCODE}}</td>
+              </tr>
+            </table>
+            <table class="inner-table">
+              <tr>
+                <td style="width: 22%">New Permanent Address</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Address Line 1 :</td>
+                <td>{{addressDetails.PARMADDRES2}}</td>
+              </tr>
+              <tr>
+                <td>Address Line 2 :</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>City :</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>District :</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>State :</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Country :</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Post Office :</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Pincode :</td>
+                <td></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="center">13</td>
+          <td>Communication Address</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <td style="width: 22%">Address Line 1 :</td>
+                <td>{{addressDetails.COMMADDRESS}}</td>
+              </tr>
+              <tr>
+                <td>Address Line 2 :</td>
+                <td>{{addressDetails.COMMADDRESS2}}</td>
+              </tr>
+              <tr>
+                <td>City :</td>
+                <td>{{addressDetails.COMMCITY}}</td>
+              </tr>
+              <tr>
+                <td>District :</td>
+                <td>{{addressDetails.COMMDISTRICT}}</td>
+              </tr>
+              <tr>
+                <td>State :</td>
+                <td>{{addressDetails.COMMSTATE}}</td>
+              </tr>
+              <tr>
+                <td>Country :</td>
+                <td>{{addressDetails.COMMCOUNTRY}}</td>
+              </tr>
+              <tr>
+                <td>Post Office :</td>
+                <td>{{addressDetails.COMMPO}}</td>
+              </tr>
+              <tr>
+                <td>Pincode :</td>
+                <td>{{addressDetails.COMMPINCODE}}</td>
+              </tr>
+              <tr>
+                <td>Mobile No. :</td>
+                <td>
+                  {{addressDetails.MOBNO}} &nbsp;&nbsp; Alternate Mobile No. :
+                  {{addressDetails.ALTERMOBNO}}
+                </td>
+              </tr>
+              <tr>
+                <td>Telephone Number :</td>
+                <td>{{addressDetails.TELNUMBER}}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- PAGE 4 -->
+    <div class="page">
+      <table>
+        <tr>
+          <td style="width: 5%" class="center">14</td>
+          <td style="width: 20%">
+            Details of Contact Person In Case Of Emergency
+          </td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <td style="width: 42%">Contact Person Name</td>
+                <td>{{emergencyDetails.EMERG_NAME}}</td>
+              </tr>
+              <tr>
+                <td>Person In Case Of Emergency / Mobile Number</td>
+                <td>{{emergencyDetails.EMERG_MOBILE}}</td>
+              </tr>
+              <tr>
+                <td>Alternate Contact Person Name</td>
+                <td>{{emergencyDetails.EMERG_ALTNAME}}</td>
+              </tr>
+              <tr>
+                <td>Relation</td>
+                <td>{{emergencyDetails.EMERG_RELATION}}</td>
+              </tr>
+              <tr>
+                <td>Alternate Mobile Number</td>
+                <td>{{emergencyDetails.EMERG_ALTMOBILE}}</td>
+              </tr>
+              <tr>
+                <td>STD Code / Telephone Number</td>
+                <td>
+                  {{emergencyDetails.EMERG_STD}} /
+                  {{emergencyDetails.EMERG_TEL}}
+                </td>
+              </tr>
+              <tr>
+                <td>STD Code(Res) / Telephone Number(Res)</td>
+                <td>
+                  {{emergencyDetails.EMERG_RESSTD}} /
+                  {{emergencyDetails.EMERG_RESTEL}}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="center">15</td>
+          <td>Blood Group</td>
+          <td>{{personalInfo.BLOODGROUP}}</td>
+        </tr>
+        <tr>
+          <td class="center">16</td>
+          <td>Home Town At The Time Of Entry Into Government Service</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <th>Home Town</th>
+                <th>Nearest Railway Station</th>
+                <th>Nearest Airport</th>
+                <th>Declaration Date</th>
+              </tr>
+              <tr>
+                <td>{{personalInfo.HOMETOWN}}</td>
+                <td>{{personalInfo.RAILWAYSTATION}}</td>
+                <td>{{personalInfo.AIRPORT}}</td>
+                <td>{{formatDate personalInfo.HOMEDECLDATE}}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Subsequent Change Of Home Town, If Any</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <th>Home Town</th>
+                <th>Nearest Railway Station</th>
+                <th>Nearest Airport</th>
+                <th>Declaration Date</th>
+              </tr>
+              {{#each homeTownChanges}}
+              <tr>
+                <td>{{HOMETOWN}}</td>
+                <td>{{RAILWAYSTATION}}</td>
+                <td>{{AIRPORT}}</td>
+                <td>{{formatDate DECLARATIONDATE}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <div class="signature" style="margin-top: 30px">
+        <div style="text-align: right; margin-right: 8px">
+          Signature Of Govt. Servent With Date
+        </div>
+        <div style="text-align: right; margin-right: 8px; margin-top: 12px">
+          {{userName}}
+        </div>
+        <div style="text-align: right; margin-right: 8px; margin-top: 8px">
+          (Signature &amp; Designation Of Attesting Officer Along With Date And
+          Official Seal Affixed)
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 5 -->
+    <div class="page">
+      <div class="part">PART-3</div>
+      <div class="section-head">CERTIFICATE ATTESTATION (IMMUTABLE)</div>
+      <table>
+        <tr>
+          <th style="width: 8%">SL.No.</th>
+          <th style="width: 25%">SUBJECT</th>
+          <th>CERTIFICATE</th>
+        </tr>
+        {{#each certificateAttestation}}
+        <tr>
+          <td class="center">{{increment @index}}</td>
+          <td>{{SUBJECT}}</td>
+          <td>{{CERTIFICATE}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="part" style="margin-top: 9px">PART-4</div>
+      <div class="section-head">
+        FAMILY PARTICULARS &amp; NOMINATIONS (MUTABLE)
+      </div>
+      <table>
+        <tr>
+          <th style="width: 8%">SL.No.</th>
+          <th style="width: 20%">SUBJECT</th>
+          <th>CERTIFICATE</th>
+        </tr>
+        <tr>
+          <td class="center">1.</td>
+          <td class="center">Family Particulars</td>
+          <td style="padding: 0">
+            <table class="inner-table">
+              <tr>
+                <th style="width: 8%">SL.No.</th>
+                <th>Name</th>
+                <th>Date of Birth</th>
+                <th>Relationship with Employee</th>
+                <th>Marital Status</th>
+                <th>Occupation</th>
+                <th>Monthly Income</th>
+              </tr>
+              {{#each familyDetails}}
+              <tr>
+                <td class="center">{{increment @index}}</td>
+                <td>{{FAM_NAME}}</td>
+                <td>{{formatDate FAM_DOB}}</td>
+                <td>{{FAM_RELATION}}</td>
+                <td>{{FAM_MARITALSTATUS}}</td>
+                <td>{{FAM_OCCUPATION}}</td>
+                <td class="right">{{FAM_MONTHLYINCOME}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <div class="part" style="margin-top: 8px">PART-4</div>
+      <div class="section-head">NOMINATION</div>
+      <table>
+        <tr>
+          <th style="width: 8%">SL.No.</th>
+          <th style="width: 25%">SUBJECT</th>
+          <th>CERTIFICATE</th>
+        </tr>
+        <tr>
+          <td class="center">1.</td>
+          <td>Nomination Details</td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- PAGE 6 -->
+    <div class="page">
+      <div class="part">PART-4</div>
+      <div class="section-head">NOMINATION DETAILS</div>
+      <table>
+        <tr>
+          <th>Sr.No</th>
+          <th>Nominee Name</th>
+          <th>Address</th>
+          <th>Relation</th>
+          <th>Age</th>
+          <th>Place</th>
+          <th>Amount</th>
+        </tr>
+        {{#each nominationDetails}}
+        <tr>
+          <td class="center">{{increment @index}}</td>
+          <td>{{NOMINEE_NAME}}</td>
+          <td>{{ADDRESS}}</td>
+          <td>{{RELATIONSHIP}}</td>
+          <td class="center">{{AGE}}</td>
+          <td>{{PLACE}}</td>
+          <td class="right">{{toFixed AMOUNT 2}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="footer">
+        <span>Generated By : {{userName}}</span>
+        <span>Generated On : {{reportDate}}{{currentTime}}</span>
+        <span>Page No. : 5</span>
+      </div>
+    </div>
+
+    <!-- PAGE 7 -->
+    <div class="page">
+      <div class="part">PART-5</div>
+      <div class="sub-head">
+        (A) Previous Govt. Service Record (Only State Govt. And Central Govt.)
+      </div>
+      <table>
+        <tr>
+          <th colspan="5">Posting Period</th>
+        </tr>
+        <tr>
+          <th>From</th>
+          <th>To,</th>
+          <th>Post Held</th>
+          <th>Purpose For Which It Qualifies</th>
+          <th>Dated Signature And Designation Of The Certifying Officer</th>
+        </tr>
+        {{#each postingRecords.previousService}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{POST_HELD}}</td>
+          <td>{{PURPOSE}}</td>
+          <td>{{CERTIFYING_OFFICER}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="sub-head">(B) Foreign Service</div>
+      <table>
+        <tr>
+          <th colspan="4">Posting Period</th>
+        </tr>
+        <tr>
+          <th>From</th>
+          <th>To,</th>
+          <th>Post Held And Name Of Foreign Employer</th>
+          <th>
+            Leave And Pension Contribution Payable By / Amount Of Leave And
+            Pension Contribution Actually Received
+          </th>
+        </tr>
+        {{#each postingRecords.foreignService}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{POST_HELD}}</td>
+          <td>{{CONTRIBUTION}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="part" style="margin-top: 8px">PART-6</div>
+      <div class="section-head">RECORD OF VERIFICATION OF SERVICE</div>
+      <table>
+        <tr>
+          <th colspan="6">Posting Period</th>
+        </tr>
+        <tr>
+          <th>From</th>
+          <th>To,</th>
+          <th>Post Held</th>
+          <th>Purpose For Which It Qualifies</th>
+          <th>Document(s) On The Basis Of Which The Entry Is Made</th>
+          <th>Dated Signature And Designation of The Certifying Officer</th>
+        </tr>
+        {{#each postingRecords.verifiedService}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{POST_HELD}}</td>
+          <td>{{PURPOSE}}</td>
+          <td>{{DOCUMENTS}}</td>
+          <td>{{CERTIFYING_OFFICER}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="footer">
+        <span>Generated By : {{userName}}</span>
+        <span>Generated On : {{reportDate}}{{currentTime}}</span>
+        <span>Page No. : 6</span>
+      </div>
+    </div>
+
+    <!-- PAGE 8 -->
+    <div class="page">
+      <div class="section-head">LEAVE RECORD</div>
+
+      <div style="margin-top: 5px; font-weight: bold">
+        Earned Leave (EL)(To be Updated Half-Yearly)
+      </div>
+      <table class="tiny">
+        <tr>
+          <th rowspan="2">Credit Balance Year</th>
+          <th colspan="4">1st January</th>
+          <th colspan="4">1st July</th>
+          <th rowspan="2">Leave Encashment For LTC,If Any</th>
+          <th rowspan="2">Reason For Crediting Less Than 15 Days</th>
+        </tr>
+        <tr>
+          <th>Previous Balance</th>
+          <th>Credited On 1st January</th>
+          <th>Debited</th>
+          <th>Current Balance</th>
+          <th>Credited On 1st July</th>
+          <th>Previous Balance</th>
+          <th>Debited</th>
+          <th>Current Balance</th>
+        </tr>
+        {{#each leaveRecords.earnedLeave}}
+        <tr>
+          <td>{{FIN_YEAR}}</td>
+          <td>{{OPENING_BAL}}</td>
+          <td>{{CREDITED}}</td>
+          <td>{{DEBITED}}</td>
+          <td>{{CLOSING_BAL}}</td>
+          <td>{{CREDITED_JULY}}</td>
+          <td>{{PREVIOUS_JULY}}</td>
+          <td>{{DEBITED_JULY}}</td>
+          <td>{{CURRENT_JULY}}</td>
+          <td>{{ENCASHMENT}}</td>
+          <td>{{REASON}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px">Leave Availed EL</div>
+      <table>
+        <tr>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Purpose</th>
+          <th>Total No.Of Days</th>
+          <th>Balance</th>
+        </tr>
+        {{#each leaveRecords.earnedLeaveAvailable}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{PURPOSE}}</td>
+          <td class="center">{{TOTAL_DAYS}}</td>
+          <td class="center">{{BALANCE}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px; font-weight: bold">
+        Half Pay Leave (HPL) (To Be Updated Half-Yearly)
+      </div>
+      <table class="tiny">
+        <tr>
+          <th rowspan="2">Credit Balance Year</th>
+          <th colspan="4">1st January</th>
+          <th colspan="4">1st July</th>
+          <th rowspan="2">Leave Encashment For LTC,If Any</th>
+          <th rowspan="2">Reason For Crediting Less Than 15 Days</th>
+        </tr>
+        <tr>
+          <th>Previous Balance</th>
+          <th>Credited On 1st January</th>
+          <th>Debited</th>
+          <th>Current Balance</th>
+          <th>Credited On 1st July</th>
+          <th>Previous Balance</th>
+          <th>Debited</th>
+          <th>Current Balance</th>
+        </tr>
+        {{#each leaveRecords.earnedLeaveHPL}}
+        <tr>
+          <td>{{FIN_YEAR}}</td>
+          <td>{{OPENING_BAL}}</td>
+          <td>{{CREDITED}}</td>
+          <td>{{DEBITED}}</td>
+          <td>{{CLOSING_BAL}}</td>
+          <td>{{CREDITED_JULY}}</td>
+          <td>{{PREVIOUS_JULY}}</td>
+          <td>{{DEBITED_JULY}}</td>
+          <td>{{CURRENT_JULY}}</td>
+          <td>{{ENCASHMENT}}</td>
+          <td>{{REASON}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px">Leave Availed HPL</div>
+      <table>
+        <tr>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Purpose</th>
+          <th>Total No.Of Days</th>
+          <th>Balance</th>
+        </tr>
+        {{#each leaveRecords.leaveAvailableHPL}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{PURPOSE}}</td>
+          <td class="center">{{TOTAL_DAYS}}</td>
+          <td class="center">{{BALANCE}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px">Casual Leave</div>
+      <table>
+        <tr>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Purpose</th>
+          <th>Total No.Of Days</th>
+          <th>Balance</th>
+        </tr>
+        {{#each leaveRecords.casualLeave}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{PURPOSE}}</td>
+          <td class="center">{{TOTAL_DAYS}}</td>
+          <td class="center">{{BALANCE}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px">Extra Ordinary Leave (EOL)</div>
+      <table>
+        <tr>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Purpose For Which EOL Granted</th>
+        </tr>
+        {{#each leaveRecords.extraOrdinaryLeave}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{PURPOSE}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px">Child Care Leave (CCL)</div>
+      <table>
+        <tr>
+          <th>Total 730 (Days)</th>
+          <th colspan="2">Debited (Spells, Calendar Year Wise)</th>
+          <th>Balance</th>
+        </tr>
+        <tr>
+          <td></td>
+          <td>From</td>
+          <td>From</td>
+          <td></td>
+        </tr>
+        {{#each leaveRecords.childCareLeave}}
+        <tr>
+          <td>{{TOTAL_DAYS}}</td>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{BALANCE}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="footer">
+        <span>Generated By : {{userName}}</span>
+        <span>Generated On : {{reportDate}}{{currentTime}}</span>
+        <span>Page No. : 7</span>
+      </div>
+    </div>
+
+    <!-- PAGE 9 -->
+    <div class="page">
+      <div style="font-weight: bold; margin-bottom: 5px">Maternity Leave</div>
+      <table>
+        <tr>
+          <th style="width: 20%"></th>
+          <th colspan="3">Leave Availed</th>
+          <th>Remarks</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th>From</th>
+          <th>To</th>
+          <th>Total No.Of Days</th>
+          <th></th>
+        </tr>
+        {{#each leaveRecords.maternityLeave}}
+        <tr>
+          <td></td>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td class="center">{{NO_OF_DAYS}}</td>
+          <td>{{REMARKS}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="font-weight: bold; margin-top: 8px">Paternity Leave</div>
+      <table>
+        <tr>
+          <th style="width: 20%"></th>
+          <th colspan="3">Leave Availed</th>
+          <th>Remarks</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th>From</th>
+          <th>To</th>
+          <th>Total No.Of Days</th>
+          <th></th>
+        </tr>
+        {{#each leaveRecords.paternityLeave}}
+        <tr>
+          <td></td>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td class="center">{{NO_OF_DAYS}}</td>
+          <td>{{REMARKS}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 5px">
+        Whether Any Other Kind Of Leave Availed : Yes/No If Yes , Details
+      </div>
+      <div class="small">(Attach/Upload Order)</div>
+
+      <div style="margin-top: 8px">Other Leave</div>
+      <table>
+        <tr>
+          <th>Leave Type</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Total No.Of Days</th>
+        </tr>
+        {{#each leaveRecords.otherLeave}}
+        <tr>
+          <td>{{LEAVE_TYPE}}</td>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td class="center">{{TOTAL_DAYS}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="section-head">DETAILS OF LEAVE TRAVEL CONCESSION AVAILED</div>
+      <table class="tiny">
+        <tr>
+          <th colspan="8">
+            Two/Four Year LTC/Home Town for Block Year(Block Year-Wise)
+            Block-Year Calender
+          </th>
+        </tr>
+        <tr>
+          <th>SL.No.</th>
+          <th>Block Year</th>
+          <th>Availed Year</th>
+          <th>Name</th>
+          <th>Relationship</th>
+          <th>Age(yrs)</th>
+          <th>Place Of Visit</th>
+          <th>Whether Availed Leave Encashment / Balance</th>
+        </tr>
+        {{#each leaveRecords.ltcDetails}}
+        <tr>
+          <td class="center">{{increment @index}}</td>
+          <td>{{BLOCKYEAR}}</td>
+          <td>{{AVAILEDYEAR}}</td>
+          <td>{{NAME}}</td>
+          <td>{{RELATIONSHIP}}</td>
+          <td class="center">{{AGE}}</td>
+          <td>{{PLACEOFVISIT}}</td>
+          <td>{{LEAVEENCASHMENT}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="footer">
+        <span>Generated By : {{userName}}</span>
+        <span>Generated On : {{reportDate}}{{currentTime}}</span>
+        <span>Page No. : 8</span>
+      </div>
+    </div>
+
+    <!-- PAGE 10 -->
+    <div class="page">
+      <div class="section-head">LOAN &amp; ADVANCE</div>
+
+      <div class="sub-head">Interest Bearing Advance</div>
+      <table class="tiny">
+        <tr>
+          <th>Sanctioned Amount</th>
+          <th>Purpose</th>
+          <th>No. of Installments</th>
+          <th>Rate of Interest</th>
+          <th>Sanctioned Order No.</th>
+          <th>Sanctioned Order Date</th>
+          <th>First Installment Recover Date</th>
+          <th>Monthly Installment</th>
+        </tr>
+        {{#each loanAdvanceRecords.interestBearingAdvances}}
+        <tr>
+          <td class="right">{{toFixed SANCTIONEDAMT 2}}</td>
+          <td>{{PURPOSE}}</td>
+          <td class="center">{{NUMOFINSTALL}}</td>
+          <td class="center">{{ROI}}</td>
+          <td>{{SANCTIONORDERNO}}</td>
+          <td>{{formatDate SANCTIONDATE}}</td>
+          <td>{{formatDate FIRSTRECOVERDATE}}</td>
+          <td class="right">{{toFixed MONTHLYINSTALLMENT 2}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="sub-head">Interest Bearing Advance Installment</div>
+      <table class="tiny">
+        <tr>
+          <th>Financial Year</th>
+          <th>Interest Bearing Advance</th>
+          <th>Amount Outstanding</th>
+          <th>Amount Recovered</th>
+          <th>Interest Accrued</th>
+          <th>Signature Details</th>
+          <th>Remarks</th>
+        </tr>
+        {{#each loanAdvanceRecords.installments}}
+        <tr>
+          <td>{{FIN_YEAR}}</td>
+          <td>{{ADVANCE}}</td>
+          <td>{{OUTSTANDING}}</td>
+          <td>{{RECOVERED}}</td>
+          <td>{{INTEREST}}</td>
+          <td>{{SIGNATURE}}</td>
+          <td>{{REMARKS}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div class="part" style="margin-top: 12px">PART-10</div>
+      <div class="section-head">
+        Central Government Employee's Group Insurance Scheme(CGEGIS)
+      </div>
+      <table class="tiny">
+        <tr>
+          <th>Date of Joining in Govt. Service</th>
+          <th>Group to which Admitted</th>
+          <th>Rate of Month Contribution(Rs.)</th>
+          <th>From</th>
+          <th>To,</th>
+          <th>Events with exact Date Affecting Cols.3 and 4</th>
+          <th>Remarks</th>
+        </tr>
+        <tr>
+          <td>{{formatDate personalInfo.JOINDATE}}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <th>(1)</th>
+          <th>(2)</th>
+          <th>(3)</th>
+          <th>(4)</th>
+          <th>(5)</th>
+          <th>(6)</th>
+          <th>(7)</th>
+        </tr>
+      </table>
+
+      <div class="part" style="margin-top: 12px">PART-11</div>
+      <div class="section-head">COMMENTS OF INTERNAL AUDIT</div>
+      <table class="tiny">
+        <tr>
+          <th>Date of Verification</th>
+          <th>Comments of Internal Audit</th>
+          <th>Rate of Monthly Contribution(Rs)</th>
+          <th>Signature of Audit Officer</th>
+          <th>
+            Details of Compliance of Observations of Audit By Head of Office
+          </th>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+
+      <div class="part" style="margin-top: 12px">PART-12</div>
+      <div class="section-head">PENALTY/VIGILANCE</div>
+      <table class="tiny">
+        <tr>
+          <th>Vigilance Status as on Date</th>
+          <th>Vigilance Status</th>
+          <th>Remarks</th>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+
+      <div class="footer">
+        <span>Generated By : {{userName}}</span>
+        <span>Generated On : {{reportDate}}{{currentTime}}</span>
+        <span>Page No. : 10</span>
+      </div>
+    </div>
+
+    <!-- PAGE 11 -->
+    <div class="page">
+      <div class="center bold" style="font-size: 11px">APPENDIX*</div>
+      <div class="center" style="margin: 3px 0 8px">
+        Abstract of Service by Rendered by Shri/Smt./Kum. ,(Designation &amp;
+        Office)&amp; During the Year
+      </div>
+
+      <table>
+        <tr>
+          <th colspan="3">
+            Period of Qualifying Service of Pension/CR Gratuity
+          </th>
+          <th colspan="4">
+            Period, If Any, Not Qualifying As Service, And Reasons
+          </th>
+        </tr>
+        <tr>
+          <th>1.</th>
+          <th>2.</th>
+          <th>3.</th>
+          <th>4.</th>
+          <th>5.</th>
+          <th>6.</th>
+          <th>7.</th>
+        </tr>
+        <tr>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Posting Period</th>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Posting</th>
+          <th>Reasons</th>
+        </tr>
+        {{#each appendixRecords}}
+        <tr>
+          <td>{{formatDate FROM_DATE}}</td>
+          <td>{{formatDate TO_DATE}}</td>
+          <td>{{POSTING_PERIOD}}</td>
+          <td>{{formatDate NOTQUAL_FROM}}</td>
+          <td>{{formatDate NOTQUAL_TO}}</td>
+          <td>{{POSTING}}</td>
+          <td>{{REASONS}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+      <div style="margin-top: 100px; text-align: center">
         <div>
-            <div class="bold" style="margin-bottom: 8px;">C) Verified Service Records:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="5%">Sr No</th>
-                        <th width="25%">Posting Place</th>
-                        <th width="20%">Designation</th>
-                        <th width="15%">From Date</th>
-                        <th width="15%">To Date</th>
-                        <th width="20%">Verified By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each postingRecords.verifiedService}}
-                    <tr>
-                        <td class="center">{{increment @index}}</td>
-                        <td>{{POSTING_PLACE}}</td>
-                        <td>{{DESIGNATION}}</td>
-                        <td class="center">{{formatDate FROM_DATE}}</td>
-                        <td class="center">{{formatDate TO_DATE}}</td>
-                        <td>{{VERIFIED_BY}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
+          (Signature of Head of<br />Office)....................................................
+          I
         </div>
-        {{/if}}
-        
-        {{#unless hasPostingRecords}}
-        <div class="no-data">No service/posting records found</div>
-        {{/unless}}
+        <div style="margin-top: 8px">
+          hereby acknowledge the receipt of the abstract of service rendered by
+          me during and<br />accept as correct/do not accept it for reasons
+          below.
+        </div>
+      </div>
+
+      <div style="margin-top: 95px; text-align: center">
+        ........................................................(Signature of
+        the Government Servant)
+      </div>
+
+      <div class="footer">
+        <span>Generated By : {{userName}}</span>
+        <span>Generated On : {{reportDate}}{{currentTime}}</span>
+        <span>Page No. : 11</span>
+      </div>
     </div>
-
-    <!-- Section 10: Leave Records -->
-    <div class="section">
-        <div class="section-title">10. LEAVE RECORDS</div>
-        {{#if hasLeaveRecords}}
-        
-        {{#if leaveRecords.earnedLeave.length}}
-        <div style="margin-bottom: 15px;">
-            <div class="bold">A) Earned Leave:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="20%">Financial Year</th>
-                        <th width="20%">Opening Balance</th>
-                        <th width="20%">Credited</th>
-                        <th width="20%">Availed</th>
-                        <th width="20%">Closing Balance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each leaveRecords.earnedLeave}}
-                    <tr>
-                        <td class="center">{{FIN_YEAR}}</td>
-                        <td class="center">{{OPENING_BAL}}</td>
-                        <td class="center">{{CREDITED}}</td>
-                        <td class="center">{{AVAILED}}</td>
-                        <td class="center">{{CLOSING_BAL}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-        </div>
-        {{/if}}
-
-        {{#if leaveRecords.casualLeave.length}}
-        <div style="margin-bottom: 15px;">
-            <div class="bold">B) Casual Leave:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="20%">Financial Year</th>
-                        <th width="20%">Opening Balance</th>
-                        <th width="20%">Credited</th>
-                        <th width="20%">Availed</th>
-                        <th width="20%">Closing Balance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each leaveRecords.casualLeave}}
-                    <tr>
-                        <td class="center">{{FIN_YEAR}}</td>
-                        <td class="center">{{OPENING_BAL}}</td>
-                        <td class="center">{{CREDITED}}</td>
-                        <td class="center">{{AVAILED}}</td>
-                        <td class="center">{{CLOSING_BAL}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-        </div>
-        {{/if}}
-
-        {{#if leaveRecords.maternityLeave.length}}
-        <div style="margin-bottom: 15px;">
-            <div class="bold">C) Maternity Leave:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="30%">From Date</th>
-                        <th width="30%">To Date</th>
-                        <th width="20%">No of Days</th>
-                        <th width="20%">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each leaveRecords.maternityLeave}}
-                    <tr>
-                        <td class="center">{{formatDate FROM_DATE}}</td>
-                        <td class="center">{{formatDate TO_DATE}}</td>
-                        <td class="center">{{NO_OF_DAYS}}</td>
-                        <td>{{STATUS}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-        </div>
-        {{/if}}
-
-        {{#if leaveRecords.paternityLeave.length}}
-        <div>
-            <div class="bold">D) Paternity Leave:</div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th width="30%">From Date</th>
-                        <th width="30%">To Date</th>
-                        <th width="20%">No of Days</th>
-                        <th width="20%">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each leaveRecords.paternityLeave}}
-                    <tr>
-                        <td class="center">{{formatDate FROM_DATE}}</td>
-                        <td class="center">{{formatDate TO_DATE}}</td>
-                        <td class="center">{{NO_OF_DAYS}}</td>
-                        <td>{{STATUS}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-        </div>
-        {{/if}}
-        
-        {{else}}
-        <div class="no-data">No leave records found</div>
-        {{/if}}
-    </div>
-
-    <!-- Section 11: Loans & Advances -->
-    <div class="section">
-        <div class="section-title">11. LOANS & ADVANCES</div>
-        {{#if hasLoanAdvances}}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th width="5%">Sr No</th>
-                    <th width="20%">Purpose</th>
-                    <th width="15%">Sanction Amount</th>
-                    <th width="15%">Sanction Order No</th>
-                    <th width="15%">Sanction Date</th>
-                    <th width="15%">ROI (%)</th>
-                    <th width="15%">No of Installments</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each loanAdvanceRecords.interestBearingAdvances}}
-                <tr>
-                    <td class="center">{{increment @index}}</td>
-                    <td>{{PURPOSE}}</td>
-                    <td class="right">{{toFixed SANCTIONEDAMT 2}}</td>
-                    <td>{{SANCTIONORDERNO}}</td>
-                    <td class="center">{{formatDate SANCTIONDATE}}</td>
-                    <td class="center">{{ROI}}%</td>
-                    <td class="center">{{NUMOFINSTALL}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-        {{else}}
-        <div class="no-data">No loan/advance records found</div>
-        {{/if}}
-    </div>
-
-    <!-- Signature Section -->
-    <div class="signature-section">
-        <div class="signature-box">
-            <div class="signature-line"></div>
-            <div>Signature of Employee</div>
-            <div style="font-size: 8px; margin-top: 5px;">Name: {{personalInfo.ESEVAEMP_NAME}}</div>
-            <div style="font-size: 8px;">Date: {{reportDate}}</div>
-        </div>
-        <div class="signature-box">
-            <div class="signature-line"></div>
-            <div>Signature of Controlling Officer</div>
-            <div style="font-size: 8px; margin-top: 5px;">Name: ___________________</div>
-            <div style="font-size: 8px;">Designation: ___________________</div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <div class="page-number"></div>
-        <div>Generated on {{reportDate}} at {{currentTime}} | This is a system generated document</div>
-    </div>
-</body>
-
+  </body>
 </html>

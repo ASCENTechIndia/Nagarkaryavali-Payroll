@@ -1,228 +1,365 @@
 const { executeQuery } = require("../../../db/queryExecutor");
 
 async function searchEmployeeRepo({ ulbId, empCode }) {
-  let sql = "";
-  const binds = { ulbId };
-
   const specialUlbs = ["751", "1690", "870"];
-  
-  if (!specialUlbs.includes(String(ulbId))) {
+
+  let sql;
+  const binds = {
+    ulbId,
+    empCode,
+  };
+
+  if (specialUlbs.includes(String(ulbId))) {
     sql = `
-      SELECT ESEVAEMP_NAME, DESIGNATIONNAME, JOINDATE, CORPORATION_ADDRESS, 
-             AADHARNO, PANNO, FATHERNAME, MOTHERNAME, DOB, 
-             DATEOFSUPERANNUATION, NATIONALITY, CATEGORY, EMAIL, 
-             PHOTOIMAGE, empcode, oldempno
-      FROM vw_esevapersonalinfo
-      WHERE ulbid = :ulbId
+      SELECT *
+      FROM VW_ESEVAPERSONALINFO
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
     `;
-    
-    if (String(ulbId) === "770") {
-      sql += ` AND slipno = :empCode`;
-      binds.empCode = empCode;
-    } else if (String(ulbId) === "1630") {
-      sql += ` AND oldempno = :empCode`;
-      binds.empCode = empCode;
-    } else {
-      sql += ` AND empcode = :empCode`;
-      binds.empCode = empCode;
-    }
   } else {
     sql = `
-      SELECT * FROM vw_esevapersonalinfo 
-      WHERE ulbid = :ulbId AND empcode = :empCode
+      SELECT
+        ESEVAEMP_NAME,
+        DESIGNATIONNAME,
+        JOINDATE,
+        CORPORATION_ADDRESS,
+        AADHARNO,
+        PANNO,
+        FATHERNAME,
+        MOTHERNAME,
+        DOB,
+        DATEOFSUPERANNUATION,
+        NATIONALITY,
+        CATEGORY,
+        EMAIL,
+        PHOTOIMAGE,
+        EMPCODE,
+        OLDEMPNO
+      FROM VW_ESEVAPERSONALINFO
+      WHERE ULBID = :ulbId
     `;
-    binds.empCode = empCode;
+
+    if (String(ulbId) === "770") {
+      sql += ` AND SLIPNO = :empCode`;
+    } else if (String(ulbId) === "1630") {
+      sql += ` AND OLDEMPNO = :empCode`;
+    } else {
+      sql += ` AND EMPCODE = :empCode`;
+    }
   }
 
   const result = await executeQuery(sql, binds);
-  if (!result.success) throw new Error(result.error);
-  return result.rows;
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
+  return result.rows || [];
 }
 
 async function getPersonalInfoRepo({ ulbId, empCode, isSpecialUlb }) {
-  let sql = "";
   const binds = { ulbId, empCode };
 
-  if (!isSpecialUlb) {
-    sql = `
-      SELECT ESEVAEMP_NAME, DESIGNATIONNAME, JOINDATE, CORPORATION_ADDRESS, 
-             AADHARNO, PANNO, FATHERNAME, MOTHERNAME, DOB, 
-             DATEOFSUPERANNUATION, NATIONALITY, CATEGORY, EMAIL, 
-             PHOTOIMAGE, empcode, oldempno
-      FROM vw_esevapersonalinfo
-      WHERE ulbid = :ulbId AND empcode = :empCode
+  const sql = isSpecialUlb
+    ? `
+      SELECT *
+      FROM VW_ESEVAPERSONALINFO
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `
+    : `
+      SELECT
+        ESEVAEMP_NAME,
+        DESIGNATIONNAME,
+        JOINDATE,
+        CORPORATION_ADDRESS,
+        AADHARNO,
+        PANNO,
+        FATHERNAME,
+        MOTHERNAME,
+        DOB,
+        DATEOFSUPERANNUATION,
+        NATIONALITY,
+        CATEGORY,
+        EMAIL,
+        PHOTOIMAGE,
+        EMPCODE,
+        OLDEMPNO
+      FROM VW_ESEVAPERSONALINFO
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
     `;
-  } else {
-    sql = `
-      SELECT * FROM vw_esevapersonalinfo 
-      WHERE ulbid = :ulbId AND empcode = :empCode
-    `;
-  }
 
   const result = await executeQuery(sql, binds);
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getAddressDetailsRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT STATUS, SPOUSENAME, PARMADDRES, PERADDRESS2, PCITY, DISTRICT, 
-           STATE, COUNTRY, POSTOFFICE, PINCODE, COMMADDRESS, COMMADDRESS2, 
-           COMMDISTRICT, COMMSTATE, COMMCOUNTRY, COMMPOSTOFF, COMMPINCODE, 
-           MOBNO, ALTERMOBNO, TELNUMBER, EMPCODE, ULBID
-    FROM vw_esevaempaddrdtls
-    WHERE ULBID = :ulbId AND EMPCODE = :empCode
+    SELECT
+      STATUS,
+      SPOUSENAME,
+      PARMADDRES,
+      PERADDRESS2,
+      PCITY,
+      DISTRICT,
+      STATE,
+      COUNTRY,
+      POSTOFFICE,
+      PINCODE,
+      COMMADDRESS,
+      COMMADDRESS2,
+      COMMDISTRICT,
+      COMMSTATE,
+      COMMCOUNTRY,
+      COMMPOSTOFF,
+      COMMPINCODE,
+      MOBNO,
+      ALTERMOBNO,
+      TELNUMBER,
+      EMPCODE,
+      ULBID
+    FROM VW_ESEVAEMPADDRDTLS
+    WHERE ULBID = :ulbId
+      AND EMPCODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getEmergencyDetailsRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT * FROM VW_Emerg_contact
-    WHERE ulb = :ulbId AND emp_code = :empCode
+    SELECT *
+    FROM VW_EMERG_CONTACT
+    WHERE ULB = :ulbId
+      AND EMP_CODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getFamilyDetailsRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT * FROM VW_Family_particulars
-    WHERE ULBID = :ulbId AND emp_code = :empCode
+    SELECT *
+    FROM VW_FAMILY_PARTICULARS
+    WHERE ULBID = :ulbId
+      AND EMP_CODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getEducationDetailsRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT EMPCODE, ESEVAID, ULBID, DEGREE, UNIVERSITY, PASSYEAR
-    FROM vw_EsevaeducationInfo
-    WHERE ULBID = :ulbId AND EMPCODE = :empCode
+    SELECT
+      EMPCODE,
+      ESEVAID,
+      ULBID,
+      DEGREE,
+      UNIVERSITY,
+      PASSYEAR
+    FROM VW_ESEVAEDUCATIONINFO
+    WHERE ULBID = :ulbId
+      AND EMPCODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getAdditionalTrainingRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT EMPCODE, ULBID, ESEVAID, COURSENAME, ORGDETAILS, COMMENCEDATE
-    FROM vw_EsevaAddnTraining
-    WHERE ULBID = :ulbId AND EMPCODE = :empCode
+    SELECT
+      EMPCODE,
+      ULBID,
+      ESEVAID,
+      COURSENAME,
+      ORGDETAILS,
+      COMMENCEDATE
+    FROM VW_ESEVAADDNTRAINING
+    WHERE ULBID = :ulbId
+      AND EMPCODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getPTTrainingRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT EMPCODE, ULBID, ESEVAID, DEGREE, UNIVERSITY, PASSYEAR
-    FROM vw_EsevaPTTraining
-    WHERE ULBID = :ulbId AND EMPCODE = :empCode
+    SELECT
+      EMPCODE,
+      ULBID,
+      ESEVAID,
+      DEGREE,
+      UNIVERSITY,
+      PASSYEAR
+    FROM VW_ESEVAPTTRAINING
+    WHERE ULBID = :ulbId
+      AND EMPCODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getTrainingRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT * FROM vw_esevatraining
-    WHERE num_emptraining_ulbid = :ulbId AND num_emptraining_empcode = :empCode
+    SELECT *
+    FROM VW_ESEVATRaining
+    WHERE NUM_EMPTRAINING_ULBID = :ulbId
+      AND NUM_EMPTRAINING_EMPCODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getNominationDetailsRepo({ ulbId, empCode, isSMKC }) {
-  let sql = "";
   const binds = { ulbId, empCode };
 
-  if (!isSMKC) {
-    sql = `
-      SELECT * FROM vw_esevanomination
-      WHERE ulbid = :ulbId AND empcode = :empCode
+  const sql = isSMKC
+    ? `
+      SELECT *
+      FROM VW_ESEVANOMINATIONSMKC
+      WHERE NUM_NOMINEE_ULBID = :ulbId
+        AND NUM_NOMINEE_EMPID = :empCode
+    `
+    : `
+      SELECT *
+      FROM VW_ESEVANOMINATION
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
     `;
-  } else {
-    sql = `
-      SELECT * FROM vw_esevanominationsmkc
-      WHERE num_nominee_ulbid = :ulbId AND num_nominee_empid = :empCode
-    `;
-  }
 
   const result = await executeQuery(sql, binds);
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
 async function getPostingRecordsRepo({ ulbId, empCode }) {
   const binds = { ulbId, empCode };
 
-  // Get ESEVA ID first
   const esevaSql = `
-    SELECT num_esevaemp_id as esevaid 
-    FROM aopr_esevaemp_mas 
-    WHERE num_esevaemp_ulbid = :ulbId AND num_esevaemp_empcode = :empCode
+    SELECT NUM_ESEVAEMP_ID AS ESEVAID
+    FROM AOPR_ESEVAEMP_MAS
+    WHERE NUM_ESEVAEMP_ULBID = :ulbId
+      AND NUM_ESEVAEMP_EMPCODE = :empCode
   `;
+
   const esevaResult = await executeQuery(esevaSql, binds);
-  
+
   const postingData = {
     esevaInfo: esevaResult.success ? esevaResult.rows[0] || {} : {},
     previousService: [],
     foreignService: [],
-    verifiedService: []
+    verifiedService: [],
   };
 
-  // Previous Service Records (serviceid = 1)
   const prevRecSql = `
-    SELECT * FROM vw_esevapostrec_prvrec
-    WHERE num_postingrecord_ulbid = :ulbId 
-      AND num_postingrecord_empcode = :empCode 
-      AND num_postingrecord_serviceid = 1
+    SELECT *
+    FROM VW_ESEVAPOSTREC_PRVREC
+    WHERE NUM_POSTINGRECORD_ULBID = :ulbId
+      AND NUM_POSTINGRECORD_EMPCODE = :empCode
+      AND NUM_POSTINGRECORD_SERVICEID = :serviceId
   `;
-  const prevResult = await executeQuery(prevRecSql, binds);
-  if (prevResult.success) postingData.previousService = prevResult.rows;
 
-  // Foreign Service Records (serviceid = 2)
+  const prevResult = await executeQuery(prevRecSql, {
+    ...binds,
+    serviceId: 1,
+  });
+
+  if (prevResult.success) {
+    postingData.previousService = prevResult.rows;
+  }
+
   const fsSql = `
-    SELECT * FROM vw_esevapostrec_forserv
-    WHERE num_postingrecord_ulbid = :ulbId 
-      AND num_postingrecord_empcode = :empCode 
-      AND num_postingrecord_serviceid = 2
+    SELECT *
+    FROM VW_ESEVAPOSTREC_FORSERV
+    WHERE NUM_POSTINGRECORD_ULBID = :ulbId
+      AND NUM_POSTINGRECORD_EMPCODE = :empCode
+      AND NUM_POSTINGRECORD_SERVICEID = :serviceId
   `;
-  const fsResult = await executeQuery(fsSql, binds);
-  if (fsResult.success) postingData.foreignService = fsResult.rows;
 
-  // Verified Service Records (serviceid = 3)
+  const fsResult = await executeQuery(fsSql, {
+    ...binds,
+    serviceId: 2,
+  });
+
+  if (fsResult.success) {
+    postingData.foreignService = fsResult.rows;
+  }
+
   const vsSql = `
-    SELECT * FROM vw_esevapostrec_veriserv
-    WHERE num_postingrecord_ulbid = :ulbId 
-      AND num_postingrecord_empcode = :empCode 
-      AND num_postingrecord_serviceid = 3
+    SELECT *
+    FROM VW_ESEVAPOSTREC_VERISERV
+    WHERE NUM_POSTINGRECORD_ULBID = :ulbId
+      AND NUM_POSTINGRECORD_EMPCODE = :empCode
+      AND NUM_POSTINGRECORD_SERVICEID = :serviceId
   `;
-  const vsResult = await executeQuery(vsSql, binds);
-  if (vsResult.success) postingData.verifiedService = vsResult.rows;
+
+  const vsResult = await executeQuery(vsSql, {
+    ...binds,
+    serviceId: 3,
+  });
+
+  if (vsResult.success) {
+    postingData.verifiedService = vsResult.rows;
+  }
 
   return postingData;
 }
 
 async function getLeaveRecordsRepo({ ulbId, empCode }) {
   const binds = { ulbId, empCode };
-  
+
   const leaveData = {
     earnedLeave: [],
     earnedLeaveHPL: [],
@@ -234,26 +371,82 @@ async function getLeaveRecordsRepo({ ulbId, empCode }) {
     maternityLeave: [],
     paternityLeave: [],
     otherLeave: [],
-    ltaLeave: []
+    ltaLeave: [],
   };
 
   const queries = {
-    earnedLeave: `SELECT * FROM VW_ESevaErnedLeave WHERE ulbid = :ulbId AND empcode = :empCode`,
-    earnedLeaveHPL: `SELECT * FROM VW_ESevaErnedLeaveHpl WHERE ulbid = :ulbId AND empcode = :empCode`,
-    leaveAvail: `SELECT * FROM VW_ESEVALeaveAvail WHERE ulbid = :ulbId AND empcode = :empCode`,
-    leaveAvailHPL: `SELECT * FROM VW_ESEVALeaveAvailhpl WHERE ulbid = :ulbId AND empcode = :empCode`,
-    casualLeave: `SELECT * FROM VW_ESEVALeaveAvailCasual WHERE ulbid = :ulbId AND empcode = :empCode`,
-    extraOrdinaryLeave: `SELECT * FROM VW_ESEVALeaveAvailExtraOrd WHERE ulbid = :ulbId AND empcode = :empCode`,
-    commutedLeave: `SELECT * FROM VW_ESEVALeaveCC WHERE ulbid = :ulbId AND empcode = :empCode`,
-    maternityLeave: `SELECT * FROM VW_MATLEAVE WHERE ulbid = :ulbId AND empcode = :empCode`,
-    paternityLeave: `SELECT * FROM VW_PATLEAVE WHERE ulbid = :ulbId AND empcode = :empCode`,
-    otherLeave: `SELECT * FROM VW_OTHERLEAVE WHERE ulbid = :ulbId AND empcode = :empCode`,
-    ltaLeave: `SELECT * FROM vw_leavedtlsLTA WHERE num_leavedetslta_ulbid = :ulbId AND num_leavedetslta_empcode = :empCode`
+    earnedLeave: `
+      SELECT *
+      FROM VW_ESEVAERNEDLEAVE
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    earnedLeaveHPL: `
+      SELECT *
+      FROM VW_ESEVAERNEDLEAVEHPL
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    leaveAvail: `
+      SELECT *
+      FROM VW_ESEVALEAVEAVAIL
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    leaveAvailHPL: `
+      SELECT *
+      FROM VW_ESEVALEAVEAVAILHPL
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    casualLeave: `
+      SELECT *
+      FROM VW_ESEVALEAVEAVAILCASUAL
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    extraOrdinaryLeave: `
+      SELECT *
+      FROM VW_ESEVALEAVEAVAILEXTRAORD
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    commutedLeave: `
+      SELECT *
+      FROM VW_ESEVALEAVEAVAILCC
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    maternityLeave: `
+      SELECT *
+      FROM VW_MATLEAVE
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    paternityLeave: `
+      SELECT *
+      FROM VW_PATLEAVE
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    otherLeave: `
+      SELECT *
+      FROM VW_OTHERLEAVE
+      WHERE ULBID = :ulbId
+        AND EMPCODE = :empCode
+    `,
+    ltaLeave: `
+      SELECT *
+      FROM VW_LEAVEDETAILSLTA
+      WHERE NUM_LEAVEDETSLTA_ULBID = :ulbId
+        AND NUM_LEAVEDETSLTA_EMPCODE = :empCode
+    `,
   };
 
   for (const [key, sql] of Object.entries(queries)) {
     const result = await executeQuery(sql, binds);
-    if (result.success && result.rows.length > 0) {
+
+    if (result.success && result.rows?.length) {
       leaveData[key] = result.rows;
     }
   }
@@ -263,52 +456,79 @@ async function getLeaveRecordsRepo({ ulbId, empCode }) {
 
 async function getLoanAdvanceRecordsRepo({ ulbId, empCode }) {
   const binds = { ulbId, empCode };
-  
+
   const loanData = {
     interestBearingAdvances: [],
-    interestBearingAdvanceInstallments: []
+    interestBearingAdvanceInstallments: [],
   };
 
-  // Interest Bearing Advances
   const loanSql = `
-    SELECT num_loanadv_esevaid as esevaid, num_loanadv_empcode as emp_code, 
-           num_loanadv_ulbid as uldid, num_loanadv_sanctionedamt as sanctionedamt,
-           var_loanadv_purpose as purpose, num_loanadv_numofinstall as numofinstall,
-           var_loanadv_roi as roi, var_loanadv_sanctorderno as sanctorderno,
-           dat_loanadv_sanctdate as sanctdate, dat_loanadv_finstalldat as finstalldat,
-           num_loanadv_monthinstall as monthinstall
-    FROM aopr_loanadv_det 
-    WHERE num_loanadv_ulbid = :ulbId AND num_loanadv_empcode = :empCode
+    SELECT
+      NUM_LOANADV_ESEVAID AS ESEVAID,
+      NUM_LOANADV_EMPCODE AS EMP_CODE,
+      NUM_LOANADV_ULBID AS ULDID,
+      NUM_LOANADV_SANCTIONEDAMT AS SANCTIONEDAMT,
+      VAR_LOANADV_PURPOSE AS PURPOSE,
+      NUM_LOANADV_NUMOFINSTALL AS NUMOFINSTALL,
+      VAR_LOANADV_ROI AS ROI,
+      VAR_LOANADV_SANCTORDERNO AS SANCTORDERNO,
+      DAT_LOANADV_SANCTDATE AS SANCTDATE,
+      DAT_LOANADV_FINSTALLDAT AS FINSTALLDAT,
+      NUM_LOANADV_MONTHINSTALL AS MONTHINSTALL
+    FROM AOPR_LOANADV_DET
+    WHERE NUM_LOANADV_ULBID = :ulbId
+      AND NUM_LOANADV_EMPCODE = :empCode
   `;
-  const loanResult = await executeQuery(loanSql, binds);
-  if (loanResult.success) loanData.interestBearingAdvances = loanResult.rows;
 
-  // Installment Details
+  const loanResult = await executeQuery(loanSql, binds);
+
+  if (loanResult.success) {
+    loanData.interestBearingAdvances = loanResult.rows;
+  }
+
   const installSql = `
-    SELECT num_loanadv_esevaid AS esevaid, num_loanadv_empcode as emp_code,
-           num_loanadv_ulbid as uldid, var_loanadv_financyear as financyear,
-           var_loanadv_intberadv as intberadv, num_loanadv_amtos as amtos,
-           num_loanadv_amtrecover as amtrecover, var_loanadv_intacc as intacc,
-           blob_loanadv_signdet as signdet, var_loanadv_remark as remark
-    FROM aopr_loanadv_det 
-    WHERE num_loanadv_ulbid = :ulbId AND num_loanadv_empcode = :empCode
+    SELECT
+      NUM_LOANADV_ESEVAID AS ESEVAID,
+      NUM_LOANADV_EMPCODE AS EMP_CODE,
+      NUM_LOANADV_ULBID AS ULDID,
+      VAR_LOANADV_FINANCYEAR AS FINANCYEAR,
+      VAR_LOANADV_INTBERADV AS INTBERADV,
+      NUM_LOANADV_AMTOS AS AMTOS,
+      NUM_LOANADV_AMTRECOVER AS AMTRECOVER,
+      VAR_LOANADV_INTACC AS INTACC,
+      BLOB_LOANADV_SIGNDET AS SIGNDET,
+      VAR_LOANADV_REMARK AS REMARK
+    FROM AOPR_LOANADV_DET
+    WHERE NUM_LOANADV_ULBID = :ulbId
+      AND NUM_LOANADV_EMPCODE = :empCode
   `;
+
   const installResult = await executeQuery(installSql, binds);
-  if (installResult.success) loanData.interestBearingAdvanceInstallments = installResult.rows;
+
+  if (installResult.success) {
+    loanData.interestBearingAdvanceInstallments = installResult.rows;
+  }
 
   return loanData;
 }
 
 async function getAppendixRepo({ ulbId, empCode }) {
   const sql = `
-    SELECT num_esevaemp_id esevaid, num_esevaemp_empcode empcode, 
-           num_esevaemp_ulbid ulbid 
-    FROM aopr_esevaemp_mas 
-    WHERE num_esevaemp_ulbid = :ulbId AND num_esevaemp_empcode = :empCode
+    SELECT
+      NUM_ESEVAEMP_ID AS ESEVAID,
+      NUM_ESEVAEMP_EMPCODE AS EMPCODE,
+      NUM_ESEVAEMP_ULBID AS ULBID
+    FROM AOPR_ESEVAEMP_MAS
+    WHERE NUM_ESEVAEMP_ULBID = :ulbId
+      AND NUM_ESEVAEMP_EMPCODE = :empCode
   `;
 
   const result = await executeQuery(sql, { ulbId, empCode });
-  if (!result.success) throw new Error(result.error);
+
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+
   return result.rows;
 }
 
@@ -326,5 +546,5 @@ module.exports = {
   getPostingRecordsRepo,
   getLeaveRecordsRepo,
   getLoanAdvanceRecordsRepo,
-  getAppendixRepo
+  getAppendixRepo,
 };
