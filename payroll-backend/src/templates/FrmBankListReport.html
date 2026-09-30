@@ -1,98 +1,187 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <style>
         @page {
-            size: A4 landscape;
-            margin: 10mm;
+            size: A4 portrait;
+            margin: 10mm 12mm 15mm 12mm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 11px;
+                font-family: Arial, sans-serif;
+            }
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 13px;
+            color: #000;
+            background: #fff;
         }
-        .header {
+
+        /* ── Top info bar: 3 equal sections ── */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .top-bar .tb-left  { text-align: left;  white-space: nowrap; padding-right: 16px; }
+        .top-bar .tb-mid   { text-align: left;  white-space: nowrap; flex: 1; }
+        .top-bar .tb-right { text-align: right; white-space: nowrap; padding-left: 16px; }
+
+        /* ── Title block ── */
+        .title-block {
             text-align: center;
             margin-bottom: 6px;
         }
+        .logo-container {
+            margin-bottom: 4px;
+        }
+        .header-logo {
+            height: 48px;
+            max-width: 60px;
+            object-fit: contain;
+            display: inline-block;
+        }
         .corp-name {
-            font-size: 15px;
+            font-size: 20px;
             font-weight: bold;
+            letter-spacing: 0.3px;
         }
-        .report-title {
-            font-size: 13px;
-            font-weight: bold;
-            margin: 4px 0;
+        .salary-for {
+            font-size: 14px;
+            margin-top: 3px;
         }
-        .sub-info {
-            font-size: 11px;
-            margin: 2px 0;
+
+        /* ── Sub-header ── */
+        .sub-header {
+            margin-top: 8px;
+            margin-bottom: 2px;
         }
-        .print-date {
-            text-align: right;
-            font-size: 10px;
+        .sub-header-row1 {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        .sub-header-row2 {
+            font-size: 12px;
             margin-bottom: 6px;
         }
+
+        /* ── Main table ── */
         .main-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 2px;
         }
+
+        /* outer border */
+        .main-table {
+            border: 1px solid #555;
+        }
+
         .main-table th,
         .main-table td {
-            border: 1px solid #333;
-            padding: 4px 6px;
+            border: 1px solid #555;
+            padding: 5px 7px;
+            font-size: 12px;
+            vertical-align: middle;
         }
-        .main-table thead tr {
-            background-color: #d9d9d9;
-        }
-        .main-table th {
-            text-align: center;
+
+        /* Header row */
+        .main-table thead tr th {
+            background-color: #fff;
             font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 12px;
+            border: 1px solid #555;
         }
-        .center { text-align: center; }
-        .right  { text-align: right; }
-        .bold   { font-weight: bold; }
-        .total-row td { font-weight: bold; background-color: #f2f2f2; }
+
+        /* Column widths — portrait A4 */
+        .col-sr    { width: 6%;   text-align: center; }
+        .col-empid { width: 10%;  text-align: center; }
+        .col-name  { width: 28%;  text-align: left;   }
+        .col-accno { width: 20%;  text-align: center; }
+        .col-bank  { width: 26%;  text-align: left;   }
+        .col-amt   { width: 10%;  text-align: right;  }
+
+        /* Data rows — no stripe, just white */
+        .main-table tbody tr td {
+            background-color: #fff;
+        }
+
+        /* Total row */
+        .total-row td {
+            font-weight: bold;
+            background-color: #f5f5f5 !important;
+            border-top: 1px solid #555;
+        }
+
+        .right  { text-align: right !important; }
+        .center { text-align: center !important; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="corp-name">{{corporationName}}</div>
-        <div class="report-title">BANK LIST REPORT</div>
-        <div class="sub-info">Salary Month : {{salaryMonth}}</div>
-        <div class="sub-info">Department : {{department}} &nbsp;&nbsp; Bank : {{bank}}</div>
+    <!-- Top info bar: date | time | userId -->
+    <div class="top-bar">
+        <div class="tb-left">दिनांक :{{printDate}}</div>
+        <div class="tb-mid">वेळ :{{printTime}}</div>
+        <div class="tb-right">छपाई करणाऱ्याचे आई. डी. :{{userId}}</div>
     </div>
 
-    <div class="print-date">Print Date : {{printDate}}</div>
+    <!-- Title -->
+    <div class="title-block">
+        {{#if corporationLogo}}
+        <div class="logo-container">
+            <img class="header-logo" src="{{corporationLogo}}" alt="Logo" />
+        </div>
+        {{/if}}
+        <div class="corp-name">{{corporationName}}</div>
+        <div class="salary-for">Salary For - {{salaryMonth}}</div>
+    </div>
 
+    <!-- Sub-header -->
+    <div class="sub-header">
+        <div class="sub-header-row1">
+            <div>Department - {{department}}</div>
+            <div>Bank - {{bank}}</div>
+        </div>
+        <div class="sub-header-row2">Sub Department - {{subDept}}</div>
+    </div>
+
+    <!-- Data table -->
     <table class="main-table">
         <thead>
             <tr>
-                <th>Sr No</th>
-                <th>Emp Code</th>
-                <th>Employee Name</th>
-                <th>Department</th>
-                <th>Bank Name</th>
-                <th>Account No</th>
-                <th>Net Salary</th>
+                <th class="col-sr">Sr.</th>
+                <th class="col-empid">Emp Id.</th>
+                <th class="col-name">Emp Name</th>
+                <th class="col-accno">A/C No.</th>
+                <th class="col-bank">Bank</th>
+                <th class="col-amt">Payble<br>Amount</th>
             </tr>
         </thead>
         <tbody>
             {{#each rows}}
             <tr>
-                <td class="center">{{SRNO}}</td>
-                <td class="center">{{EMPID}}</td>
-                <td>{{EMPNAME}}</td>
-                <td>{{DEPTNAME}}</td>
-                <td>{{BANKNAME}}</td>
-                <td class="center">{{ACCNO}}</td>
-                <td class="right">{{PAYABLEAMT}}</td>
+                <td class="col-sr">{{SRNO}}</td>
+                <td class="col-empid">{{EMPID}}</td>
+                <td class="col-name">{{EMPNAME}}</td>
+                <td class="col-accno">{{ACCNO}}</td>
+                <td class="col-bank">{{BANKNAME}}</td>
+                <td class="col-amt right">{{PAYABLEAMT}}</td>
             </tr>
             {{/each}}
             <tr class="total-row">
-                <td colspan="6" class="right">Total</td>
+                <td colspan="5" class="right">Grand Total</td>
                 <td class="right">{{grandTotal}}</td>
             </tr>
         </tbody>
@@ -100,3 +189,4 @@
 
 </body>
 </html>
+

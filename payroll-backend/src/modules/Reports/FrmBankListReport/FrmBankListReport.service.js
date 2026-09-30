@@ -1,7 +1,8 @@
-﻿const repo = require("./FrmBankListReport.repo");
+const repo = require("./FrmBankListReport.repo");
+const { AppError } = require("../../../libs/errors");
 
 async function getDepartmentListService({ ulbid }) {
-    if (!ulbid) throw new Error("ulbid is required");
+    if (!ulbid) throw new AppError("ulbid is required", 400);
 
     const data = await repo.getDepartmentListRepo({ ulbid: Number(ulbid) });
     return {
@@ -12,7 +13,7 @@ async function getDepartmentListService({ ulbid }) {
 }
 
 async function getBankListService({ ulbid }) {
-    if (!ulbid) throw new Error("ulbid is required");
+    if (!ulbid) throw new AppError("ulbid is required", 400);
 
     const data = await repo.getBankListRepo({ ulbid: Number(ulbid) });
     return {
@@ -34,15 +35,15 @@ async function getBankListService({ ulbid }) {
  */
 async function getBankListReportService({ ulbid, month, year, deptId, bankId, subdeptId }) {
    
-    if (!ulbid)  throw new Error("ulbid is required");
-    if (!month)  throw new Error("Please select Month");
-    if (!year)   throw new Error("Please select Year");
+    if (!ulbid)  throw new AppError("ulbid is required", 400);
+    if (!month)  throw new AppError("Please select Month", 400);
+    if (!year)   throw new AppError("Please select Year", 400);
 
     const m = Number(month);
     const y = Number(year);
 
-    if (isNaN(m) || m < 1 || m > 12) throw new Error("Invalid month value");
-    if (isNaN(y) || y < 2000)        throw new Error("Invalid year value");
+    if (isNaN(m) || m < 1 || m > 12) throw new AppError("Invalid month value", 400);
+    if (isNaN(y) || y < 2000)        throw new AppError("Invalid year value", 400);
 
     
     const lastDay = new Date(y, m, 0).getDate(); 
@@ -58,7 +59,7 @@ async function getBankListReportService({ ulbid, month, year, deptId, bankId, su
     });
 
     if (!data || data.length === 0) {
-        throw new Error("No Record Found");
+        throw new AppError("No Record Found", 404);
     }
 
     const totalPayable = data.reduce((sum, row) => sum + (Number(row.PAYABLEAMT) || 0), 0);
