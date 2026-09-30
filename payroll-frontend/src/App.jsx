@@ -106,6 +106,7 @@ import FrmESevaEmpLeaveRecord from './pages/Transaction/FrmESevaEmpLeaveRecord';
 import FrmESevaIncrAndPromotion from './pages/Transaction/FrmESevaIncrAndPromotion';
 import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
 import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
+import FrmEsevaEmpLayout from './layout/eSeva-layout';
 
 export const router = createBrowserRouter([
   {
@@ -422,40 +423,39 @@ export const router = createBrowserRouter([
       },
 
       {
-        path: "Transactions/FrmESevaEmpMaster",
-        element: <FrmESevaEmpMaster />
+        path: "/",
+        element: <FrmEsevaEmpLayout />,
+        children: [
+          {
+            path: "Transactions/FrmESevaEmpMaster",
+            element: <FrmESevaEmpMaster />
+          },
+          {
+            path: "Transactions/FrmESevaEmpEducationalInformation",
+            element: <FrmESevaEmpEducationalInformation />
+          },
+          {
+            path: "Transactions/FrmESevaEmpNomin",
+            element: <FrmESevaEmpNomin />
+          },
+          {
+            path: "Transactions/FrmESevaEmpPostingRecord",
+            element: <FrmESevaEmpPostingRecord />
+          },
+          {
+            path: "Transactions/FrmESevaEmpLeaveRecord",
+            element: <FrmESevaEmpLeaveRecord />
+          },
+          {
+            path: "Transactions/FrmESevaIncrAndPromotion",
+            element: <FrmESevaIncrAndPromotion />
+          },
+          {
+            path: "Transactions/FrmESevaLoanNAdvance",
+            element: <FrmESevaLoanNAdvance />
+          }
+        ]
       },
-
-      {
-        path: "Transactions/FrmESevaEmpEducationalInformation",
-        element: <FrmESevaEmpEducationalInformation />
-      },
-
-      {
-        path: "Transactions/FrmESevaEmpNomin",
-        element: <FrmESevaEmpNomin />
-      },
-
-      {
-        path: "Transactions/FrmESevaEmpPostingRecord",
-        element: <FrmESevaEmpPostingRecord />
-      },
-
-      {
-        path: "Transactions/FrmESevaEmpLeaveRecord",
-        element: <FrmESevaEmpLeaveRecord />
-      },
-
-      {
-        path: "Transactions/FrmESevaIncrAndPromotion",
-        element: <FrmESevaIncrAndPromotion />
-      },
-
-      {
-        path:"Transactions/FrmESevaLoanNAdvance",
-        element: <FrmESevaLoanNAdvance />
-      },
-
 
       //Search
       {
@@ -570,9 +570,9 @@ export const router = createBrowserRouter([
 
     ]
   },
-   {
+  {
     path: "ReportsForm/FrmPayrollDashbord",
-    element: (<ProtectedRoute><FrmPayrollDashboard/></ProtectedRoute>),
+    element: (<ProtectedRoute><FrmPayrollDashboard /></ProtectedRoute>),
   },
 ])
 

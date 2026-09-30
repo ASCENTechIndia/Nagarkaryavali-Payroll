@@ -96,7 +96,7 @@ const FrmEsevaEmpList = () => {
 
     const fetchEmployeeList = async () => {
         Swal.fire({
-            title: "Loading Employees...",
+            text: "Loading Employees...",
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -134,7 +134,7 @@ const FrmEsevaEmpList = () => {
                 setTableData([]);
 
                 await Swal.fire({
-                    icon: "info",
+                    // icon: "info",
                     text: "No employee records found."
                 });
 
@@ -173,7 +173,7 @@ const FrmEsevaEmpList = () => {
         sessionStorage.setItem("EmpidEseva", String(row.empId));
 
         Swal.fire({
-            title: "Loading...",
+            text: "Loading...",
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -214,7 +214,7 @@ const FrmEsevaEmpList = () => {
 
             Swal.close();
 
-            navigate(routes[nextStage], { state: { empId: row.empId } });
+            navigate(routes[nextStage], { state: { empId: row.empId, stageId:currentStage } });
         } catch (err) {
             Swal.close();
             console.error(err);
