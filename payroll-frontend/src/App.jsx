@@ -106,6 +106,7 @@ import FrmESevaEmpPostingRecord from './pages/Transaction/FrmESevaEmpPostingReco
 import FrmESevaEmpLeaveRecord from './pages/Transaction/FrmESevaEmpLeaveRecord';
 import FrmESevaIncrAndPromotion from './pages/Transaction/FrmESevaIncrAndPromotion';
 import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
+import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
 
 export const router = createBrowserRouter([
   {
@@ -357,6 +358,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmSalaryCalculation",
         element: <FrmSalaryCalculation />
+      },
+      {
+        path: "ReportsForm/FrmESevaDashboard",
+        element: <FrmESevaDashboard />
       },
       {
         path: "Transactions/FrmEsevaEmpList",
