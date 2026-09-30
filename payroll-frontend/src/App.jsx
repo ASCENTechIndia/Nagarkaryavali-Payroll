@@ -97,6 +97,17 @@ import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadRepo
 import FrmBankListReport from './pages/Reports/FrmBankListReport';
 import FrmPayrollDashboard from './pages/HomePopup/FrmPayrollDashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
+import FrmEsevaEmpList from './pages/Transaction/FrmEsevaEmpList';
+import FrmESevaEmpMaster from './pages/Transaction/FrmESevaEmpMaster';
+import FrmESevaEmpEducationalInformation from './pages/Transaction/FrmESevaEmpEducationalInformation';
+import FrmESevaEmpNomin from './pages/Transaction/FrmESevaEmpNomin';
+import FrmESevaEmpPostingRecord from './pages/Transaction/FrmESevaEmpPostingRecord';
+import FrmESevaEmpLeaveRecord from './pages/Transaction/FrmESevaEmpLeaveRecord';
+import FrmESevaIncrAndPromotion from './pages/Transaction/FrmESevaIncrAndPromotion';
+import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
+import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
+import FrmEsevaEmpLayout from './layout/eSeva-layout';
+import FrmEsevaEmpPenalAction from './pages/Transaction/FrmEsevaEmpPenalAction';
 
 export const router = createBrowserRouter([
   {
@@ -350,6 +361,14 @@ export const router = createBrowserRouter([
         element: <FrmSalaryCalculation />
       },
       {
+        path: "ReportsForm/FrmESevaDashboard",
+        element: <FrmESevaDashboard />
+      },
+      {
+        path: "Transactions/FrmEsevaEmpList",
+        element: <FrmEsevaEmpList />
+      },
+      {
         path: "Transactions/FrmAttendanceEntry",
         element: <FrmAttendanceEntry />
       },
@@ -404,6 +423,44 @@ export const router = createBrowserRouter([
         element: <FrmMonthlyBankDeductionUploadAuthMst />
       },
 
+      {
+        path: "/",
+        element: <FrmEsevaEmpLayout />,
+        children: [
+          {
+            path: "Transactions/FrmESevaEmpMaster",
+            element: <FrmESevaEmpMaster />
+          },
+          {
+            path: "Transactions/FrmESevaEmpEducationalInformation",
+            element: <FrmESevaEmpEducationalInformation />
+          },
+          {
+            path: "Transactions/FrmESevaEmpNomin",
+            element: <FrmESevaEmpNomin />
+          },
+          {
+            path: "Transactions/FrmESevaEmpPostingRecord",
+            element: <FrmESevaEmpPostingRecord />
+          },
+          {
+            path: "Transactions/FrmESevaEmpLeaveRecord",
+            element: <FrmESevaEmpLeaveRecord />
+          },
+          {
+            path: "Transactions/FrmESevaIncrAndPromotion",
+            element: <FrmESevaIncrAndPromotion />
+          },
+          {
+            path: "Transactions/FrmESevaLoanNAdvance",
+            element: <FrmESevaLoanNAdvance />
+          },
+          {
+            path: "Transactions/FrmEsevaEmpPenalAction",
+            element: <FrmEsevaEmpPenalAction />
+          },
+        ]
+      },
 
       //Search
       {
@@ -518,9 +575,9 @@ export const router = createBrowserRouter([
 
     ]
   },
-   {
+  {
     path: "ReportsForm/FrmPayrollDashbord",
-    element: (<ProtectedRoute><FrmPayrollDashboard/></ProtectedRoute>),
+    element: (<ProtectedRoute><FrmPayrollDashboard /></ProtectedRoute>),
   },
 ])
 

@@ -106,6 +106,7 @@ app.use("/api/ReligConfig", require("./modules/ConfigurationP/FrmReligionConfigu
 app.use("/api/FrmDeptconfig", require("./modules/ConfigurationP/FrmDepartmentConfig/FrmDeptConfig.route"))
 app.use("/api/FrmDesignationConfig", require("./modules/ConfigurationP/FrmDesignationConfig/FrmDesignationConfig.route"))
 //Transaction
+app.use("/api/FrmEsevaEmpList", require("./modules/Transaction/FrmEsevaEmpList/FrmEsevaEmpList.route"))
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
 app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalulation/FrmSalaryCalulation.routes"))
@@ -119,6 +120,10 @@ app.use("/api/FrmSalDeduction", require("./modules/Transaction/FrmSalDeduction/F
 app.use("/api/FrmEmployeeRetire", require("./modules/Transaction/FrmEmployeeRetire/FrmEmployeeRetire.routes"))
 app.use("/api/FrmBillGeneration", require("./modules/Transaction/FrmBillGeneration/FrmBillGeneration.route"));
 app.use("/api/FrmAttendanceEntryUpdate", require("./modules/Transaction/FrmAttendanceEntryUpdate/FrmAttendanceEntryUpdate.route"));
+app.use("/api/FrmESevaEmpMaster", require("./modules/Transaction/FrmESevaEmpMaster/FrmESevaEmpMaster.routes"));
+app.use("/api/FrmESevaEmpEducationalInformation", require("./modules/Transaction/FrmESevaEmpEducationalInformation/FrmESevaEmpEducationalInformation.routes"));
+app.use("/api/FrmESevaEmpNomin", require("./modules/Transaction/FrmESevaEmpNomin/FrmESevaEmpNomin.routes"));
+app.use("/api/FrmESevaEmpPostingRecord", require("./modules/Transaction/FrmESevaEmpPostingRecord/FrmESevaEmpPostingRecord.routes"));
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
@@ -140,6 +145,7 @@ app.use("/api/FrmEsevaReport", require("./modules/Reports/FrmEsevaReport/FrmEsev
 app.use("/api/FrmDepSalBill", require("./modules/Reports/FrmDepSalBill/FrmDepSalBill.routes"));
 app.use("/api/FrmPayslip",require("./modules/Reports/FrmPayslip/FrmPayslip.routes"))
 app.use("/api/FrmRetiredEmpRpt", require("./modules/Reports/FrmRetiredEmpRpt/FrmRetiredEmpRpt.route"));
+app.use("/api/FrmESevaDashboard", require("./modules/Reports/FrmESevaDashboard/FrmESevaDashboard.routes"));
 
 app.use("/api/FrmSalaryConsolidationRpt", require("./modules/Reports/FrmSalaryConsolidationRpt/FrmSalaryConsolidationRpt.route"))
 app.use("/api/FrmMonthlyBankUploadReport", require("./modules/Reports/FrmMonthlyBankUploadReport/FrmMonthlyBankUploadReportRoutes"))

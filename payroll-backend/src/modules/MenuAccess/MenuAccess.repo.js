@@ -75,6 +75,7 @@ async function getMenusRepo({ userId, ulbId, deptId }) {
            num_menumaster_orderby orderby
     FROM admins.aoma_menumaster_mas
     WHERE  num_menumaster_deptid = :deptId
+      AND num_menumaster_parentmenuid = 0
       AND var_menumaster_pagetitle <> 'Logout'
 
     UNION
