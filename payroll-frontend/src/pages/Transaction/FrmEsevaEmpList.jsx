@@ -66,7 +66,7 @@ const FrmEsevaEmpList = () => {
 
     const fetchDepartments = async () => {
         Swal.fire({
-            title: "Loading Departments...",
+            text: "Loading Departments...",
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,

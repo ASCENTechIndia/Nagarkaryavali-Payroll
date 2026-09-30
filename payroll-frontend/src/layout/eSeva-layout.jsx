@@ -68,7 +68,7 @@ const FrmEsevaEmpLayout = () => {
                                 <TabsTrigger
                                     value={String(stage.id)}
                                     onClick={() => navigateToStage(stage)}
-                                    className="w-36.25 min-w-36.25 shrink-0 flex flex-col items-center gap-1 rounded-none bg-transparent px-2 py-1 text-gray-600 hover:bg-transparent hover:text-[#083c76] data-[state=active]:bg-transparent data-[state=active]:text-[#083c76] focus-visible:ring-0"
+                                    className="w-40 shrink-0 flex flex-col items-center gap-1 rounded-none bg-transparent px-2 py-1 text-gray-600 hover:bg-transparent hover:text-[#083c76] data-[state=active]:bg-transparent data-[state=active]:text-[#083c76] focus-visible:ring-0"
                                 >
                                     <span className="w-full h-9 flex items-center justify-center text-center text-xs sm:text-sm font-semibold leading-tight">
                                         {stage.name}
@@ -103,8 +103,6 @@ const FrmEsevaEmpLayout = () => {
             <div className="w-full">
                 <Outlet context={{ empId, stageId }} />
             </div>
-
-            {renderTabs()}
         </div>
     );
 };
