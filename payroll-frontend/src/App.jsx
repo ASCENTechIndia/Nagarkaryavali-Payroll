@@ -107,6 +107,7 @@ import FrmESevaIncrAndPromotion from './pages/Transaction/FrmESevaIncrAndPromoti
 import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
 import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
 import FrmEsevaEmpLayout from './layout/eSeva-layout';
+import FrmEsevaEmpPenalAction from './pages/Transaction/FrmEsevaEmpPenalAction';
 
 export const router = createBrowserRouter([
   {
@@ -453,7 +454,11 @@ export const router = createBrowserRouter([
           {
             path: "Transactions/FrmESevaLoanNAdvance",
             element: <FrmESevaLoanNAdvance />
-          }
+          },
+          {
+            path: "Transactions/FrmEsevaEmpPenalAction",
+            element: <FrmEsevaEmpPenalAction />
+          },
         ]
       },
 
