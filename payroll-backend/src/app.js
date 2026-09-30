@@ -106,6 +106,7 @@ app.use("/api/ReligConfig", require("./modules/ConfigurationP/FrmReligionConfigu
 app.use("/api/FrmDeptconfig", require("./modules/ConfigurationP/FrmDepartmentConfig/FrmDeptConfig.route"))
 app.use("/api/FrmDesignationConfig", require("./modules/ConfigurationP/FrmDesignationConfig/FrmDesignationConfig.route"))
 //Transaction
+app.use("/api/FrmEsevaEmpList", require("./modules/Transaction/FrmEsevaEmpList/FrmEsevaEmpList.route"))
 app.use("/api/FrmMonthClose", require("./modules/Transaction/FrmMonthClose/FrmMonthClose.route"))
 app.use("/api/FrmSalaryCalculation", require("./modules/Transaction/FrmSalaryCalculation/FrmSalaryCalculation.route"))
 app.use("/api/FrmSalaryCalulation", require("./modules/Transaction/FrmSalaryCalulation/FrmSalaryCalulation.routes"))

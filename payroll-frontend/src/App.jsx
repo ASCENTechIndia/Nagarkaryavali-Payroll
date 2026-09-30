@@ -97,6 +97,7 @@ import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadRepo
 import FrmBankListReport from './pages/Reports/FrmBankListReport';
 import FrmPayrollDashboard from './pages/HomePopup/FrmPayrollDashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
+import FrmEsevaEmpList from './pages/Transaction/FrmEsevaEmpList';
 
 export const router = createBrowserRouter([
   {
@@ -348,6 +349,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmSalaryCalculation",
         element: <FrmSalaryCalculation />
+      },
+      {
+        path: "Transactions/FrmEsevaEmpList",
+        element: <FrmEsevaEmpList />
       },
       {
         path: "Transactions/FrmAttendanceEntry",
