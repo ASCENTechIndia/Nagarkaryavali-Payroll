@@ -98,7 +98,14 @@ import FrmBankListReport from './pages/Reports/FrmBankListReport';
 import FrmPayrollDashboard from './pages/HomePopup/FrmPayrollDashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
 import FrmEsevaEmpList from './pages/Transaction/FrmEsevaEmpList';
-import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
+import FrmEsevaEmpList from './pages/Transaction/FrmEsevaEmpList';
+import FrmESevaEmpMaster from './pages/Transaction/FrmESevaEmpMaster';
+import FrmESevaEmpEducationalInformation from './pages/Transaction/FrmESevaEmpEducationalInformation';
+import FrmESevaEmpNomin from './pages/Transaction/FrmESevaEmpNomin';
+import FrmESevaEmpPostingRecord from './pages/Transaction/FrmESevaEmpPostingRecord';
+import FrmESevaEmpLeaveRecord from './pages/Transaction/FrmESevaEmpLeaveRecord';
+import FrmESevaIncrAndPromotion from './pages/Transaction/FrmESevaIncrAndPromotion';
+import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
 
 export const router = createBrowserRouter([
   {
@@ -348,11 +355,6 @@ export const router = createBrowserRouter([
         element: <FrmMonthClose />
       },
       {
-        path: "ReportsForm/FrmESevaDashboard",
-        element: <FrmESevaDashboard />
-      },
-
-      {
         path: "Transactions/FrmSalaryCalculation",
         element: <FrmSalaryCalculation />
       },
@@ -413,6 +415,46 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmMonthlyBankDeductionUploadAuthMst",
         element: <FrmMonthlyBankDeductionUploadAuthMst />
+      },
+
+      {
+        path: "Transactions/FrmEsevaEmpList",
+        element: <FrmEsevaEmpList />
+      },
+
+      {
+        path: "Transactions/FrmESevaEmpMaster",
+        element: <FrmESevaEmpMaster />
+      },
+
+      {
+        path: "Transactions/FrmESevaEmpEducationalInformation",
+        element: <FrmESevaEmpEducationalInformation />
+      },
+
+      {
+        path: "Transactions/FrmESevaEmpNomin",
+        element: <FrmESevaEmpNomin />
+      },
+
+      {
+        path: "Transactions/FrmESevaEmpPostingRecord",
+        element: <FrmESevaEmpPostingRecord />
+      },
+
+      {
+        path: "Transactions/FrmESevaEmpLeaveRecord",
+        element: <FrmESevaEmpLeaveRecord />
+      },
+
+      {
+        path: "Transactions/FrmESevaIncrAndPromotion",
+        element: <FrmESevaIncrAndPromotion />
+      },
+
+      {
+        path:"Transactions/FrmESevaLoanNAdvance",
+        element: <FrmESevaLoanNAdvance />
       },
 
 
