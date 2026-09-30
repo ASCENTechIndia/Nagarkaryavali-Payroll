@@ -131,9 +131,9 @@ export const FrmDepSalBillValidationSchema = z.object({
     year: z.string().min(1, "Year is required").refine((val) => val !== "-1", {
       message: "Please select a year",
     }),
-    category: z.string().min(1, "Category is required").refine((val) => val !== "-1", {
-      message: "Please select a category",
-    }),
+    // category: z.string().min(1, "Category is required").refine((val) => val !== "-1", {
+    //   message: "Please select a category",
+    // }),
     zone: z.string().min(1, "Zone is required").refine((val) => val !== "-1", {
       message: "Please select a zone",
     }),
