@@ -111,8 +111,8 @@ const FrmBankListReport = () => {
     } catch (err) {
       Swal.close();
       Swal.fire({
-        icon: "error",
         text: err.response?.data?.message || "Failed to load master data.",
+        confirmButtonColor: "#1e3a8a",
       });
     }
   };
@@ -135,12 +135,19 @@ const FrmBankListReport = () => {
         didOpen: () => Swal.showLoading(),
       });
 
+      const selectedDept = departments.find((d) => String(d.DEPTID) === departmentId);
+      const selectedBank = banks.find(
+        (b) => String(b.BANKID ?? b.BANK_ID) === bankId
+      );
+
       const payload = {
         ulbId: Number(ulbId),
         month: Number(selectedMonth),
         year: Number(selectedYear),
         departmentId: Number(departmentId),
         bankId: Number(bankId),
+        deptName: selectedDept ? selectedDept.DEPTNAME : null,
+        bankName: selectedBank ? (selectedBank.BANKNAME ?? selectedBank.BANK_NAME) : null,
       };
 
       const response = await axios.post(
@@ -155,8 +162,8 @@ const FrmBankListReport = () => {
         window.open(response.data.pdfUrl, "_blank");
       } else {
         Swal.fire({
-          icon: "error",
           text: response.data?.message || "Failed to generate report.",
+          confirmButtonColor: "#1e3a8a",
         });
       }
     } catch (err) {
@@ -166,7 +173,10 @@ const FrmBankListReport = () => {
         err.response?.data?.error ||
         err.message ||
         "Unable to generate report.";
-      Swal.fire({ icon: "error", title: "Error", text: errorMessage });
+      Swal.fire({
+        text: errorMessage,
+        confirmButtonColor: "#1e3a8a",
+      });
     }
   };
 
