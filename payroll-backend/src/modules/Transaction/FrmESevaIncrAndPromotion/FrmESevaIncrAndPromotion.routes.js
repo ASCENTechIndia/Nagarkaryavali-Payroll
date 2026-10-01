@@ -4,10 +4,10 @@ const router = express.Router();
 const controller = require("./FrmESevaIncrAndPromotion.controller");
 const auth = require("../../../middlewares/auth.middleware");
 
-router.post("/getIncrementList", controller.getIncrementList);
+router.post("/getIncrementList", auth(), controller.getIncrementList);
 
-router.post("/getPromotionList", controller.getPromotionList);
+router.post("/getPromotionList", auth(), controller.getPromotionList);
 
-router.post("/insertIncrementAndPromotion", controller.insertIncrementAndPromotion);
+router.post("/insertIncrementAndPromotion", auth(), controller.insertIncrementAndPromotion);
 
 module.exports = router;
