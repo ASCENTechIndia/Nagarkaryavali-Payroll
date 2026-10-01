@@ -51,6 +51,30 @@ const insertLeaveRecord = asyncHandler(async (req, res) => {
   return fail(res, data.errorMsg, 400);
 });
 
+const getLeaveTypeList = asyncHandler(async (req, res) => {
+  const result = await service.getLeaveTypeListService();
+
+  return ok(res, result);
+});
+
+const getLeaveTypeChildList = asyncHandler(async (req, res) => {
+  const result = await service.getLeaveTypeChildListService();
+
+  return ok(res, result);
+});
+
+const getLeaveTypeOtherList = asyncHandler(async (req, res) => {
+  const result = await service.getLeaveTypeOtherListService();
+
+  return ok(res, result);
+});
+
+const getLeaveTypeTEList = asyncHandler(async (req, res) => {
+  const result = await service.getLeaveTypeTEListService();
+
+  return ok(res, result);
+});
+
 module.exports = {
   getESevaEmpLeaveRecord,
   getLeaveTakenAndEarned,
@@ -58,4 +82,8 @@ module.exports = {
   getFinalLeaveDetails,
   getLeaveAvailability,
   insertLeaveRecord,
+  getLeaveTypeList,
+  getLeaveTypeChildList,
+  getLeaveTypeOtherList,
+  getLeaveTypeTEList,
 };

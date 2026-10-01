@@ -16,57 +16,63 @@ const getFinalLeaveDetailsService = async (ulbId, empId, esevaEmpId) => {
   return await repo.getFinalLeaveDetailsRepo(ulbId, empId, esevaEmpId);
 };
 
-const getLeaveAvailabilityService = async (
-    ulbId,
-    empId,
-    esevaEmpId
-) => {
-    return await repo.getLeaveAvailabilityRepo(
-        ulbId,
-        empId,
-        esevaEmpId
-    );
+const getLeaveAvailabilityService = async (ulbId, empId, esevaEmpId) => {
+  return await repo.getLeaveAvailabilityRepo(ulbId, empId, esevaEmpId);
 };
 
 async function insertLeaveRecordService(payload) {
-    if (!payload.userId) {
-        throw new Error("userId is required");
-    }
+  if (!payload.userId) {
+    throw new Error("userId is required");
+  }
 
-    if (!payload.mode) {
-        throw new Error("mode is required");
-    }
+  if (!payload.mode) {
+    throw new Error("mode is required");
+  }
 
-    if (!payload.empId) {
-        throw new Error("empId is required");
-    }
+  if (!payload.empId) {
+    throw new Error("empId is required");
+  }
 
-    if (!payload.ulbId) {
-        throw new Error("ulbId is required");
-    }
+  if (!payload.ulbId) {
+    throw new Error("ulbId is required");
+  }
 
-    if (!payload.esevaEmpId) {
-        throw new Error("esevaEmpId is required");
-    }
+  if (!payload.esevaEmpId) {
+    throw new Error("esevaEmpId is required");
+  }
 
-    const result = await repo.insertLeaveRecordRepo(payload);
+  const result = await repo.insertLeaveRecordRepo(payload);
 
-    if (result.errorCode === 9999) {
-        return {
-            success: true,
-            errorCode: result.errorCode,
-            errorMsg: result.errorMsg
-        };
-    }
-
+  if (result.errorCode === 9999) {
     return {
-        success: false,
-        errorCode: result.errorCode,
-        errorMsg: result.errorMsg
+      success: true,
+      errorCode: result.errorCode,
+      errorMsg: result.errorMsg,
     };
+  }
+
+  return {
+    success: false,
+    errorCode: result.errorCode,
+    errorMsg: result.errorMsg,
+  };
 }
 
+const getLeaveTypeListService = async () => {
+  return await repo.getLeaveTypeListRepo();
+};
 
+const getLeaveTypeChildListService = async () => {
+  return await repo.getLeaveTypeChildListRepo();
+};
+
+const getLeaveTypeOtherListService = async () => {
+  return await repo.getLeaveTypeOtherListRepo();
+};
+
+const getLeaveTypeTEListService = async () => {
+  return await repo.getLeaveTypeTEListRepo();
+};
 
 module.exports = {
   getESevaEmpLeaveRecordService,
@@ -74,5 +80,9 @@ module.exports = {
   getLeaveDetails2Service,
   getFinalLeaveDetailsService,
   getLeaveAvailabilityService,
-  insertLeaveRecordService
+  insertLeaveRecordService,
+  getLeaveTypeListService,
+  getLeaveTypeChildListService,
+  getLeaveTypeOtherListService,
+  getLeaveTypeTEListService,
 };
