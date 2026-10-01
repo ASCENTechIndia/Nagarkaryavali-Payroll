@@ -108,6 +108,7 @@ import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
 import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
 import FrmEsevaEmpLayout from './layout/eSeva-layout';
 import FrmEsevaEmpPenalAction from './pages/Transaction/FrmEsevaEmpPenalAction';
+import FrmAttendenceEntryDMC from './pages/Transaction/FrmAttendenceEntryDMC';
 
 export const router = createBrowserRouter([
   {
@@ -375,6 +376,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmAttendanceEntryUpdate",
         element: <FrmAttendanceEntryUpdate />
+      },
+      {
+        path: "Transactions/FrmAttendenceEntrydmc",
+        element: <FrmAttendenceEntryDMC />
       },
       {
         path: "Transactions/FrmEmpTransferApprList",
