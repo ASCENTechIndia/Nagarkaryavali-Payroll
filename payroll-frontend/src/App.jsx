@@ -105,6 +105,7 @@ import FrmESevaEmpPostingRecord from './pages/Transaction/FrmESevaEmpPostingReco
 import FrmESevaEmpLeaveRecord from './pages/Transaction/FrmESevaEmpLeaveRecord';
 import FrmESevaIncrAndPromotion from './pages/Transaction/FrmESevaIncrAndPromotion';
 import FrmESevaLoanNAdvance from './pages/Transaction/FrmESevaLoanNAdvance';
+import FrmEsevaEmpPenalAction from './pages/Transaction/FrmEsevaEmpPenalAction';
 import FrmESevaDashboard from './pages/Reports/FrmESevaDashboard';
 import FrmEsevaEmpLayout from './layout/eSeva-layout';
 import FrmEsevaEmpPenalAction from './pages/Transaction/FrmEsevaEmpPenalAction';
@@ -466,6 +467,9 @@ export const router = createBrowserRouter([
           },
         ]
       },
+
+      
+
 
       //Search
       {
