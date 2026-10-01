@@ -2,15 +2,19 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axios from "axios";
 
 const FrmEsevaEmpLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
     const ulbId = Number(user?.ulbId);
+    const token = user?.token;
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
 
     const [empId, setEmpId] = useState(location.state?.empId || null);
     const [stageId, setStageId] = useState(Number(location.state?.stageId) || 0);
+    const [esevaEmployeeID, setEsevaEmployeeID] = useState((location.state?.esevaEmployeeID) || 0);
 
     const stages = [
         { id: 1, name: "Personal Information", route: ulbId === 870 ? "/Transactions/FrmESevaEmpMasterSMKC" : "/Transactions/FrmESevaEmpMaster" },
@@ -26,7 +30,12 @@ const FrmEsevaEmpLayout = () => {
     useEffect(() => {
         if (location.state?.empId !== undefined) setEmpId(location.state.empId);
         if (location.state?.stageId !== undefined) setStageId(Number(location.state.stageId) || 0);
+        if (location.state?.esevaEmployeeID !== undefined) setEsevaEmployeeID(Number(location.state.esevaEmployeeID) || 0);
     }, [location.state]);
+
+    useEffect(() => {
+        getEsevaEmployeeID()
+    }, [ulbId, empId])
 
     const getActiveStage = () => {
         const stage = stages.find(x => x.route === location.pathname);
@@ -52,6 +61,26 @@ const FrmEsevaEmpLayout = () => {
     const getActiveStageNumber = () => {
         const stage = stages.find(x => x.route === location.pathname);
         return stage?.id || Number(location.state?.nextStage) || 1;
+    };
+
+    const getEsevaEmployeeID = async () => {
+        if (!ulbId || !empId) return;
+        try {
+            const res = await axios.post(
+                `${BASE_URL}/api/FrmESevaEmpMaster/eSeva-EmpID`,
+                { ulbid: Number(ulbId), empId: Number(empId) },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const id = Number(res.data?.data?.NUM_ESEVAEMP_ID) || 0;
+
+            console.log("API esevaEmployeeID:", id);
+
+            setEsevaEmployeeID(id);
+        } catch (err) {
+            console.error("Error fetching esevaEmployeeID:", err);
+            setEsevaEmployeeID(0);
+        }
     };
 
     const renderTabs = () => (
@@ -101,7 +130,7 @@ const FrmEsevaEmpLayout = () => {
             {renderTabs()}
 
             <div className="w-full">
-                <Outlet context={{ empId, stageId }} />
+                <Outlet context={{ empId, stageId, esevaEmployeeID }} />
             </div>
         </div>
     );

@@ -46,6 +46,11 @@ exports.getEmployeeDef = asyncHandler(async (req, res) => {
     const data = await service.getEmployeeDefService({ ulbid, empId });
     return ok(res, data, "Employee details fetched successfully");
 });
+exports.getNewEsevaEmpId = asyncHandler(async (req, res) => {
+    const { ulbid, empId } = req.body;
+    const data = await service.getNewEsevaEmpIdService({ ulbid, empId });
+    return ok(res, data, "Employee details fetched successfully");
+});
 
 exports.getEsevaEmpDetails = asyncHandler(async (req, res) => {
     const { ulbid, empId, esevaEmpId, mode } = req.body;

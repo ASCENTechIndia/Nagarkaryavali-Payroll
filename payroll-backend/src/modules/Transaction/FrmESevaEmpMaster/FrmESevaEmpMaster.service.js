@@ -48,6 +48,14 @@ async function getSubCasteDropdownService({ ulbid, casteId, religionId }) {
     return result.rows;
 }
 
+async function getNewEsevaEmpIdService({ ulbid, empId }) {
+    if (!ulbid) throw new Error("ulbid is required");
+    if (!empId) throw new Error("empId is required");
+    const result = await repo.getNewEsevaEmpIdRepo({ ulbid, empId });
+    // if (!result.success) throw new Error(result.error);
+    if (result.rows.length === 0) throw new Error("No employee found");
+    return result.rows[0];
+}
 async function getEmployeeDefService({ ulbid, empId }) {
     if (!ulbid) throw new Error("ulbid is required");
     if (!empId) throw new Error("empId is required");
@@ -140,5 +148,6 @@ module.exports = {
     getSubCasteDropdownService,
     getEmployeeDefService,
     getEsevaEmpDetailsService,
-    insertEsevaEmpService
+    insertEsevaEmpService,
+    getNewEsevaEmpIdService
 };

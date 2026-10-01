@@ -137,7 +137,6 @@ async function getNewEsevaEmpIdRepo({ ulbid, empId }) {
         FROM   aopr_esevaemp_mas 
         WHERE  num_esevaemp_ulbid   = :ulbid 
           AND  num_esevaemp_empcode = :empId
-        ORDER  BY num_esevaemp_id DESC
     `;
     return await executeQuery(sql, { ulbid, empId });
 }
