@@ -97,9 +97,9 @@ const FrmEsevaEmpLayout = () => {
                                 <TabsTrigger
                                     value={String(stage.id)}
                                     onClick={() => navigateToStage(stage)}
-                                    className="w-[140px] cursor-pointer min-w-[140px] sm:w-[150px] sm:min-w-[150px] md:w-[155px] md:min-w-[155px] shrink-0 flex flex-col items-center gap-1 rounded-none bg-transparent px-1 sm:px-2 py-1 text-gray-600 hover:bg-transparent hover:text-[#083c76] data-[state=active]:bg-transparent data-[state=active]:text-[#083c76] focus-visible:ring-0"
+                                    className="w-35 cursor-pointer min-w-35 sm:w-37.5 sm:min-w-37.5 md:w-38.75 md:min-w-38.75 shrink-0 flex flex-col items-center gap-1 rounded-none bg-transparent px-1 sm:px-2 py-1 text-gray-600 hover:bg-transparent hover:text-[#083c76] data-[state=active]:bg-transparent data-[state=active]:text-[#083c76] focus-visible:ring-0"
                                 >
-                                    <span className="w-full min-h-10 px-1 flex items-center justify-center text-center text-[11px] sm:text-xs md:text-sm font-semibold leading-tight whitespace-normal break-words">
+                                    <span className="w-full min-h-10 px-1 flex items-center justify-center text-center text-[11px] sm:text-xs md:text-sm font-semibold leading-tight whitespace-normal wrap-break-word">
                                         {stage.name}
                                     </span>
 
@@ -113,7 +113,7 @@ const FrmEsevaEmpLayout = () => {
                                 </TabsTrigger>
 
                                 {index < stages.length - 1 && (
-                                    <div className="w-4 min-w-4 sm:w-5 sm:min-w-5 md:w-6 md:min-w-6 shrink-0 pt-[58px] sm:pt-[59px]">
+                                    <div className="w-4 min-w-4 sm:w-5 sm:min-w-5 md:w-6 md:min-w-6 shrink-0 pt-[58px] sm:pt-14.75">
                                         <div className={`h-0.5 w-full ${stageId > stage.id ? "bg-green-500" : "bg-gray-300"}`} />
                                     </div>
                                 )}
