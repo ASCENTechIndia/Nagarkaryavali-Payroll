@@ -48,7 +48,7 @@ const FrmEsevaEmpLayout = () => {
         const isReached = stage.id <= stageId;
         const route = isReached ? `${stage.route}?@=1` : stage.route;
 
-        navigate(route, { state: { empId, stageId, nextStage: stage.id } });
+        navigate(route, { state: { empId, stageId, nextStage: stage.id, esevaEmployeeID } });
     };
 
     const getStatus = (stage) => {
@@ -84,9 +84,9 @@ const FrmEsevaEmpLayout = () => {
     };
 
     const renderTabs = () => (
-        <div className="w-full overflow-x-auto overflow-y-hidden flex justify-center custom-scrollbar">
-            <Tabs value={getActiveStage()} className="w-max">
-                <TabsList className="w-max h-auto flex items-start justify-start gap-0 bg-transparent p-0">
+        <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+            <Tabs value={getActiveStage()} className="w-max min-w-full">
+                <TabsList className="w-max min-w-full h-auto flex items-start justify-center gap-0 bg-transparent p-0">
                     {stages.map((stage, index) => {
                         const active = getActiveStage() === String(stage.id);
                         const completed = stage.id <= stageId;
@@ -97,23 +97,23 @@ const FrmEsevaEmpLayout = () => {
                                 <TabsTrigger
                                     value={String(stage.id)}
                                     onClick={() => navigateToStage(stage)}
-                                    className="w-30 shrink-0 flex flex-col items-center gap-1 rounded-none bg-transparent px-2 py-1 text-gray-600 hover:bg-transparent hover:text-[#083c76] data-[state=active]:bg-transparent data-[state=active]:text-[#083c76] focus-visible:ring-0"
+                                    className="w-[140px] cursor-pointer min-w-[140px] sm:w-[150px] sm:min-w-[150px] md:w-[155px] md:min-w-[155px] shrink-0 flex flex-col items-center gap-1 rounded-none bg-transparent px-1 sm:px-2 py-1 text-gray-600 hover:bg-transparent hover:text-[#083c76] data-[state=active]:bg-transparent data-[state=active]:text-[#083c76] focus-visible:ring-0"
                                 >
-                                    <span className="w-36.25 min-h-9 px-1 flex items-center justify-center text-center text-xs sm:text-sm font-semibold leading-tight whitespace-normal wrap-break-word">
+                                    <span className="w-full min-h-10 px-1 flex items-center justify-center text-center text-[11px] sm:text-xs md:text-sm font-semibold leading-tight whitespace-normal break-words">
                                         {stage.name}
                                     </span>
 
-                                    <span className={`text-xs leading-none ${completed ? "text-green-600" : active ? "text-[#083c76]" : "text-gray-500"}`}>
+                                    <span className={`text-[10px] sm:text-xs leading-none ${completed ? "text-green-600" : active ? "text-[#083c76]" : "text-gray-500"}`}>
                                         {status}
                                     </span>
 
-                                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white font-semibold ${active ? "border-[#083c76] text-[#083c76]" : completed ? "border-green-500 text-green-600" : "border-gray-300 text-gray-500"}`}>
+                                    <span className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white text-sm sm:text-base font-semibold ${active ? "border-[#083c76] text-[#083c76]" : completed ? "border-green-500 text-green-600" : "border-gray-300 text-gray-500"}`}>
                                         {stage.id}
                                     </span>
                                 </TabsTrigger>
 
                                 {index < stages.length - 1 && (
-                                    <div className="w-6 min-w-6 shrink-0 pt-14.5">
+                                    <div className="w-4 min-w-4 sm:w-5 sm:min-w-5 md:w-6 md:min-w-6 shrink-0 pt-[58px] sm:pt-[59px]">
                                         <div className={`h-0.5 w-full ${stageId > stage.id ? "bg-green-500" : "bg-gray-300"}`} />
                                     </div>
                                 )}
