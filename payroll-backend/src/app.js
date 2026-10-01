@@ -128,7 +128,7 @@ app.use("/api/FrmESevaEmpLeaveRecord", require("./modules/Transaction/FrmESevaEm
 app.use("/api/FrmESevaIncrAndPromotion", require("./modules/Transaction/FrmESevaIncrAndPromotion/FrmESevaIncrAndPromotion.routes"));
 app.use("/api/FrmESevaLoanNAdvance", require("./modules/Transaction/FrmESevaLoanNAdvance/FrmESevaLoanNAdvance.routes"));
 app.use("/api/FrmEsevaEmpPenalAction",require("./modules/Transaction/FrmEsevaEmpPenalAction/FrmEsevaEmpPenalAction.routes"));
-
+app.use("/api/FrmAttendenceExcellAuthListMst", require("./modules/Transaction/FrmAttendenceExcellAuthListMst/FrmAttendenceExcellAuthListMst.route"));
 
 //Reports
 app.use("/api/FrmSalaryConsolidationBanks", require("./modules/Reports/FrmSalaryConsolidationBanks/FrmSalaryConsolidationBanks.route"))
