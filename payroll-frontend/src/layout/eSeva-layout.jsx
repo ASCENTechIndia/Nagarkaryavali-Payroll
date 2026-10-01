@@ -47,7 +47,6 @@ const FrmEsevaEmpLayout = () => {
 
         const isReached = stage.id <= stageId;
         const route = isReached ? `${stage.route}?@=1` : stage.route;
-
         navigate(route, { state: { empId, stageId, nextStage: stage.id, esevaEmployeeID } });
     };
 
@@ -66,16 +65,14 @@ const FrmEsevaEmpLayout = () => {
     const getEsevaEmployeeID = async () => {
         if (!ulbId || !empId) return;
         try {
-            const res = await axios.post(
-                `${BASE_URL}/api/FrmESevaEmpMaster/eSeva-EmpID`,
+            const res = await axios.post(`${BASE_URL}/api/FrmESevaEmpMaster/eSeva-EmpID`,
                 { ulbid: Number(ulbId), empId: Number(empId) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
             const id = Number(res.data?.data?.NUM_ESEVAEMP_ID) || 0;
 
-            console.log("API esevaEmployeeID:", id);
-
+            // console.log("API esevaEmployeeID:", id);
             setEsevaEmployeeID(id);
         } catch (err) {
             console.error("Error fetching esevaEmployeeID:", err);
@@ -113,7 +110,7 @@ const FrmEsevaEmpLayout = () => {
                                 </TabsTrigger>
 
                                 {index < stages.length - 1 && (
-                                    <div className="w-4 min-w-4 sm:w-5 sm:min-w-5 md:w-6 md:min-w-6 shrink-0 pt-[58px] sm:pt-14.75">
+                                    <div className="w-4 min-w-4 sm:w-5 sm:min-w-5 md:w-6 md:min-w-6 shrink-0 pt-14.5 sm:pt-14.75">
                                         <div className={`h-0.5 w-full ${stageId > stage.id ? "bg-green-500" : "bg-gray-300"}`} />
                                     </div>
                                 )}
