@@ -5,6 +5,8 @@ const path = require("path");
 const {
   EmployeeListPDFHelper,
 } = require("../../../utils/pdfHelper/FrmEmpLstRpt");
+
+
 const { getCorporationService } = require("../../MenuAccess/MenuAccess.service");
 
 exports.getEmployeeList = asyncHandler(async (req, res) => {
@@ -64,3 +66,78 @@ exports.generateEmployeeListPDF = asyncHandler(async (req, res) => {
     pdfUrl,
   });
 });
+
+
+exports.getSalaryDetail = asyncHandler(async (req, res) => {
+
+    const {
+        lstdate,
+        ulbid,
+        deptId,
+        gender
+    } = req.body;
+
+    const result =
+        await service.getSalaryDetailService({
+            lstdate,
+            ulbid,
+            deptId,
+            gender
+        });
+
+    return ok(
+        res,
+        result,
+        "Salary detail fetched successfully"
+    );
+});
+
+exports.getEmployeeSubDetail = asyncHandler(async (req, res) => {
+
+    const {
+        lstdate,
+        ulbid,
+        deptId,
+        gender
+    } = req.body;
+
+    const result =
+        await service.getEmployeeSubDetailService({
+            lstdate,
+            ulbid,
+            deptId,
+            gender
+        });
+
+    return ok(
+        res,
+        result,
+        "Employee sub detail fetched successfully"
+    );
+});
+
+exports.getPayheadSalaryDetail = asyncHandler(async (req, res) => {
+
+    const {
+        lstdate,
+        ulbid,
+        deptId,
+        gender
+    } = req.body;
+
+    const result =
+        await service.getPayheadSalaryDetailService({
+            lstdate,
+            ulbid,
+            deptId,
+            gender
+        });
+
+    return ok(
+        res,
+        result,
+        "Payhead salary detail fetched successfully"
+    );
+});
+
+

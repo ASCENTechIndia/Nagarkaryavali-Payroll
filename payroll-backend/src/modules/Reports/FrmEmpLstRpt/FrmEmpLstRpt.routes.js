@@ -9,5 +9,29 @@ router.post(
   auth(),
   controller.generateEmployeeListPDF,
 );
+router.post(
+    "/salary-detail",
+ 
+    controller.getSalaryDetail
+);
+
+
+
+router.post(
+    "/employee-sub-detail",
+  
+    controller.getEmployeeSubDetail
+);
+
+
+
+router.post(
+    "/payhead-salary-detail",
+ 
+    controller.getPayheadSalaryDetail
+);
+
+
+
 
 module.exports = router;
