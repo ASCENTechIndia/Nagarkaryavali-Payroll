@@ -904,7 +904,11 @@ async function getEarningDeductionTotalData(payload) {
       zoneId: String(zoneId).trim(),
     };
 
-    const payheadType = reportType === "EARN" ? "'E'" : reportType === "DEDUCT" ? "'D'" : "'E'";
+    // const payheadType = reportType === "EARN" ? "'E'" : reportType === "DEDUCT" ? "'D'" : "'E'";
+    const isAll = reportType === "ALL";
+    const payheadType = reportType === "EARN" ? "'E'" 
+                      : reportType === "DEDUCT" ? "'D'" 
+                      : null;
     console.log("Payhead Type Filter:", payheadType);
 
     let query1 = `
@@ -976,7 +980,10 @@ async function getEarningDeductionTotalData(payload) {
       }
     }
 
-    query1 += ` AND VAR_PAYSUBHEADS_TYPE = ${payheadType} `;
+    // query1 += ` AND VAR_PAYSUBHEADS_TYPE = ${payheadType} `;
+    if (!isAll) {
+      query1 += ` AND VAR_PAYSUBHEADS_TYPE = ${payheadType} `;
+    }
 
     query1 += `
       GROUP BY 
@@ -1111,6 +1118,10 @@ async function getEarningDeductionTotalData(payload) {
       return { success: false, message: "Employee Records Not Found", employees: [] };
     }
 
+    const payheadFilterClause = isAll
+    ? `var_paysubheads_type IN ('D','E')`
+    : `var_paysubheads_type = ${payheadType}`;
+
     const queryPayhead = `
       SELECT 
         num_payheads_id,
@@ -1120,7 +1131,7 @@ async function getEarningDeductionTotalData(payload) {
       INNER JOIN aopr_paysubheads_def 
         ON num_paysubheads_id = num_payhead_subheadid 
       WHERE num_payheads_ulbid = :ulbId 
-        AND var_paysubheads_type = ${payheadType}
+        AND ${payheadFilterClause}
       GROUP BY num_payheads_id, var_payheads_shortname, num_payheads_orderno 
       ORDER BY num_payheads_orderno
     `;

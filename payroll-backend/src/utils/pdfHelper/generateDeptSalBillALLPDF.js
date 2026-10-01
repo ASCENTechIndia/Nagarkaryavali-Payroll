@@ -77,76 +77,76 @@ const generateDeptSalBillALLPDF = async ({
     }
 
     const row1Config = [
-      { key: 1, defaultTitle: "मूळ वेतन" },
-      { key: 101, defaultTitle: "गैरहजर दिवसांचा Basic" },
-      { key: 3, defaultTitle: "घरभाडे भत्ता" },
+      { key: 1,   defaultTitle: "मूळ वेतन" },
       { key: null, defaultTitle: "" },
-      { key: 106, defaultTitle: "भ. नि. वर्गणी / कर्ज हप्ता" },
-      { key: 103, defaultTitle: "इतर १" },
-      { key: 104, defaultTitle: "प्रा.फंड.कर्ज" },
-      { key: 126, defaultTitle: "अंशदान निधी 14 % मनपा" },
-      { key: 130, defaultTitle: "वसुली" },
+      { key: 3,   defaultTitle: "घरभाडे भत्ता" },
       { key: null, defaultTitle: "" },
-      { key: 131, defaultTitle: "विमा - LIC" },
+      { key: 17,  defaultTitle: "भ. नि. वर्गणी / कर्ज हप्ता" },
+      { key: 18,  defaultTitle: "इतर १" },
+      { key: 31,  defaultTitle: "प्रा.फंड.कर्ज" }, 
+      { key: 109, defaultTitle: "अंशदान निधी 14 % मनपा" }, 
+      { key: 103, defaultTitle: "वसुली" }, 
+      { key: null, defaultTitle: "" },
+      { key: 26,  defaultTitle: "विमा - LIC" },     
       { key: null, defaultTitle: "" },
     ];
 
     const row2Config = [
-      { key: 102, defaultTitle: "इतर भत्ता" },
-      { key: 2, defaultTitle: "महागाई भत्ता" },
-      { key: 12, defaultTitle: "धुलाई भत्ता" },
-      { key: 107, defaultTitle: "इतर / दंड" },
-      { key: 108, defaultTitle: "पोस्ट" },
-      { key: 127, defaultTitle: "बँक कर्ज" },
-      { key: 132, defaultTitle: "व्यवसाय कर" },
+      { key: 123, defaultTitle: "इतर भत्ता" }, 
+      { key: 2,   defaultTitle: "महागाई भत्ता" },
+      { key: 111, defaultTitle: "धुलाई भत्ता" }, 
+      { key: 16,  defaultTitle: "इतर / दंड" },
+      { key: 29,  defaultTitle: "पोस्ट" },  
+      { key: 30,  defaultTitle: "बँक कर्ज" }, 
+      { key: 108, defaultTitle: "व्यवसाय कर" }, 
       { key: null, defaultTitle: "" },
-      { key: 133, defaultTitle: "इतर बँक हप्ता" },
-      { key: 128, defaultTitle: "ध्वजनिधी" },
-      { key: 134, defaultTitle: "आयकर" },
+      { key: 22,  defaultTitle: "इतर बँक हप्ता" }, 
+      { key: 15,  defaultTitle: "ध्वजनिधी" },  
+      { key: 13,  defaultTitle: "आयकर" },      
       { key: null, defaultTitle: "" },
     ];
 
     const row3Config = [
-      { key: 109, defaultTitle: "वाहन भत्ता" },
-      { key: 110, defaultTitle: "ग्रेड वेतन" },
-      { key: 118, defaultTitle: "मनपा हिस्सा १४%" },
-      { key: 111, defaultTitle: "कामगार सोसायटी" },
-      { key: 112, defaultTitle: "ग. स.बँक" },
-      { key: 113, defaultTitle: "इतर पतपेढी" },
-      { key: 135, defaultTitle: "अपघात विमा" },
-      { key: 136, defaultTitle: "भविष्य नि. निधी" },
-      { key: 137, defaultTitle: "एल.आय.सी." },
-      { key: 138, defaultTitle: "सार्व. बांध पतपेढी" },
-      { key: 114, defaultTitle: "इतर / निधी" },
+      { key: 107, defaultTitle: "वाहन भत्ता" },  
+      { key: 8,   defaultTitle: "ग्रेड वेतन" },    
+      { key: 10,  defaultTitle: "मनपा हिस्सा १४%" },  
+      { key: 28,  defaultTitle: "कामगार सोसायटी" }, 
+      { key: 106, defaultTitle: "ग. स.बँक" },  
+      { key: 25,  defaultTitle: "इतर पतपेढी" }, 
+      { key: 14,  defaultTitle: "अपघात विमा" },  
+      { key: 23,  defaultTitle: "भविष्य नि. निधी" },  
+      { key: 102, defaultTitle: "एल.आय.सी." },  
+      { key: 12,  defaultTitle: "सार्व. बांध पतपेढी" }, 
+      { key: 27,  defaultTitle: "इतर / निधी" },  
       { key: null, defaultTitle: "" },
     ];
 
     const row4Config = [
-      { key: 115, defaultTitle: "कर्तव्य भत्ता" },
-      { key: 116, defaultTitle: "Balance Amount" },
-      { key: 117, defaultTitle: "कपात रक्कम वजा" },
-      { key: 119, defaultTitle: "अनुज्ञाप्ती शुल्क" },
-      { key: 120, defaultTitle: "महात्मा फुले" },
-      { key: 121, defaultTitle: "अंशदान नि. वेतन १०%" },
-      { key: 122, defaultTitle: "अंशदान नि. वेतन" },
-      { key: 123, defaultTitle: "वाहन कर्ज" },
-      { key: 124, defaultTitle: "मनपा पतपेढी / वर्गणी" },
-      { key: 125, defaultTitle: "सार्व. बांध. पतपेढी" },
-      { key: 129, defaultTitle: "इतर कपात" },
+      { key: 121, defaultTitle: "कर्तव्य भत्ता" },
+      { key: null, defaultTitle: "" },
+      { key: 9,   defaultTitle: "कपात रक्कम वजा" },  
+      { key: 105, defaultTitle: "अनुज्ञाप्ती शुल्क" },
+      { key: 112, defaultTitle: "महात्मा फुले" },
+      { key: 19,  defaultTitle: "अंशदान नि. वेतन १०%" },
+      { key: 20,  defaultTitle: "अंशदान नि. वेतन" }, 
+      { key: 101, defaultTitle: "वाहन कर्ज" }, 
+      { key: 11,  defaultTitle: "मनपा पतपेढी / वर्गणी" },
+      { key: 24,  defaultTitle: "सार्व. बांध. पतपेढी" },
+      { key: 104, defaultTitle: "इतर कपात" },
       { key: null, defaultTitle: "" },
     ];
 
     const row5Config = [
-      { key: 4, defaultTitle: "हजर दिवसांचा Basic" },
-      { key: 105, defaultTitle: "वैद्यकीय भत्ता" },
+      { key: 4,   defaultTitle: "हजर दिवसांचा Basic" },
+      { key: 5,   defaultTitle: "वैद्यकीय भत्ता" },
       { key: null, defaultTitle: "" },
-      { key: 13, defaultTitle: "उत्सव भत्ता" },
-      { key: null, defaultTitle: "" },
-      { key: null, defaultTitle: "" },
-      { key: 14, defaultTitle: "सणाचे कर्ज" },
+      { key: 122, defaultTitle: "उत्सव भत्ता" },
       { key: null, defaultTitle: "" },
       { key: null, defaultTitle: "" },
-      { key: 15, defaultTitle: "ओ.बी.सी. मंडळ" },
+      { key: 32,  defaultTitle: "सणाचे कर्ज" },
+      { key: null, defaultTitle: "" },
+      { key: null, defaultTitle: "" },
+      { key: 113, defaultTitle: "ओ.बी.सी. मंडळ" },
       { key: null, defaultTitle: "" },
       { key: null, defaultTitle: "" },
     ];
@@ -189,9 +189,12 @@ const generateDeptSalBillALLPDF = async ({
         gpfPranNo: emp.VAR_PRAN_NO || emp.var_pran_no || "-",
         presentDays: presentDays,
         leaveDays: totalDaysInMonth - presentDays,
-        totalEarning: Number(emp.totalEarning || emp.Total || 0),
-        totalDeduction: Number(emp.totalDeduction || emp.DTotal || 0),
-        netPay: Number(emp.TotalPayamount || emp.netPay || 0),
+        // totalEarning: Number(emp.totalEarning || emp.Total || 0),
+        // totalDeduction: Number(emp.totalDeduction || emp.DTotal || 0),
+        // netPay: Number(emp.TotalPayamount || emp.netPay || 0),
+        totalEarning: Number(emp.dbTotalEarning || emp.Total || 0),
+        totalDeduction: Number(emp.dbTotalDeduction || emp.DTotal || 0),
+        netPay: Number(emp.dbTotalEarning || emp.Total || 0) - Number(emp.dbTotalDeduction || emp.DTotal || 0),
 
         row1Cols: row1Config.map((item) => ({ key: item.key })),
         row2Cols: row2Config.map((item) => ({ key: item.key })),
@@ -202,9 +205,12 @@ const generateDeptSalBillALLPDF = async ({
     });
 
     const reportTotals = reportData.reportTotals || {};
-    const grandTotalEarning = reportData.grandTotalEarning || processedEmployees.reduce((sum, emp) => sum + emp.totalEarning, 0);
-    const grandTotalDeduction = reportData.grandTotalDeduction || processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
-    const grandNetPay = reportData.grandNetPay || processedEmployees.reduce((sum, emp) => sum + emp.netPay, 0);
+    // const grandTotalEarning = reportData.grandTotalEarning || processedEmployees.reduce((sum, emp) => sum + emp.totalEarning, 0);
+    // const grandTotalDeduction = reportData.grandTotalDeduction || processedEmployees.reduce((sum, emp) => sum + emp.totalDeduction, 0);
+    // const grandNetPay = reportData.grandNetPay || processedEmployees.reduce((sum, emp) => sum + emp.netPay, 0);
+    const grandTotalEarning = processedEmployees.reduce((sum, emp) => sum + Number(emp.dbTotalEarning || emp.Total || 0), 0);
+    const grandTotalDeduction = processedEmployees.reduce((sum, emp) => sum + Number(emp.dbTotalDeduction || emp.DTotal || 0), 0);
+    const grandNetPay = grandTotalEarning - grandTotalDeduction;
 
     const templateData = {
       corporationName: corporationName || "धुळे महानगरपालिका",
