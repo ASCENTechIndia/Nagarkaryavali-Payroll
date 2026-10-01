@@ -199,11 +199,47 @@ async function insertLeaveRecordRepo(payload) {
   };
 }
 
+const getLeaveTypeListRepo = async () => {
+  let qry = "";
+  qry += " select var_leave_name, num_leave_id from aopr_leavesmkc_mas where num_leave_id in (1,2,3,4,9)  ";
+
+  const dt = await executeQuery(qry);
+  return dt;
+};
+
+const getLeaveTypeChildListRepo = async () => {
+  let qry = "";
+  qry += " select var_leave_name, num_leave_id from aopr_leavesmkc_mas where num_leave_id in (5) ";
+
+  const dt = await executeQuery(qry);
+  return dt;
+};
+
+const getLeaveTypeOtherListRepo = async () => {
+  let qry = "";
+  qry += "select var_leave_name, num_leave_id from aopr_leavesmkc_mas where  num_leave_id in (6,7,8) ";
+
+  const dt = await executeQuery(qry);
+  return dt;
+};
+
+const getLeaveTypeTEListRepo = async () => {
+  let qry = "";
+  qry += " select var_leave_name, num_leave_id from aopr_leavesmkc_mas where num_leave_id in (1,2,3,4,9)  ";
+
+  const dt = await executeQuery(qry);
+  return dt;
+};
+
 module.exports = {
   getESevaEmpLeaveRecordRepo,
   getLeaveTakenAndEarnedRepo,
   getLeaveDetails2Repo,
   getFinalLeaveDetailsRepo,
   getLeaveAvailabilityRepo,
-  insertLeaveRecordRepo
+  insertLeaveRecordRepo,
+  getLeaveTypeListRepo,
+  getLeaveTypeChildListRepo,
+  getLeaveTypeOtherListRepo,
+  getLeaveTypeTEListRepo,
 };
