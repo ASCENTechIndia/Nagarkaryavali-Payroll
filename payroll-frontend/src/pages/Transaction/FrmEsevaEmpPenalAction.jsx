@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,19 +19,19 @@ import { DatePicker } from "@/components/ui/calendar";
 
 const API = (BASE_URL) => `${BASE_URL}/api/FrmEsevaEmpPenalAction`;
 
-const formatDate = (d) => {
-  if (!d) return "";
-  const date = new Date(d);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
+const unwrapRows = (res) => {
+  const outer = res?.data?.data;
+  if (Array.isArray(outer)) return outer;
+  if (Array.isArray(outer?.rows)) return outer.rows;
+  if (Array.isArray(outer?.data)) return outer.data;
+  return [];
 };
 
-const parseDate = (str) => {
-  if (!str) return null;
-  const [day, month, year] = str.split("-");
-  return new Date(`${year}-${month}-${day}`);
+const pick = (obj, ...keys) => {
+  for (const k of keys) {
+    if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+  }
+  return "";
 };
 
 const FrmEsevaEmpPenalAction = () => {
@@ -46,12 +46,12 @@ const FrmEsevaEmpPenalAction = () => {
   const queryMode = searchParams.get("@");
   const mode = queryMode === "1" ? 2 : 1;
 
-  const empIdEseva = sessionStorage.getItem("EmpidEseva");
-  const esevaEmpId = sessionStorage.getItem("esevaempid");
+  const { empId, esevaEmployeeID } = useOutletContext();
+  const empIdEseva = empId;
+  const esevaEmpId = esevaEmployeeID;
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
-  // ==================== FORM STATE ====================
   const [form, setForm] = useState({
     actionType: "",
     reason: "",
@@ -68,7 +68,6 @@ const FrmEsevaEmpPenalAction = () => {
   const [impactOptions, setImpactOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ==================== HELPERS ====================
   const updateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -77,107 +76,90 @@ const FrmEsevaEmpPenalAction = () => {
     if (redirectTo) navigate(redirectTo);
   };
 
-  // ==================== FETCH DROPDOWNS ====================
   const fetchDropdowns = async () => {
     try {
-      const [actionRes, impactRes] = await Promise.all([
-        axios.post(
-          `${API(BASE_URL)}/action-type-dropdown`,
-          {},
-          { headers: authHeaders }
-        ),
-        axios.post(
-          `${API(BASE_URL)}/impact-pension-dropdown`,
-          {},
-          { headers: authHeaders }
-        ),
+      const [actionRes, impactRes] = await Promise.allSettled([
+        axios.post(`${API(BASE_URL)}/getActionTypeList`, {}, { headers: authHeaders }),
+        axios.post(`${API(BASE_URL)}/getPensionImpactList`, {}, { headers: authHeaders }),
       ]);
 
-      const actionRows = actionRes?.data?.data?.data || [];
-      const impactRows = impactRes?.data?.data?.data || [];
+      const rowsOf = (r) => (r.status === "fulfilled" ? unwrapRows(r.value) : []);
+
+      const toOpts = (rows, valueKey, labelKey) =>
+        rows.map((r) => ({
+          value: (r[valueKey] ?? r[valueKey.toLowerCase()])?.toString(),
+          label: r[labelKey] ?? r[labelKey.toLowerCase()] ?? "",
+        }));
 
       setActionTypeOptions(
-        actionRows.map((r) => ({
-          value: r.VALUE_ID?.toString(),
-          label: r.DISPLAY_TEXT,
-        }))
+        toOpts(rowsOf(actionRes), "NUM_ACTIONTYPE_ID", "VAR_ACTIONTYPE_NAME")
       );
       setImpactOptions(
-        impactRows.map((r) => ({
-          value: r.VALUE_ID?.toString(),
-          label: r.DISPLAY_TEXT,
-        }))
+        toOpts(rowsOf(impactRes), "NUM_PENSIONIMPACT_ID", "VAR_PENSIONIMPACT_NAME")
       );
     } catch (e) {
       console.error("Failed to fetch dropdowns:", e);
     }
   };
 
-  // ==================== INITIAL LOAD ====================
   useEffect(() => {
-    // if (!empIdEseva) {
-    //   showAlert("Invalid Employee Id.", "/Transactions/FrmEsevaEmpList");
-    //   return;
-    // }
-    // if (!esevaEmpId) {
-    //   showAlert("Invalid Eseva Employee Id.", "/Transactions/FrmEsevaEmpList");
-    //   return;
-    // }
+    if (!token || !empIdEseva) return;
 
-    fetchDropdowns();
+    const load = async () => {
+      Swal.fire({
+        text: "Please wait",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      try {
+        await fetchDropdowns();
+        if (mode === 2 && esevaEmpId) {
+          await loadExistingData();
+        }
+      } finally {
+        requestAnimationFrame(() => Swal.close());
+      }
+    };
+    load();
+  }, [token, mode, empIdEseva, esevaEmpId]);
 
-    if (mode === 2) {
-      loadExistingData();
-    }
-  }, [token, mode]);
-
-  // ==================== LOAD EXISTING DATA ====================
   const loadExistingData = async () => {
-    Swal.fire({
-      text: "Loading...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
-
     try {
       const payload = {
-        ulbid: Number(ulbId),
+        ulbId: Number(ulbId),
         empId: Number(empIdEseva),
         esevaEmpId: Number(esevaEmpId),
       };
 
       const res = await axios.post(
-        `${API(BASE_URL)}/penal-action-details`,
+        `${API(BASE_URL)}/getPenalActionDetails`,
         payload,
         { headers: authHeaders }
       );
 
-      const row = res?.data?.data?.data?.[0];
+      const rows = unwrapRows(res);
+      const row = rows[0];
 
-      if (row) {
-        setForm({
-          actionType: row.NUM_PENACTION_ACTIONTYP?.toString() || "",
-          reason: row.VAR_PENACTION_REASON || "",
-          currentStatus: row.VAR_PENACTION_CURRSTATUS || "",
-          orderDate: row.DAT_PENACTION_ORDERDAT
-            ? new Date(row.DAT_PENACTION_ORDERDAT)
-            : new Date(),
-          caseNumber: row.VAR_PENACTION_CASENO || "",
-          impactOnPension:
-            row.NUM_PENACTION_WHETHERIMPACT?.toString() || "",
-          details: row.VAR_PENACTION_DETAILS || "",
-          ifRevokeOrderNo: row.VAR_PENACTION_ORDERNO || "",
-          detailsOfOrder: row.VAR_PENACTION_ORDERDETAILS || "",
-        });
-      } else {
-        Swal.close();
+      if (!row) {
         await showAlert("No record found.", "/Transactions/FrmEsevaEmpList");
         return;
       }
 
-      Swal.close();
+      setForm({
+        actionType: pick(row, "NUM_PENACTION_ACTIONTYP", "num_penaction_actiontyp")?.toString() || "",
+        reason: pick(row, "VAR_PENACTION_REASON", "var_penaction_reason"),
+        currentStatus: pick(row, "VAR_PENACTION_CURRSTATUS", "var_penaction_currstatus"),
+        orderDate: pick(row, "DAT_PENACTION_ORDERDAT", "dat_penaction_orderdat")
+          ? new Date(pick(row, "DAT_PENACTION_ORDERDAT", "dat_penaction_orderdat"))
+          : new Date(),
+        caseNumber: pick(row, "VAR_PENACTION_CASENO", "var_penaction_caseno"),
+        impactOnPension: pick(row, "NUM_PENACTION_WHETHERIMPACT", "num_penaction_whetherimpact")?.toString() || "",
+        details: pick(row, "VAR_PENACTION_DETAILS", "var_penaction_details"),
+        ifRevokeOrderNo: pick(row, "VAR_PENACTION_ORDERNO", "var_penaction_orderno"),
+        detailsOfOrder: pick(row, "VAR_PENACTION_ORDERDETAILS", "var_penaction_orderdetails"),
+      });
     } catch (error) {
-      Swal.close();
       await Swal.fire({
         text:
           error?.response?.data?.message ||
@@ -188,43 +170,15 @@ const FrmEsevaEmpPenalAction = () => {
     }
   };
 
-  // ==================== SUBMIT ====================
   const handleSubmit = async () => {
-    if (!form.actionType) {
-      Swal.fire({ text: "Please Select Action Type", icon: "warning" });
-      return;
-    }
-    if (!form.reason.trim()) {
-      Swal.fire({ text: "Please Enter Reason", icon: "warning" });
-      return;
-    }
-    if (!form.currentStatus.trim()) {
-      Swal.fire({ text: "Please Enter Current Status", icon: "warning" });
-      return;
-    }
-    if (!form.caseNumber.trim()) {
-      Swal.fire({ text: "Please Enter Case Number", icon: "warning" });
-      return;
-    }
-    if (!form.details.trim()) {
-      Swal.fire({ text: "Please Enter Details", icon: "warning" });
-      return;
-    }
-    if (!form.ifRevokeOrderNo.trim()) {
-      Swal.fire({ text: "Please Enter Order Number", icon: "warning" });
-      return;
-    }
-    if (!form.detailsOfOrder.trim()) {
-      Swal.fire({ text: "Please Enter Details Of Order", icon: "warning" });
-      return;
-    }
-    if (!form.impactOnPension) {
-      Swal.fire({
-        text: "Please Select Whether Impact On Pension",
-        icon: "warning",
-      });
-      return;
-    }
+    if (!form.actionType) return Swal.fire({ text: "Please Select Action Type", icon: "warning" });
+    if (!form.reason.trim()) return Swal.fire({ text: "Please Enter Reason", icon: "warning" });
+    if (!form.currentStatus.trim()) return Swal.fire({ text: "Please Enter Current Status", icon: "warning" });
+    if (!form.caseNumber.trim()) return Swal.fire({ text: "Please Enter Case Number", icon: "warning" });
+    if (!form.details.trim()) return Swal.fire({ text: "Please Enter Details", icon: "warning" });
+    if (!form.ifRevokeOrderNo.trim()) return Swal.fire({ text: "Please Enter Order Number", icon: "warning" });
+    if (!form.detailsOfOrder.trim()) return Swal.fire({ text: "Please Enter Details Of Order", icon: "warning" });
+    if (!form.impactOnPension) return Swal.fire({ text: "Please Select Whether Impact On Pension", icon: "warning" });
 
     try {
       setLoading(true);
@@ -235,26 +189,24 @@ const FrmEsevaEmpPenalAction = () => {
       });
 
       const payload = {
-        userid: userId || "",
-        id: Number(esevaEmpId),
-        ulbid: Number(ulbId),
-        empid: Number(empIdEseva),
-        actionType: Number(form.actionType) || 0,
+        userId,
+        mode,
+        esevaEmpId: mode === 1 ? 0 : Number(esevaEmpId),
+        empId: Number(empIdEseva),
+        ulbId: Number(ulbId),
+        actionType: Number(form.actionType) || null,
         reason: form.reason.trim(),
         currentStatus: form.currentStatus.trim(),
         caseNumber: form.caseNumber.trim(),
-        dateOfOrder: form.orderDate
-          ? new Date(form.orderDate).toISOString()
-          : null,
         details: form.details.trim(),
         ifRevokeOrderNo: form.ifRevokeOrderNo.trim(),
+        dateOfOrder: form.orderDate ? new Date(form.orderDate).toISOString() : null,
         detailsOfOrder: form.detailsOfOrder.trim(),
-        impactOnPension: Number(form.impactOnPension) || 0,
-        mode: mode,
+        impactOnPension: Number(form.impactOnPension) || null,
       };
 
       const res = await axios.post(
-        `${API(BASE_URL)}/insert-penal-action`,
+        `${API(BASE_URL)}/insertPenalAction`,
         payload,
         { headers: authHeaders }
       );
@@ -264,13 +216,13 @@ const FrmEsevaEmpPenalAction = () => {
 
       const data = res?.data?.data || {};
       const errorCode = data.errorCode;
-      const errorMsg = data.message || "Saved successfully";
+      const errorMsg = data.errorMsg || data.message || "Saved successfully";
 
-      if (errorCode === 9999) {
-        await Swal.fire({ text: errorMsg, icon: "info" });
+      if (errorCode === 9999 || data.success) {
+        await Swal.fire({ text: errorMsg, icon: "success" });
         navigate("/Transactions/FrmEsevaEmpList");
       } else {
-        await Swal.fire({ text: errorMsg, icon: "success" });
+        await Swal.fire({ text: errorMsg, icon: "error" });
       }
     } catch (error) {
       Swal.close();
@@ -285,25 +237,18 @@ const FrmEsevaEmpPenalAction = () => {
     }
   };
 
-  // ==================== CLOSE ====================
   const handleClose = () => {
     navigate("/Transactions/FrmEsevaEmpList");
   };
 
-// ==================== RENDER HELPERS ====================
   const renderField = (label, content, required = false) => (
     <div className="flex items-center gap-2">
-      <Label
-        required={required}
-        text={label}
-        className="w-32 shrink-0 text"
-      />
+      <Label required={required} text={label} className="w-32 shrink-0 text" />
       <span className="shrink-0">:</span>
       <div className="flex-1 min-w-0">{content}</div>
     </div>
   );
 
-  // ==================== RENDER ====================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
@@ -312,16 +257,12 @@ const FrmEsevaEmpPenalAction = () => {
         </CardHeader>
 
         <CardContent className="pt-4 space-y-6">
-          {/* ============ ENTRY FORM ============ */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
-              <CardTitle className="text-lg font-bold">
-                Action Details
-              </CardTitle>
+              <CardTitle className="text-lg font-bold">Action Details</CardTitle>
             </CardHeader>
 
             <CardContent className="pt-4 space-y-4">
-              {/* ---------- ROW 1 ---------- */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {renderField(
                   "Action Type",
@@ -354,9 +295,7 @@ const FrmEsevaEmpPenalAction = () => {
                   "Current Status",
                   <Input
                     value={form.currentStatus}
-                    onChange={(e) =>
-                      updateForm("currentStatus", e.target.value)
-                    }
+                    onChange={(e) => updateForm("currentStatus", e.target.value)}
                   />
                 )}
 
@@ -380,9 +319,7 @@ const FrmEsevaEmpPenalAction = () => {
                   "If Revoke,Order No.",
                   <Input
                     value={form.ifRevokeOrderNo}
-                    onChange={(e) =>
-                      updateForm("ifRevokeOrderNo", e.target.value)
-                    }
+                    onChange={(e) => updateForm("ifRevokeOrderNo", e.target.value)}
                   />
                 )}
 
@@ -417,17 +354,13 @@ const FrmEsevaEmpPenalAction = () => {
                   "Details Of Order",
                   <Input
                     value={form.detailsOfOrder}
-                    onChange={(e) =>
-                      updateForm("detailsOfOrder", e.target.value)
-                    }
+                    onChange={(e) => updateForm("detailsOfOrder", e.target.value)}
                   />
                 )}
-
               </div>
             </CardContent>
           </Card>
 
-          {/* ============ ACTION BUTTONS ============ */}
           <div className="flex justify-center gap-4 pt-2 border-t">
             <Button
               onClick={handleSubmit}
@@ -448,7 +381,6 @@ const FrmEsevaEmpPenalAction = () => {
       </Card>
     </motion.div>
   );
-
 };
 
 export default FrmEsevaEmpPenalAction;

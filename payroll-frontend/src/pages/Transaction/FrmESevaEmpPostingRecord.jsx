@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,8 +58,9 @@ const FrmESevaEmpPostingRecord = () => {
   const queryMode = searchParams.get("@");
   const mode = queryMode === "1" ? 2 : 1;
 
-  const empIdEseva = sessionStorage.getItem("EmpidEseva");
-  const esevaEmpId = sessionStorage.getItem("esevaempid");
+  const { empId, esevaEmployeeID } = useOutletContext();
+  const empIdEseva = empId;              
+  const esevaEmpId = esevaEmployeeID;   
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -103,8 +104,8 @@ const FrmESevaEmpPostingRecord = () => {
       const rows = res?.data?.data?.data || [];
       setServiceOptions(
         rows.map((r) => ({
-          value: r.VALUE_ID?.toString(),
-          label: r.DISPLAY_TEXT,
+          value: (r.VALUE_ID ?? r.value_id)?.toString(),
+          label: r.DISPLAY_TEXT ?? r.display_text,
         }))
       );
     } catch (e) {
@@ -114,42 +115,32 @@ const FrmESevaEmpPostingRecord = () => {
 
   // ==================== INITIAL LOAD ====================
   useEffect(() => {
-
-    // if (!empIdEseva) {
-    //   showAlert("Invalid Employee Id.", "/Transactions/FrmEsevaEmpList");
-    //   return;
-    // }
-    // if (!esevaEmpId) {
-    //   showAlert(
-    //     "Please enter Personal information first.",
-    //     "/Transactions/FrmESevaEmpMaster?@=1"
-    //   );
-    //   return;
-    // }
+    if (!token || !empIdEseva) return;
 
     const today = new Date();
     setForm((prev) => ({ ...prev, fromDate: today, toDate: today }));
 
     fetchServices();
 
-    if (mode === 2) {
+    if (mode === 2 && esevaEmpId) {
       loadExistingData();
     }
-  }, [token, mode]);
+  }, [token, mode, empIdEseva, esevaEmpId]);
 
   // ==================== LOAD EXISTING DATA ====================
   const loadExistingData = async () => {
     Swal.fire({
       text: "Loading...",
       allowOutsideClick: false,
+      allowEscapeKey: false,
       didOpen: () => Swal.showLoading(),
     });
 
     try {
       const payload = {
         ulbid: Number(ulbId),
-        empId: Number(empIdEseva),
-        esevaEmpId: Number(esevaEmpId),
+        empId: Number(empIdEseva),      
+        esevaEmpId: Number(esevaEmpId),    
       };
 
       const res = await axios.post(
@@ -180,7 +171,8 @@ const FrmESevaEmpPostingRecord = () => {
       });
 
       setTableData(mapped);
-      Swal.close();
+
+      requestAnimationFrame(() => Swal.close());
     } catch (error) {
       Swal.close();
       await Swal.fire({
@@ -199,7 +191,7 @@ const FrmESevaEmpPostingRecord = () => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      Swal.fire({ text: "Please upload a valid image file.", icon: "warning" });
+      Swal.fire({ text: "Please upload a valid image file."});
       return;
     }
 
@@ -214,22 +206,21 @@ const FrmESevaEmpPostingRecord = () => {
   // ==================== ADD / UPDATE ====================
   const handleAddOrUpdate = () => {
     if (!form.fromDate) {
-      Swal.fire({ text: "Please select from date.", icon: "warning" });
+      Swal.fire({ text: "Please select from date." });
       return;
     }
     if (!form.toDate) {
-      Swal.fire({ text: "Please select to date.", icon: "warning" });
+      Swal.fire({ text: "Please select to date." });
       return;
     }
     if (new Date(form.fromDate) > new Date(form.toDate)) {
       Swal.fire({
         text: "To date should be greater than from date.",
-        icon: "warning",
       });
       return;
     }
     if (!form.serviceId || form.serviceId === "0") {
-      Swal.fire({ text: "Please select service.", icon: "warning" });
+      Swal.fire({ text: "Please select service." });
       return;
     }
 
@@ -246,7 +237,7 @@ const FrmESevaEmpPostingRecord = () => {
       Service: serviceLabel,
       ServiceId: form.serviceId,
       Purpose: form.purpose.trim(),
-      SignatureFile: form.signatureFile, // File object
+      SignatureFile: form.signatureFile,
       SignatureBase64:
         signaturePreview ||
         (editId !== null
@@ -310,7 +301,6 @@ const FrmESevaEmpPostingRecord = () => {
       if (tableData.length === 0) {
         Swal.fire({
           text: "Please Add At least One Posting Record",
-          icon: "warning",
         });
         return;
       }
@@ -329,10 +319,7 @@ const FrmESevaEmpPostingRecord = () => {
         let file = row.SignatureFile;
 
         if (!file && row.SignatureBase64) {
-          file = dataURLtoFile(
-            row.SignatureBase64,
-            `sign_${row.Id}.png`
-          );
+          file = dataURLtoFile(row.SignatureBase64, `sign_${row.Id}.png`);
         }
 
         if (file) {
@@ -343,9 +330,9 @@ const FrmESevaEmpPostingRecord = () => {
 
       formData.append("userid", userId || "");
       formData.append("mode", mode);
-      formData.append("empid", Number(empIdEseva));
+      formData.append("empid", Number(empIdEseva));     
       formData.append("ulbid", Number(ulbId));
-      formData.append("esevaempid", Number(esevaEmpId));
+      formData.append("esevaempid", Number(esevaEmpId)); 
       formData.append("STR", str);
       formData.append("signatures", JSON.stringify(sigMeta));
 
@@ -373,12 +360,12 @@ const FrmESevaEmpPostingRecord = () => {
       const errorMsg = data.message || "Saved successfully";
 
       if (errorCode === 9999 || data.success) {
-        await Swal.fire({ text: errorMsg, icon: "success" });
-        navigate("/Transactions/FrmESevaEmpLeaveRecord", {
+        await Swal.fire({ text: errorMsg});
+        navigate("/Transactions/FrmESevaEmpLeaveRecord?@=1", {
           state: { empId: empIdEseva, esevaEmpId, mode },
         });
       } else {
-        await Swal.fire({ text: errorMsg, icon: "info" });
+        await Swal.fire({ text: errorMsg });
       }
     } catch (error) {
       Swal.close();
@@ -440,7 +427,6 @@ const FrmESevaEmpPostingRecord = () => {
         </CardHeader>
 
         <CardContent className="pt-4 space-y-6">
-          {/* ============ ENTRY FORM ============ */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-lg font-bold">
@@ -577,7 +563,6 @@ const FrmESevaEmpPostingRecord = () => {
             </CardContent>
           </Card>
 
-          {/* ============ ACTION BUTTONS ============ */}  
           <div className="flex justify-center gap-4 pt-2 border-t">
             <Button onClick={handleProcess} className="min-w-32">
               Process

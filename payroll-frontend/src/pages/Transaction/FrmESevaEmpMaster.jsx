@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,21 +21,30 @@ import ShadCNTable from "@/components/ui/table";
 
 const API = (BASE_URL) => `${BASE_URL}/api/FrmESevaEmpMaster`;
 
+const fmtDate = (d) => {
+  if (!d) return "";
+  const dt = new Date(d);
+  const dd = String(dt.getDate()).padStart(2, "0");
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  return `${dd}-${mm}-${dt.getFullYear()}`;
+};
+
 const FrmESevaEmpMaster = () => {
   const { user } = useAuth();
   const token = user?.token;
   const ulbId = user?.ulbId;
   const userId = user?.userId;
+  const [detailsLoaded, setDetailsLoaded] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const queryMode = searchParams.get("@");
   const mode = queryMode === "1" ? 2 : 1;
-  const empIdEseva = sessionStorage.getItem("EmpidEseva");
-  const esevaEmpId = sessionStorage.getItem("esevaempid");
 
   const authHeaders = { Authorization: `Bearer ${token}` };
+
+  const { empId, esevaEmployeeID } = useOutletContext();
 
   // ================== FORM STATE ==================
   const [form, setForm] = useState({
@@ -133,7 +142,6 @@ const FrmESevaEmpMaster = () => {
     if (redirectTo) navigate(redirectTo);
   };
 
-  // Map {DISPLAY_TEXT, VALUE_ID} -> {label, value}
   const toOptions = (rows = []) =>
     rows.map((r) => ({
       value: r.VALUE_ID?.toString(),
@@ -200,9 +208,12 @@ const FrmESevaEmpMaster = () => {
         {},
         { headers: authHeaders }
       );
-      setRelationOptions(toOptions(res?.data?.data || []));
+      const opts = toOptions(res?.data?.data || []);
+      setRelationOptions(opts);
+      return opts;
     } catch (e) {
       console.error(e);
+      return [];
     }
   };
 
@@ -213,9 +224,12 @@ const FrmESevaEmpMaster = () => {
         { ulbid: Number(ulbId), religionId: Number(religionId) },
         { headers: authHeaders }
       );
-      setCastOptions(toOptions(res?.data?.data || []));
+      const opts = toOptions(res?.data?.data || []);
+      setCastOptions(opts);
+      return opts;
     } catch (e) {
       console.error(e);
+      return [];
     }
   };
 
@@ -230,38 +244,16 @@ const FrmESevaEmpMaster = () => {
         },
         { headers: authHeaders }
       );
-      setSubCastOptions(toOptions(res?.data?.data || []));
+      const opts = toOptions(res?.data?.data || []);
+      setSubCastOptions(opts);
+      return opts;
     } catch (e) {
       console.error(e);
+      return [];
     }
   };
 
   // ================== LOAD MASTERS ==================
-  useEffect(() => {
-    if (!token) return;
-
-    const loadMasters = async () => {
-      Swal.fire({
-        text: "Please wait",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => Swal.showLoading(),
-      });
-      try {
-        await Promise.allSettled([
-          fetchNationality(),
-          fetchReligion(),
-          fetchCategory(),
-          fetchBloodGroup(),
-          fetchRelation(),
-        ]);
-      } finally {
-        Swal.close();
-      }
-    };
-
-    loadMasters();
-  }, [token]);
 
   // Cascade Religion → Cast
   useEffect(() => {
@@ -275,20 +267,47 @@ const FrmESevaEmpMaster = () => {
     else setSubCastOptions([]);
   }, [form.cast]);
 
-  // Load employee/eseva details
-  useEffect(() => {
-    if (!token) return;
-    if (mode === 1) bindEmpDetails();
-    else if (mode === 2) bindDetails();
-  }, [mode, token]);
+useEffect(() => {
+  if (!token || !empId) return;
+
+  setDetailsLoaded(false);
+
+  Swal.fire({
+    text: "Please wait",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => Swal.showLoading(),
+  });
+
+  const load = async () => {
+    try {
+      await Promise.allSettled([
+        fetchNationality(),
+        fetchReligion(),
+        fetchCategory(),
+        fetchBloodGroup(),
+        fetchRelation(),
+      ]);
+
+      if (mode === 1) await bindEmpDetails();
+      else if (mode === 2) await bindDetails();
+    } catch (e) {
+      setDetailsLoaded(true);
+    }
+  };
+  load();
+}, [token, empId, esevaEmployeeID, mode]);
+
+useEffect(() => {
+  if (detailsLoaded) Swal.close();
+}, [detailsLoaded]);
 
   // ================== BIND EMP DETAILS (Mode 1) ==================
   const bindEmpDetails = async () => {
-    if (!empIdEseva) return;
     try {
       const res = await axios.post(
         `${API(BASE_URL)}/employee-def`,
-        { ulbid: Number(ulbId), empId: Number(empIdEseva) },
+        { ulbid: Number(ulbId), empId: Number(empId) },
         { headers: authHeaders }
       );
       const row = res?.data?.data;
@@ -305,6 +324,7 @@ const FrmESevaEmpMaster = () => {
         permanentAddress: row.VAR_EMPLOYEE_PMNTADDRESS || "",
         isPhysicallyHandicapped: row.VAR_EMPLOYEE_HANDICAP || "N",
       }));
+      setDetailsLoaded(true);
     } catch (e) {
       showAlert(e?.response?.data?.message || e.message);
     }
@@ -312,15 +332,14 @@ const FrmESevaEmpMaster = () => {
 
   // ================== BIND ESEVA DETAILS (Mode 2) ==================
   const bindDetails = async () => {
-    if (!empIdEseva || !esevaEmpId) return;
     try {
       const res = await axios.post(
         `${API(BASE_URL)}/eseva-emp-details`,
         {
-          ulbid: Number(ulbId),
-          empId: Number(empIdEseva),
-          esevaEmpId: Number(esevaEmpId),
-          mode,
+          ulbid: Number(ulbId),                    
+          empId: Number(empId),                     
+          esevaEmpId: Number(esevaEmployeeID),     
+          mode,                                     
         },
         { headers: authHeaders }
       );
@@ -394,23 +413,30 @@ const FrmESevaEmpMaster = () => {
         note: row.VAR_ESEVAEMP_NOTE || "",
       });
 
-      // Map family (already returned by /eseva-emp-details in edit mode)
-      const mapped = family.map((r) => ({
-        fammemname: r.VAR_ESEVAEMPDET_NAME || "",
-        fammemdob: r.DAT_ESEVAEMPDET_DOB || null,
-        fammemrelation: r.VAR_ESEVAEMPDET_RELETIONSHIP_NAME || "",
-        fammemrelationid: r.VAR_ESEVAEMPDET_RELETIONSHIP?.toString() || "",
-        fammemmarstatus:
-          r.VAR_ESEVAEMPDET_MARRGSTATUS === "Y" ? "Yes" : "No",
-        fammemmarstatusid: r.VAR_ESEVAEMPDET_MARRGSTATUS || "N",
-        fammemocc: r.VAR_ESEVAEMPDET_OCCUPATION || "",
-        fammemmoninc: r.NUM_ESEVAEMPDET_MONTHINCOME?.toString() || "",
-        fammemisdep: r.VAR_ESEVAEMPDET_ISDEPENDENT === "Y" ? "Yes" : "No",
-        fammemisdepid: r.VAR_ESEVAEMPDET_ISDEPENDENT || "Y",
-      }));
+      const opts = relationOptions.length ? relationOptions : await fetchRelation();
+      const mapped = family.map((r) => {
+        const rid = r.VAR_ESEVAEMPDET_RELETIONSHIP?.toString() || "";
+        const relName = opts.find((o) => o.value === rid)?.label || "";
+        return {
+          fammemname: r.VAR_ESEVAEMPDET_NAME || "",
+          fammemdob: r.DAT_ESEVAEMPDET_DOB || null,
+          fammemrelation: relName,
+          fammemrelationid: rid,
+          fammemmarstatus:
+            r.VAR_ESEVAEMPDET_MARRGSTATUS === "Y" ? "Yes" : "No",
+          fammemmarstatusid: r.VAR_ESEVAEMPDET_MARRGSTATUS || "N",
+          fammemocc: r.VAR_ESEVAEMPDET_OCCUPATION || "",
+          fammemmoninc: r.NUM_ESEVAEMPDET_MONTHINCOME?.toString() || "",
+          fammemisdep:
+            r.VAR_ESEVAEMPDET_ISDEPENDENT === "Y" ? "Yes" : "No",
+          fammemisdepid: r.VAR_ESEVAEMPDET_ISDEPENDENT || "Y",
+        };
+      });
       setFamilyDetails(mapped);
+      setDetailsLoaded(true);
     } catch (e) {
       showAlert(e?.response?.data?.message || e.message);
+      setDetailsLoaded(true);
     }
   };
 
@@ -418,8 +444,7 @@ const FrmESevaEmpMaster = () => {
   const handleAddOrUpdateFamily = () => {
     if (!famForm.fammemname) return showAlert("Please Enter Name.");
     if (!famForm.fammemdob) return showAlert("Please select date of birth.");
-    if (!famForm.fammemrelation)
-      return showAlert("Please select relation.");
+    if (!famForm.fammemrelation) return showAlert("Please select relation.");
 
     const relationLabel =
       relationOptions.find((r) => r.value === famForm.fammemrelation)?.label ||
@@ -457,25 +482,55 @@ const FrmESevaEmpMaster = () => {
       fammemisdepid: "Y",
     });
 
+  const handleEditFamily = (index) => {
+    const r = familyDetails[index];
+    setFamForm({
+      fammemname: r.fammemname || "",
+      fammemdob: r.fammemdob ? new Date(r.fammemdob) : null,
+      fammemrelation: r.fammemrelationid || "",
+      fammemrelationid: r.fammemrelationid || "",
+      fammemmarstatus: r.fammemmarstatus || "",
+      fammemmarstatusid: r.fammemmarstatusid || "N",
+      fammemocc: r.fammemocc || "",
+      fammemmoninc: r.fammemmoninc || "",
+      fammemisdep: r.fammemisdep || "",
+      fammemisdepid: r.fammemisdepid || "Y",
+    });
+    setEditIndex(index);
+  };
+
   const handleDeleteFamily = (index) =>
     setFamilyDetails((prev) => prev.filter((_, i) => i !== index));
 
   // ================== COMM ADDR SYNC ==================
+  useEffect(() => {
+    if (!sameAsPermanent) return;
+    setForm((prev) => ({
+      ...prev,
+      communicationAddress: prev.permanentAddress,
+      communicationDistrict: prev.permanentDistrict,
+      communicationState: prev.permanentState,
+      communicationCountry: prev.permanentCountry,
+      communicationPostOffice: prev.permanentPostOffice,
+      communicationPincode: prev.permanentPincode,
+      communicationMobileNumber: prev.permanentMobileNumber,
+      communicationAlternateNumber: prev.permanentAlternateNumber,
+    }));
+  }, [
+    sameAsPermanent,
+    form.permanentAddress,
+    form.permanentDistrict,
+    form.permanentState,
+    form.permanentCountry,
+    form.permanentPostOffice,
+    form.permanentPincode,
+    form.permanentMobileNumber,
+    form.permanentAlternateNumber,
+  ]);
+
   const handleSameAsPermanent = (checked) => {
     setSameAsPermanent(checked);
-    if (checked) {
-      setForm((prev) => ({
-        ...prev,
-        communicationAddress: prev.permanentAddress,
-        communicationDistrict: prev.permanentDistrict,
-        communicationState: prev.permanentState,
-        communicationCountry: prev.permanentCountry,
-        communicationPostOffice: prev.permanentPostOffice,
-        communicationPincode: prev.permanentPincode,
-        communicationMobileNumber: prev.permanentMobileNumber,
-        communicationAlternateNumber: prev.permanentAlternateNumber,
-      }));
-    } else {
+    if (!checked) {
       setForm((prev) => ({
         ...prev,
         communicationAddress: "",
@@ -503,10 +558,7 @@ const FrmESevaEmpMaster = () => {
     if (!form.emailId) return "Please enter email id.";
     if (form.isMarried === "Y" && !form.spouseName)
       return "Please enter spouse name.";
-    if (
-      form.isPhysicallyHandicapped === "Y" &&
-      !form.handicappedDetails
-    )
+    if (form.isPhysicallyHandicapped === "Y" && !form.handicappedDetails)
       return "Please specify physically handicapped details.";
     if (!form.height)
       return "Please enter exact height by measurement.";
@@ -518,17 +570,21 @@ const FrmESevaEmpMaster = () => {
     return null;
   };
 
+  // FamilyDetStr: name#dob#relationLabel#marStatusLabel#occ#income#isDepLabel$...
   const buildFamilyDetailsStr = () =>
     familyDetails
-      .map(
-        (r) =>
-          `${r.fammemname}#${
-            r.fammemdob
-              ? new Date(r.fammemdob).toLocaleDateString("en-GB")
-              : ""
-          }#${r.fammemrelation}#${r.fammemmarstatus}#${r.fammemocc}#${
-            r.fammemmoninc
-          }#${r.fammemisdep}`
+      .map((r) =>
+        [
+          r.fammemname || "",
+          r.fammemdob ? fmtDate(r.fammemdob) : "",
+          r.fammemrelation || "",
+          //r.fammemmarstatus || "",
+          r.fammemmarstatusid === "Y" ? "Y" : "N",
+          r.fammemocc || "",
+          r.fammemmoninc || "",
+          //r.fammemisdep || "",
+          r.fammemisdepid === "Y" ? "Y" : "N",
+        ].join("#")
       )
       .join("$");
 
@@ -544,13 +600,13 @@ const FrmESevaEmpMaster = () => {
         didOpen: () => Swal.showLoading(),
       });
 
-      // Service expects PascalCase keys per insertEsevaEmpService(payload)
       const payload = {
         mode,
         userid: userId,
         ulbid: Number(ulbId),
-        empid: Number(empIdEseva),
-        esevaempid: mode === 1 ? 0 : Number(esevaEmpId),
+        empid: Number(empId),
+        esevaempid: mode === 1 ? 0 : Number(esevaEmployeeID),
+
         esevaempdetid: 0,
 
         Name: form.name,
@@ -645,9 +701,10 @@ const FrmESevaEmpMaster = () => {
       const data = res?.data?.data || {};
       if (data.success) {
         if (data.esevaEmpId)
-          sessionStorage.setItem("esevaempid", data.esevaEmpId.toString());
+          sessionStorage.setItem("empIdEseva", data.esevaEmpId.toString());
+
         await Swal.fire({ text: data.message });
-        navigate("/Transactions/FrmESevaEmpEducationalInformation");
+        navigate("/Transactions/FrmESevaEmpEducationalInformation?@=1");
       } else {
         await Swal.fire({
           text: res?.data?.message || "Something went wrong",
@@ -665,11 +722,11 @@ const FrmESevaEmpMaster = () => {
 
   const handleClose = () => {
     sessionStorage.removeItem("EmpidEseva");
+    sessionStorage.removeItem("empIdEseva");
     sessionStorage.removeItem("esevaempid");
     navigate("/Transactions/FrmEsevaEmpList");
   };
 
-  // ================== RENDER HELPERS ==================
   const renderField = (label, content) => (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 relative">
       <div className="sm:w-48 shrink-0 flex justify-between items-center">
@@ -707,15 +764,13 @@ const FrmESevaEmpMaster = () => {
   const familyTableData = familyDetails.map((row, idx) => ({
     ...row,
     "Sr No": idx + 1,
-    fammemdob: row.fammemdob
-      ? new Date(row.fammemdob).toLocaleDateString("en-GB")
-      : "",
+    fammemdob: row.fammemdob ? fmtDate(row.fammemdob) : "",
     ACTIONS: (
       <div className="flex gap-2">
         <Button
           variant="link"
           size="sm"
-          className="px-0 text-blue-600"
+          className="px-0 text-red-600"
           onClick={() => handleDeleteFamily(idx)}
         >
           Delete
@@ -724,7 +779,6 @@ const FrmESevaEmpMaster = () => {
     ),
   }));
 
-  // ================== RENDER ==================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
@@ -1528,6 +1582,17 @@ const FrmESevaEmpMaster = () => {
                   ? "Update Family Member"
                   : "Save Family Member"}
               </Button>
+              {editIndex !== null && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setEditIndex(null);
+                    clearFamFields();
+                  }}
+                >
+                  Cancel Edit
+                </Button>
+              )}
             </div>
 
             {familyTableData.length > 0 && (

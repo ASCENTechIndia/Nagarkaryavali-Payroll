@@ -13,7 +13,6 @@ import ShadCNTable from "@/components/ui/table";
 
 const API = (BASE_URL) => `${BASE_URL}/api/FrmESevaLoanNAdvance`;
 
-// ==================== HELPERS ====================
 const formatDate = (d) => {
   if (!d) return "";
   const date = new Date(d);
@@ -56,7 +55,6 @@ const dataURLtoFile = (dataURL, filename) => {
   return new File([u8arr], filename, { type: mime });
 };
 
-// ==================== MAIN ====================
 const FrmESevaLoanNAdvance = () => {
   const { user } = useAuth();
   const token = user?.token;
@@ -75,7 +73,6 @@ const FrmESevaLoanNAdvance = () => {
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
-  // ==================== FORM STATE ====================
   const [form, setForm] = useState({
     sancAmt: "",
     purpose: "",
@@ -109,7 +106,6 @@ const FrmESevaLoanNAdvance = () => {
     if (redirectTo) navigate(redirectTo);
   };
 
-  // ==================== INIT ====================
   useEffect(() => {
     if (!token || !empIdEseva) return;
 
@@ -132,10 +128,8 @@ const FrmESevaLoanNAdvance = () => {
       }
     };
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, mode, empIdEseva, esevaEmpId]);
 
-  // ==================== LOAD EXISTING ====================
   const loadExistingData = async () => {
     try {
       const payload = {
@@ -192,7 +186,6 @@ const FrmESevaLoanNAdvance = () => {
     }
   };
 
-  // ==================== FILE UPLOAD ====================
   const handleSignatureUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -210,7 +203,6 @@ const FrmESevaLoanNAdvance = () => {
     reader.readAsDataURL(file);
   };
 
-  // ==================== ADD / UPDATE ====================
   const handleAddOrUpdate = () => {
     if (!form.sancAmt.trim()) return Swal.fire({ text: "Please enter sanctioned amount.", icon: "warning" });
     if (!form.sancDate) return Swal.fire({ text: "Please select sanctioned date.", icon: "warning" });
@@ -285,7 +277,6 @@ const FrmESevaLoanNAdvance = () => {
     });
     setSignaturePreview(row.SignatureBase64);
     setEditId(row.Id);
-    // Row is NOT removed — Cancel keeps it
   };
 
   const handleDeleteRow = (id) => {
@@ -296,7 +287,6 @@ const FrmESevaLoanNAdvance = () => {
     }
   };
 
-  // ==================== PROCESS ====================
   const handleProcess = async () => {
     try {
       if (tableData.length === 0) {
@@ -306,10 +296,6 @@ const FrmESevaLoanNAdvance = () => {
         });
       }
 
-      // Same order as .NET:
-      // sancamount $ purpose $ noofinstl $ roi $ sancorderno $
-      // sancdt $ firstinstldt $ monthlyinstl $ finyear $ interestbearadv $
-      // amtos $ amtrecover $ intacc $ remarks
       const loanAdvStr = tableData
         .map(
           (row) =>
@@ -323,7 +309,6 @@ const FrmESevaLoanNAdvance = () => {
         didOpen: () => Swal.showLoading(),
       });
 
-      // ---------- STEP 1: insert STR via JSON ----------
       const insertRes = await axios.post(
         `${API(BASE_URL)}/insertLoanAndAdvance`,
         {
@@ -346,9 +331,6 @@ const FrmESevaLoanNAdvance = () => {
         return Swal.fire({ text: errorMsg, icon: "error" });
       }
 
-      // ---------- STEP 2: upload signature(s) ----------
-      // Backend key is (empcode, ulbid, esevaid) — matches .NET SaveSignatureImage.
-      // If multiple rows have signatures, the last one wins (same as .NET).
       const sigRows = tableData.filter((row) => row.SignatureFile || row.SignatureBase64);
       for (const row of sigRows) {
         let file = row.SignatureFile;
@@ -363,7 +345,6 @@ const FrmESevaLoanNAdvance = () => {
         fd.append("ulbId", Number(ulbId));
         fd.append("esevaEmpId", Number(esevaEmpId));
 
-        // Note: Content-Type is set automatically by axios for FormData
         await axios.post(
           `${API(BASE_URL)}/updateLoanAdvanceSignature`,
           fd
@@ -385,7 +366,6 @@ const FrmESevaLoanNAdvance = () => {
     }
   };
 
-  // ==================== TABLE ROWS ====================
   const buildTableRows = () =>
     tableData.map((row, idx) => ({
       ...row,
@@ -417,7 +397,6 @@ const FrmESevaLoanNAdvance = () => {
       ),
     }));
 
-  // ==================== RENDER HELPERS ====================
   const renderField = (label, content, required = false) => (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 relative">
       <div className="sm:w-44 shrink-0 flex justify-between items-center">
@@ -428,7 +407,6 @@ const FrmESevaLoanNAdvance = () => {
     </div>
   );
 
-  // ==================== RENDER ====================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
