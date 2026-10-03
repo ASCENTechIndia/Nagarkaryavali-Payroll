@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summary Report - Teriz Patrak</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Times New Roman', serif;
+      font-size: 13px;
+      margin: 10px;
+      color: #000;
+    }
+
+    .container {
+      width: 100%;
+      border: 1px solid #000;
+      padding: 6px;
+    }
+
+    .text-center { text-align: center; }
+    .text-right  { text-align: right; }
+    .text-left   { text-align: left; }
+    .bold        { font-weight: bold; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td, th {
+      border: 1px solid #000;
+      padding: 3px 4px;
+      vertical-align: top;
+    }
+
+    .no-border { border: none !important; }
+    .no-border td { border: none !important; }
+
+    .top-header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .top-header h2 { margin: 0; font-size: 17px; }
+    .top-header h3 { margin: 3px 0 0 0; font-size: 15px; }
+    .top-header .logo img { height: 60px; }
+
+    .meta-table td { height: 30px; }
+
+    .info-line {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .main-data-table td { height: 19px; font-size: 12px; }
+
+    .two-col {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .two-col > div { flex: 1; }
+
+    .staff-table th {
+      background: #f0f0f0;
+      font-size: 11px;
+      text-align: center;
+    }
+    .staff-table td {
+      text-align: center;
+      font-size: 11px;
+    }
+    .staff-table td.text-left { text-align: left; }
+
+    .signature-section {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+      text-align: center;
+      font-weight: bold;
+      font-size: 11px;
+    }
+    .signature-box { width: 19%; }
+
+    .footer-note {
+      border: 1px solid #000;
+      padding: 5px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sub-header {
+      font-size: 11px;
+      margin-bottom: 6px;
+      padding: 3px 5px;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="top-header">
+    {{#if corporationLogo}}
+    <div class="logo">
+      <img src="{{corporationLogo}}" alt="logo" />
+    </div>
+    {{/if}}
+    <div>
+      <div style="font-size: 10px; text-align: left;">
+        (महानगरपालिका लेखासंहिता 125(1) नमुना क्र. 93)
+      </div>
+      <h2>प्रमाणक क्रमांक</h2>
+      <h3>{{corporationName}}</h3>
+    </div>
+  </div>
+
+  <table class="meta-table" style="border: 1px solid #000; margin-bottom: 6px;">
+    <tr>
+      <td style="border-right: 1px solid #000; width: 18%;" class="text-center">
+        <span class="bold" style="border-bottom: 1px solid #000;">
+          माहे - {{month}} {{year}}
+        </span><br />
+        <span class="bold">खात्याचे नांव</span>
+      </td>
+      <td style="border-right: 1px solid #000; width: 18%;" class="text-center">
+        <span class="bold" style="border-bottom: 1px solid #000;">
+          {{financialYear}}
+        </span><br />
+        <span class="bold">{{departmentName}}</span>
+      </td>
+      <td style="width: 64%; font-size: 12px;">
+        {{infoLine}}
+      </td>
+    </tr>
+  </table>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+
+    <div style="width: 33%;">
+      <div style="padding: 5px; margin-top: 10px;">
+        एकूण लागणारा आकार ( आसन क्र. 15 ) रुपये<br />
+        ( आसन क्र. 24 ) रुपये
+        <span class="bold" style="float: right; border-bottom: 1px solid #000;">
+          {{formatNumber grandTotal}}
+        </span><br />
+        एकूण रुपये
+        <span class="bold" style="float: right;">
+          {{formatNumber grandTotal}}
+        </span>
+      </div>
+    </div>
+
+    <div style="width: 65%; margin-left: 10px;">
+      <div style="font-size: 11px; margin-bottom: 5px;">
+        शासन निर्णय क्र धुमपा -1010/प्र.क्र.103/नवि-25, दिनांक - 04 एप्रिल 2016
+        चे आकृतीबंधानुसार विवरण पत्र क्र 29 आरोग्य स्वच्छता कार्यालयासाठी मंजुर
+        पदांचा तपशिल
+      </div>
+      <table class="staff-table">
+        <thead>
+          <tr class="bold">
+            <th>अ.क्र</th>
+            <th>पदाचा तपशील</th>
+            <th>मंजूर पदांची संख्या</th>
+            <th>नवनिर्मित पदांची संख्या</th>
+            <th>एकूण पदांची संख्या</th>
+            <th>कार्यरत पद संख्या</th>
+            <th>रिक्त पद संख्या</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each staffRows}}
+          <tr>
+            <td>{{this.srNo}}</td>
+            <td class="text-left">{{this.designation}}</td>
+            <td>{{this.approved}}</td>
+            <td>{{this.newCreated}}</td>
+            <td>{{this.totalPosts}}</td>
+            <td>{{this.working}}</td>
+            <td>{{this.vacant}}</td>
+          </tr>
+          {{/each}}
+          {{#if staffRows.length}}
+          <tr class="bold">
+            <td colspan="2" class="text-right">एकूण</td>
+            <td>{{staffTotals.approved}}</td>
+            <td>{{staffTotals.newCreated}}</td>
+            <td>{{staffTotals.totalPosts}}</td>
+            <td>{{staffTotals.working}}</td>
+            <td>{{staffTotals.vacant}}</td>
+          </tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <div>
+      <table class="main-data-table">
+        {{#each kharchacheKarti}}
+        <tr>
+          <td>{{this.label}}</td>
+          <td class="text-right">{{formatNumber this.amount}}</td>
+        </tr>
+        {{/each}}
+
+        {{#unless kharchacheKarti.length}}
+        <tr><td colspan="2" class="text-center">No deduction data</td></tr>
+        {{/unless}}
+
+      </table>
+    </div>
+
+    <div>
+      <table class="main-data-table">
+        {{#each jamacheKarti}}
+        <tr>
+          <td>{{this.label}}</td>
+          <td class="text-right">{{formatNumber this.amount}}</td>
+        </tr>
+        {{/each}}
+
+        {{#unless jamacheKarti.length}}
+        <tr><td colspan="2" class="text-center">No earning data</td></tr>
+        {{/unless}}
+
+      </table>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; margin-top: 20px; align-items: flex-end;">
+    <div style="width: 30%; padding: 5px;">
+      <div class="bold">तयार करणार</div>
+    </div>
+    <div style="width: 30%; text-align: center;">
+      <div class="bold">कार्यालय अधीक्षक</div>
+      <div>{{corporationName}}</div>
+    </div>
+    <div style="width: 30%; text-align: center;">
+      <div class="bold">उपलेखापाल</div>
+      <div>{{corporationName}}</div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <div style="width: 30%; border-right: 1px solid #000; padding: 5px;">
+      <span class="bold">
+        तपासलेली रक्कम रुपये {{formatNumber grandTotal}}
+      </span>
+    </div>
+    <div style="width: 68%; text-align: center; padding: 5px;">
+      <span class="bold">{{amountInWords}}</span>
+    </div>
+  </div>
+
+  <div class="signature-section">
+    <div class="signature-box">
+      लेखापाल<br />
+      {{corporationName}}
+    </div>
+    <div class="signature-box">
+      मुख्य लेखापरिक्षक<br />
+      {{corporationName}}<br />
+      रोजनिशी पान क्र.
+    </div>
+    <div class="signature-box">
+      मुख्य लेखाधिकारी<br />
+      {{corporationName}}<br />
+      प्रमाणक क्र.
+    </div>
+    <div class="signature-box">
+      उपायुक्त<br />
+      {{corporationName}}
+    </div>
+    <div class="signature-box">
+      आयुक्त<br />
+      {{corporationName}}
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
