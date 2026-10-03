@@ -19,6 +19,9 @@ const toDDMMYYYY = (isoDateStr) => {
   return `${d}-${m}-${y}`;
 };
 
+const onlyDigits = (v = "") => /^[0-9]*$/.test(v);
+const isFourDigits = (v = "") => /^[0-9]{4}$/.test(v);
+
 const FrmESevaEmpEducationalInformation = () => {
   const { user } = useAuth();
   const token = user?.token;
@@ -34,28 +37,24 @@ const FrmESevaEmpEducationalInformation = () => {
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
-  // ==================== EDUCATIONAL INFO ====================
   const [eduDegree, setEduDegree] = useState("");
   const [eduUniversity, setEduUniversity] = useState("");
   const [eduPassingYear, setEduPassingYear] = useState("");
   const [eduTableData, setEduTableData] = useState([]);
   const [eduEditId, setEduEditId] = useState(null);
 
-  // ==================== ADDITIONAL TRAINING ====================
   const [atCourseName, setAtCourseName] = useState("");
   const [atOrgDetails, setAtOrgDetails] = useState("");
   const [atCommencementDate, setAtCommencementDate] = useState("");
   const [atTableData, setAtTableData] = useState([]);
   const [atEditId, setAtEditId] = useState(null);
 
-  // ==================== PROFESSIONAL TRAINING ====================
   const [ptDegree, setPtDegree] = useState("");
   const [ptUniversity, setPtUniversity] = useState("");
   const [ptPassingYear, setPtPassingYear] = useState("");
   const [ptTableData, setPtTableData] = useState([]);
   const [ptEditId, setPtEditId] = useState(null);
 
-  // ==================== LOAD EXISTING DATA (EDIT MODE) ====================
   useEffect(() => {
     if (!token) return;
     if (mode === 2 && empId && esevaEmpId) {
@@ -74,7 +73,7 @@ const FrmESevaEmpEducationalInformation = () => {
     try {
       const payload = {
         ulbid: Number(ulbId),
-        empId: Number(empId),      
+        empId: Number(empId),
         esevaEmpId: Number(esevaEmpId),
       };
 
@@ -142,11 +141,12 @@ const FrmESevaEmpEducationalInformation = () => {
   const getNextId = (data) =>
     data.length > 0 ? Math.max(...data.map((r) => r.Id)) + 1 : 1;
 
-  // ==================== EDUCATIONAL INFO: ADD / UPDATE ====================
   const handleAddEducation = () => {
     if (!eduDegree.trim()) return Swal.fire({ text: "Please enter degree." });
     if (!eduUniversity.trim()) return Swal.fire({ text: "Please enter university." });
     if (!eduPassingYear.trim()) return Swal.fire({ text: "Please enter passing year." });
+    if (!isFourDigits(eduPassingYear.trim()))
+      return Swal.fire({ text: "Passing Year must be exactly 4 digits." });
 
     if (eduEditId !== null) {
       setEduTableData(
@@ -173,17 +173,25 @@ const FrmESevaEmpEducationalInformation = () => {
     setEduPassingYear("");
   };
 
-  // ==================== ADDITIONAL TRAINING: ADD / UPDATE ====================
   const handleAddAdditionalTraining = () => {
-    if (!atCourseName.trim()) return Swal.fire({ text: "Course Name cannot be blank", });
-    if (!atOrgDetails.trim()) return Swal.fire({ text: "Organization cannot be blank"});
+    if (!atCourseName.trim()) return Swal.fire({ text: "Course Name cannot be blank" });
+    if (!atOrgDetails.trim()) return Swal.fire({ text: "Organization cannot be blank" });
     if (!atCommencementDate.trim()) return Swal.fire({ text: "Commencement Date cannot be blank" });
+
+    const s = String(atCommencementDate).trim();
+    let year = "";
+    if (/^\d{4}$/.test(s)) year = s;
+    else if (/^\d{4}-\d{2}-\d{2}/.test(s)) year = s.slice(0, 4);
+    else if (/^\d{2}-\d{2}-\d{4}$/.test(s)) year = s.slice(-4);
+
+    if (!isFourDigits(year))
+      return Swal.fire({ text: "Commencement Year must be exactly 4 digits." });
 
     if (atEditId !== null) {
       setAtTableData(
         atTableData.map((r) =>
           r.Id === atEditId
-            ? { ...r, CourseName: atCourseName.trim(), OrganizationDetails: atOrgDetails.trim(), CommencementDates: atCommencementDate.trim() }
+            ? { ...r, CourseName: atCourseName.trim(), OrganizationDetails: atOrgDetails.trim(), CommencementDates: year }
             : r
         )
       );
@@ -195,7 +203,7 @@ const FrmESevaEmpEducationalInformation = () => {
           Id: getNextId(atTableData),
           CourseName: atCourseName.trim(),
           OrganizationDetails: atOrgDetails.trim(),
-          CommencementDates: atCommencementDate.trim(),
+          CommencementDates: year,
         },
       ]);
     }
@@ -204,11 +212,12 @@ const FrmESevaEmpEducationalInformation = () => {
     setAtCommencementDate("");
   };
 
-  // ==================== PROFESSIONAL TRAINING: ADD / UPDATE ====================
   const handleAddProfessionalTraining = () => {
-    if (!ptDegree.trim()) return Swal.fire({ text: "Please enter degree."});
-    if (!ptUniversity.trim()) return Swal.fire({ text: "Please enter university."});
+    if (!ptDegree.trim()) return Swal.fire({ text: "Please enter degree." });
+    if (!ptUniversity.trim()) return Swal.fire({ text: "Please enter university." });
     if (!ptPassingYear.trim()) return Swal.fire({ text: "Please enter passing year." });
+    if (!isFourDigits(ptPassingYear.trim()))
+      return Swal.fire({ text: "Passing Year must be exactly 4 digits." });
 
     if (ptEditId !== null) {
       setPtTableData(
@@ -235,7 +244,6 @@ const FrmESevaEmpEducationalInformation = () => {
     setPtPassingYear("");
   };
 
-  // ==================== UPDATE ====================
   const handleUpdateEducation = (row) => {
     setEduDegree(row.Degree);
     setEduUniversity(row.University);
@@ -246,19 +254,14 @@ const FrmESevaEmpEducationalInformation = () => {
   const handleUpdateAdditionalTraining = (row) => {
     setAtCourseName(row.CourseName);
     setAtOrgDetails(row.OrganizationDetails);
-    if (row.CommencementDates) {
-      const s = String(row.CommencementDates);
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-        setAtCommencementDate(s.slice(0, 10));
-      } else if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
-        const [d, m, y] = s.split("-");
-        setAtCommencementDate(`${y}-${m}-${d}`);
-      } else {
-        setAtCommencementDate("");
-      }
-    } else {
-      setAtCommencementDate("");
-    }
+
+    const s = String(row.CommencementDates || "");
+    let year = "";
+    if (/^\d{4}$/.test(s)) year = s;
+    else if (/^\d{4}-\d{2}-\d{2}/.test(s)) year = s.slice(0, 4);
+    else if (/^\d{2}-\d{2}-\d{4}$/.test(s)) year = s.slice(-4);
+
+    setAtCommencementDate(year);
     setAtEditId(row.Id);
   };
 
@@ -269,7 +272,6 @@ const FrmESevaEmpEducationalInformation = () => {
     setPtEditId(row.Id);
   };
 
-  // ==================== DELETE ====================
   const handleDeleteRow = (tableType, id) => {
     if (tableType === "edu") {
       setEduTableData(eduTableData.filter((r) => r.Id !== id));
@@ -292,7 +294,6 @@ const FrmESevaEmpEducationalInformation = () => {
     }
   };
 
-  // ==================== SAVE ====================
   const handleSave = async () => {
     try {
       if (eduTableData.length === 0) {
@@ -329,7 +330,7 @@ const FrmESevaEmpEducationalInformation = () => {
         ulbid: Number(ulbId),
         empid: Number(empId),
         STR: strEdu,
-        STR_AT: strATConverted, 
+        STR_AT: strATConverted,
         STR_PT: strPT,
         mode,
       };
@@ -366,7 +367,6 @@ const FrmESevaEmpEducationalInformation = () => {
     }
   };
 
-  // ==================== TABLE ROW BUILDERS ====================
   const buildEduRows = () =>
     eduTableData.map((row, idx) => ({
       ...row,
@@ -415,7 +415,6 @@ const FrmESevaEmpEducationalInformation = () => {
       ),
     }));
 
-  // ==================== RENDER ====================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
@@ -435,19 +434,27 @@ const FrmESevaEmpEducationalInformation = () => {
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Degree" /><span>:</span>
                   </div>
-                  <Input value={eduDegree} onChange={(e) => setEduDegree(e.target.value)} placeholder="Enter degree" />
+                  <Input value={eduDegree} onChange={(e) => setEduDegree(e.target.value)}/>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="University" /><span>:</span>
                   </div>
-                  <Input value={eduUniversity} onChange={(e) => setEduUniversity(e.target.value)} placeholder="Enter university" />
+                  <Input value={eduUniversity} onChange={(e) => setEduUniversity(e.target.value)} />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Passing Year" /><span>:</span>
                   </div>
-                  <Input value={eduPassingYear} onChange={(e) => setEduPassingYear(e.target.value)} placeholder="Enter passing year" />
+                  <Input
+                    value={eduPassingYear}
+                    maxLength={4}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setEduPassingYear(v);
+                    }}
+                  />
                 </div>
               </div>
               <div className="flex justify-center my-3">
@@ -481,19 +488,27 @@ const FrmESevaEmpEducationalInformation = () => {
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Course Name" /><span>:</span>
                   </div>
-                  <Input value={atCourseName} onChange={(e) => setAtCourseName(e.target.value)} placeholder="Enter course name" />
+                  <Input value={atCourseName} onChange={(e) => setAtCourseName(e.target.value)} />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Organization Details" /><span>:</span>
                   </div>
-                  <Input value={atOrgDetails} onChange={(e) => setAtOrgDetails(e.target.value)} placeholder="Enter organization" />
+                  <Input value={atOrgDetails} onChange={(e) => setAtOrgDetails(e.target.value)} />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Commencement Dates (In Year)" /><span>:</span>
                   </div>
-                  <Input type="date" value={atCommencementDate} onChange={(e) => setAtCommencementDate(e.target.value)} />
+                  <Input
+                    value={atCommencementDate}
+                    maxLength={4}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setAtCommencementDate(v);
+                    }}
+                  />
                 </div>
               </div>
               <div className="flex justify-center my-3">
@@ -530,19 +545,27 @@ const FrmESevaEmpEducationalInformation = () => {
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Degree" /><span>:</span>
                   </div>
-                  <Input value={ptDegree} onChange={(e) => setPtDegree(e.target.value)} placeholder="Enter degree" />
+                  <Input value={ptDegree} onChange={(e) => setPtDegree(e.target.value)} />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="University" /><span>:</span>
                   </div>
-                  <Input value={ptUniversity} onChange={(e) => setPtUniversity(e.target.value)} placeholder="Enter university" />
+                  <Input value={ptUniversity} onChange={(e) => setPtUniversity(e.target.value)} />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
                     <Label required text="Passing Year" /><span>:</span>
                   </div>
-                  <Input value={ptPassingYear} onChange={(e) => setPtPassingYear(e.target.value)} placeholder="Enter passing year" />
+                  <Input
+                    value={ptPassingYear}
+                    maxLength={4}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setPtPassingYear(v);
+                    }}
+                  />
                 </div>
               </div>
               <div className="flex justify-center my-3">

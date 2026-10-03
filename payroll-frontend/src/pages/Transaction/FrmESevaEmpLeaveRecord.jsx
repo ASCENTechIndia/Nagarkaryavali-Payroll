@@ -83,6 +83,15 @@ const unwrapRows = (res) => {
   return Array.isArray(d) ? d : (d?.rows || []);
 };
 
+// ==================== VALIDATORS ====================
+const onlyDigits = (v = "") => /^[0-9]*$/.test(v);
+const isFourDigits = (v = "") => /^[0-9]{4}$/.test(v);
+
+const sanitizeDigits = (v = "", maxLen = null) => {
+  const cleaned = String(v).replace(/\D/g, "");
+  return maxLen ? cleaned.slice(0, maxLen) : cleaned;
+};
+
 const FrmESevaEmpLeaveRecord = () => {
   const { user } = useAuth();
   const token = user?.token;
@@ -338,11 +347,23 @@ const FrmESevaEmpLeaveRecord = () => {
     const f = leaveMainForm;
     if (!f.leaveType) return showAlert("Please Select Leave");
     if (!f.year) return showAlert("Year Name cannot be blank");
+    if (!isFourDigits(String(f.year).trim()))
+      return showAlert("Year must be exactly 4 digits.");
     if (!f.previousBalance) return showAlert("Previous Balance cannot be blank");
+    if (!onlyDigits(String(f.previousBalance)))
+      return showAlert("Previous Balance must contain digits only.");
     if (!f.createdFirstJan) return showAlert("Created On First Jan cannot be blank");
+    if (!onlyDigits(String(f.createdFirstJan)))
+      return showAlert("Created On First Jan must contain digits only.");
     if (!f.debited) return showAlert("Debited cannot be blank");
+    if (!onlyDigits(String(f.debited)))
+      return showAlert("Debited must contain digits only.");
     if (!f.createdFirstJuly) return showAlert("Created On First July cannot be blank");
+    if (!onlyDigits(String(f.createdFirstJuly)))
+      return showAlert("Created On First July must contain digits only.");
     if (!f.debitedN) return showAlert("Debited cannot be blank");
+    if (!onlyDigits(String(f.debitedN)))
+      return showAlert("Debited must contain digits only.");
     if (!f.ltcIfAny) return showAlert("LTC If Any cannot be blank");
 
     const label = leaveTypeOptions.find((o) => o.value === f.leaveType)?.label || "";
@@ -669,31 +690,62 @@ const FrmESevaEmpLeaveRecord = () => {
                   </SelectContent>
                 </Select>
               )}
+              {/* Year: 4-digit numeric only */}
               {renderField("Year",
-                <Input value={leaveMainForm.year}
-                  onChange={(e) => updateLeaveMainField("year", e.target.value)} />
+                <Input
+                  value={leaveMainForm.year}
+                  maxLength={4}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    updateLeaveMainField("year", sanitizeDigits(e.target.value, 4))
+                  }
+                />
               )}
+              {/* Previous Balances: digits only */}
               {renderField("Previous Balances",
-                <Input value={leaveMainForm.previousBalance}
-                  onChange={(e) => updateLeaveMainField("previousBalance", e.target.value)} />
+                <Input
+                  value={leaveMainForm.previousBalance}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    updateLeaveMainField("previousBalance", sanitizeDigits(e.target.value))
+                  }
+                />
               )}
+              {/* Created ON 1ST Jan: digits only */}
               {renderField("Created ON 1ST Jan",
-                <Input value={leaveMainForm.createdFirstJan}
-                  onChange={(e) => updateLeaveMainField("createdFirstJan", e.target.value)} />
+                <Input
+                  value={leaveMainForm.createdFirstJan}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    updateLeaveMainField("createdFirstJan", sanitizeDigits(e.target.value))
+                  }
+                />
               )}
               {renderField("Total Leave",
                 <Input value={leaveMainForm.totalLeave} readOnly className="bg-muted" />
               )}
+              {/* Debited: digits only */}
               {renderField("Debited",
-                <Input value={leaveMainForm.debited}
-                  onChange={(e) => updateLeaveMainField("debited", e.target.value)} />
+                <Input
+                  value={leaveMainForm.debited}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    updateLeaveMainField("debited", sanitizeDigits(e.target.value))
+                  }
+                />
               )}
               {renderField("Current Balances",
                 <Input value={leaveMainForm.currentBalance} readOnly className="bg-muted" />
               )}
+              {/* Created ON 1ST July: digits only */}
               {renderField("Created ON 1ST July",
-                <Input value={leaveMainForm.createdFirstJuly}
-                  onChange={(e) => updateLeaveMainField("createdFirstJuly", e.target.value)} />
+                <Input
+                  value={leaveMainForm.createdFirstJuly}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    updateLeaveMainField("createdFirstJuly", sanitizeDigits(e.target.value))
+                  }
+                />
               )}
               {renderField("Previous Balances",
                 <Input value={leaveMainForm.previousBalanceN} readOnly className="bg-muted" />
@@ -701,9 +753,15 @@ const FrmESevaEmpLeaveRecord = () => {
               {renderField("Total Leave",
                 <Input value={leaveMainForm.totalLeaveN} readOnly className="bg-muted" />
               )}
+              {/* Debited (2nd): digits only */}
               {renderField("Debited",
-                <Input value={leaveMainForm.debitedN}
-                  onChange={(e) => updateLeaveMainField("debitedN", e.target.value)} />
+                <Input
+                  value={leaveMainForm.debitedN}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    updateLeaveMainField("debitedN", sanitizeDigits(e.target.value))
+                  }
+                />
               )}
               {renderField("Current Balance",
                 <Input value={leaveMainForm.currentBalanceN} readOnly className="bg-muted" />

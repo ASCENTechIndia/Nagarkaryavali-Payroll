@@ -64,7 +64,6 @@ const FrmESevaEmpPostingRecord = () => {
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
-  // ==================== FORM STATE ====================
   const [form, setForm] = useState({
     fromDate: null,
     toDate: null,
@@ -81,7 +80,6 @@ const FrmESevaEmpPostingRecord = () => {
   const [serviceOptions, setServiceOptions] = useState([]);
   const [signaturePreview, setSignaturePreview] = useState(null);
 
-  // ==================== HELPERS ====================
   const updateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -93,7 +91,6 @@ const FrmESevaEmpPostingRecord = () => {
   const getNextId = (data) =>
     data.length > 0 ? Math.max(...data.map((r) => r.Id)) + 1 : 1;
 
-  // ==================== FETCH SERVICE DROPDOWN ====================
   const fetchServices = async () => {
     try {
       const res = await axios.post(
@@ -113,7 +110,6 @@ const FrmESevaEmpPostingRecord = () => {
     }
   };
 
-  // ==================== INITIAL LOAD ====================
   useEffect(() => {
     if (!token || !empIdEseva) return;
 
@@ -127,7 +123,6 @@ const FrmESevaEmpPostingRecord = () => {
     }
   }, [token, mode, empIdEseva, esevaEmpId]);
 
-  // ==================== LOAD EXISTING DATA ====================
   const loadExistingData = async () => {
     Swal.fire({
       text: "Loading...",
@@ -185,7 +180,6 @@ const FrmESevaEmpPostingRecord = () => {
     }
   };
 
-  // ==================== FILE UPLOAD ====================
   const handleSignatureUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -203,7 +197,6 @@ const FrmESevaEmpPostingRecord = () => {
     reader.readAsDataURL(file);
   };
 
-  // ==================== ADD / UPDATE ====================
   const handleAddOrUpdate = () => {
     if (!form.fromDate) {
       Swal.fire({ text: "Please select from date." });
@@ -270,7 +263,6 @@ const FrmESevaEmpPostingRecord = () => {
     if (fileInput) fileInput.value = "";
   };
 
-  // ==================== UPDATE ROW ====================
   const handleUpdateRow = (row) => {
     setForm({
       fromDate: parseDate(row.FromDate),
@@ -286,7 +278,6 @@ const FrmESevaEmpPostingRecord = () => {
     setEditId(row.Id);
   };
 
-  // ==================== DELETE ROW ====================
   const handleDeleteRow = (id) => {
     setTableData(tableData.filter((r) => r.Id !== id));
     if (editId === id) {
@@ -295,7 +286,6 @@ const FrmESevaEmpPostingRecord = () => {
     }
   };
 
-  // ==================== SAVE / PROCESS ====================
   const handleProcess = async () => {
     try {
       if (tableData.length === 0) {
@@ -379,7 +369,6 @@ const FrmESevaEmpPostingRecord = () => {
     }
   };
 
-  // ==================== TABLE ROW BUILDER ====================
   const buildTableRows = () =>
     tableData.map((row, idx) => ({
       ...row,
@@ -407,7 +396,6 @@ const FrmESevaEmpPostingRecord = () => {
       ),
     }));
 
-  // ==================== RENDER HELPERS ====================
   const renderField = (label, content, required = false) => (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 relative">
       <div className="sm:w-44 shrink-0 flex justify-between items-center">
@@ -418,7 +406,6 @@ const FrmESevaEmpPostingRecord = () => {
     </div>
   );
 
-  // ==================== RENDER ====================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">

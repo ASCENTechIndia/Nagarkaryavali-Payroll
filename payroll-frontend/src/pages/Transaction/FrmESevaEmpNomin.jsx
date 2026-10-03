@@ -36,7 +36,6 @@ const FrmESevaEmpNomin = () => {
 
   const mode = searchParams.get("@") === "1" ? 2 : 1;
 
-  // ==================== STATE ====================
   const [accHeadOptions, setAccHeadOptions] = useState([]);
   const [selectedAccHead, setSelectedAccHead] = useState("");
   const [nomineeAlternate, setNomineeAlternate] = useState("");
@@ -44,7 +43,6 @@ const FrmESevaEmpNomin = () => {
   const [tableData, setTableData] = useState([]);
   const [editId, setEditId] = useState(null);
 
-  // ==================== INIT ====================
   useEffect(() => {
     if (!token || !empId) return;
 
@@ -60,7 +58,6 @@ const FrmESevaEmpNomin = () => {
     }
   }, [token, mode, empId, esevaEmpId]);
 
-  // ==================== ACCOUNT HEAD DROPDOWN ====================
   const fetchAccHeadOptions = async () => {
     try {
       const res = await axios.post(
@@ -83,7 +80,6 @@ const FrmESevaEmpNomin = () => {
     }
   };
 
-  // ==================== BIND GRID (Edit Mode) ====================
   const bindGrid = async () => {
     try {
       Swal.fire({
@@ -132,7 +128,6 @@ const FrmESevaEmpNomin = () => {
     }
   };
 
-  // ==================== HELPERS ====================
   const getNextId = (data) =>
     data.length > 0 ? Math.max(...data.map((r) => r.Id)) + 1 : 1;
 
@@ -143,7 +138,6 @@ const FrmESevaEmpNomin = () => {
     setEditId(null);
   };
 
-  // ==================== ADD / UPDATE ====================
   const handleAddOrUpdate = () => {
     if (!selectedAccHead || selectedAccHead === "0") {
       Swal.fire({ text: "Please select Account Head" });
@@ -214,7 +208,6 @@ const FrmESevaEmpNomin = () => {
     });
   };
 
-  // ==================== SAVE ====================
   const handleSave = async () => {
     try {
       if (tableData.length === 0) {
@@ -281,7 +274,6 @@ const FrmESevaEmpNomin = () => {
     }
   };
 
-  // ==================== TABLE ROWS ====================
   const buildTableRows = () =>
     tableData.map((row, idx) => ({
       ...row,
@@ -308,7 +300,6 @@ const FrmESevaEmpNomin = () => {
       ),
     }));
 
-  // ==================== RENDER ====================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">

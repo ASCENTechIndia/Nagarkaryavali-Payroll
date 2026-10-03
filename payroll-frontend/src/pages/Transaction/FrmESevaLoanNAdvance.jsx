@@ -55,6 +55,15 @@ const dataURLtoFile = (dataURL, filename) => {
   return new File([u8arr], filename, { type: mime });
 };
 
+// ==================== VALIDATORS ====================
+const onlyDigits = (v = "") => /^[0-9]*$/.test(String(v));
+const isFourDigits = (v = "") => /^[0-9]{4}$/.test(String(v));
+
+const sanitizeDigits = (v = "", maxLen = null) => {
+  const cleaned = String(v).replace(/\D/g, "");
+  return maxLen ? cleaned.slice(0, maxLen) : cleaned;
+};
+
 const FrmESevaLoanNAdvance = () => {
   const { user } = useAuth();
   const token = user?.token;
@@ -204,7 +213,35 @@ const FrmESevaLoanNAdvance = () => {
   };
 
   const handleAddOrUpdate = () => {
+    // Existing checks
     if (!form.sancAmt.trim()) return Swal.fire({ text: "Please enter sanctioned amount.", icon: "warning" });
+    if (!onlyDigits(form.sancAmt.trim()))
+      return Swal.fire({ text: "Sanctioned Amount must contain digits only.", icon: "warning" });
+
+    if (!form.noOfInst.trim())
+      return Swal.fire({ text: "Please enter no of installments.", icon: "warning" });
+    if (!onlyDigits(form.noOfInst.trim()))
+      return Swal.fire({ text: "No Of Installments must contain digits only.", icon: "warning" });
+
+    if (form.roi.trim() && !onlyDigits(form.roi.trim()))
+      return Swal.fire({ text: "R.O.I must contain digits only.", icon: "warning" });
+
+    if (form.sancOrderNo.trim() && !onlyDigits(form.sancOrderNo.trim()))
+      return Swal.fire({ text: "Sanctioned Order No must contain digits only.", icon: "warning" });
+
+    if (form.monthlyInst.trim() && !onlyDigits(form.monthlyInst.trim()))
+      return Swal.fire({ text: "Monthly Installment must contain digits only.", icon: "warning" });
+
+    if (form.amtOs.trim() && !onlyDigits(form.amtOs.trim()))
+      return Swal.fire({ text: "Amount O/S must contain digits only.", icon: "warning" });
+
+    if (form.amtRecover.trim() && !onlyDigits(form.amtRecover.trim()))
+      return Swal.fire({ text: "Amount Recover must contain digits only.", icon: "warning" });
+
+    // Financial Year: 4-digit limit (only when provided)
+    if (form.finYear.trim() && !isFourDigits(form.finYear.trim()))
+      return Swal.fire({ text: "Financial Year must be exactly 4 digits.", icon: "warning" });
+
     if (!form.sancDate) return Swal.fire({ text: "Please select sanctioned date.", icon: "warning" });
     if (!form.firstInstDate) return Swal.fire({ text: "Please select first installment date.", icon: "warning" });
     if (new Date(form.firstInstDate) < new Date(form.sancDate))
@@ -255,28 +292,6 @@ const FrmESevaLoanNAdvance = () => {
     setSignaturePreview(null);
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = "";
-  };
-
-  const handleUpdateRow = (row) => {
-    setForm({
-      sancAmt: row.SancAmount,
-      purpose: row.Purpose,
-      noOfInst: row.NoOfInst,
-      roi: row.ROI,
-      sancOrderNo: row.SancOrderNo,
-      sancDate: parseDate(row.SancDate) || new Date(),
-      firstInstDate: parseDate(row.FirstInstDate) || new Date(),
-      monthlyInst: row.MonthlyInst,
-      finYear: row.FinYear,
-      interestBearAdv: row.InterestBearAdv,
-      amtOs: row.AmtOs,
-      amtRecover: row.AmtRecover,
-      intAcc: row.IntAcc,
-      remark: row.Remark,
-      signatureFile: null,
-    });
-    setSignaturePreview(row.SignatureBase64);
-    setEditId(row.Id);
   };
 
   const handleDeleteRow = (id) => {
@@ -375,16 +390,6 @@ const FrmESevaLoanNAdvance = () => {
       ) : (
         <span className="text-gray-400 text-xs">No signature</span>
       ),
-      Update: (
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          onClick={() => handleUpdateRow(row)}
-        >
-          Update
-        </Button>
-      ),
       Delete: (
         <Button
           variant="outline"
@@ -422,40 +427,73 @@ const FrmESevaLoanNAdvance = () => {
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 gap-y-4">
                 {renderField("Sanctioned Amount",
-                  <Input value={form.sancAmt} onChange={(e) => updateForm("sancAmt", e.target.value)} />, true
+                  <Input
+                    value={form.sancAmt}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("sancAmt", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("Purpose",
                   <Input value={form.purpose} onChange={(e) => updateForm("purpose", e.target.value)} />
                 )}
                 {renderField("No Of Installments",
-                  <Input value={form.noOfInst} onChange={(e) => updateForm("noOfInst", e.target.value)} />
+                  <Input
+                    value={form.noOfInst}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("noOfInst", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("ROI",
-                  <Input value={form.roi} onChange={(e) => updateForm("roi", e.target.value)} />
+                  <Input
+                    value={form.roi}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("roi", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("Sanctioned Order No",
-                  <Input value={form.sancOrderNo} onChange={(e) => updateForm("sancOrderNo", e.target.value)} />
+                  <Input
+                    value={form.sancOrderNo}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("sancOrderNo", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("Sanctioned Date",
-                  <DatePicker value={form.sancDate} onChange={(d) => updateForm("sancDate", d)} />, true
+                  <DatePicker value={form.sancDate} onChange={(d) => updateForm("sancDate", d)} />
                 )}
                 {renderField("First Installment Date",
-                  <DatePicker value={form.firstInstDate} onChange={(d) => updateForm("firstInstDate", d)} />, true
+                  <DatePicker value={form.firstInstDate} onChange={(d) => updateForm("firstInstDate", d)} />
                 )}
                 {renderField("Monthly Installment",
-                  <Input value={form.monthlyInst} onChange={(e) => updateForm("monthlyInst", e.target.value)} />
+                  <Input
+                    value={form.monthlyInst}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("monthlyInst", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("Financial Year",
-                  <Input value={form.finYear} onChange={(e) => updateForm("finYear", e.target.value)} />
+                  <Input
+                    value={form.finYear}
+                    maxLength={4}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("finYear", sanitizeDigits(e.target.value, 4))}
+                  />
                 )}
                 {renderField("Interest Bearing Advances",
                   <Input value={form.interestBearAdv} onChange={(e) => updateForm("interestBearAdv", e.target.value)} />
                 )}
                 {renderField("Amount O/S",
-                  <Input value={form.amtOs} onChange={(e) => updateForm("amtOs", e.target.value)} />
+                  <Input
+                    value={form.amtOs}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("amtOs", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("Amount Recover",
-                  <Input value={form.amtRecover} onChange={(e) => updateForm("amtRecover", e.target.value)} />
+                  <Input
+                    value={form.amtRecover}
+                    inputMode="numeric"
+                    onChange={(e) => updateForm("amtRecover", sanitizeDigits(e.target.value))}
+                  />
                 )}
                 {renderField("Int. ACC",
                   <Input value={form.intAcc} onChange={(e) => updateForm("intAcc", e.target.value)} />
@@ -492,52 +530,56 @@ const FrmESevaLoanNAdvance = () => {
               </div>
 
               {tableData.length > 0 && (
-                <ShadCNTable
-                  headers={[
-                    "Delete",
-                    "Update",
-                    "Sr No",
-                    "Sanctioned Amount",
-                    "Purpose",
-                    "No Of Installments",
-                    "ROI",
-                    "Sanctioned Order No",
-                    "Sanctioned Date",
-                    "First Installment Date",
-                    "Monthly Installment",
-                    "Financial Year",
-                    "Interest Bearing Advances",
-                    "Amt O/S",
-                    "Amount Recover",
-                    "Int. ACC",
-                    "Signature Details",
-                    "Remarks",
-                  ]}
-                  data={buildTableRows()}
-                  keyMapping={{
-                    Delete: "Delete",
-                    Update: "Update",
-                    "Sr No": "SrNo",
-                    "Sanctioned Amount": "SancAmount",
-                    Purpose: "Purpose",
-                    "No Of Installments": "NoOfInst",
-                    ROI: "ROI",
-                    "Sanctioned Order No": "SancOrderNo",
-                    "Sanctioned Date": "SancDate",
-                    "First Installment Date": "FirstInstDate",
-                    "Monthly Installment": "MonthlyInst",
-                    "Financial Year": "FinYear",
-                    "Interest Bearing Advances": "InterestBearAdv",
-                    "Amt O/S": "AmtOs",
-                    "Amount Recover": "AmtRecover",
-                    "Int. ACC": "IntAcc",
-                    "Signature Details": "SignatureImage",
-                    Remarks: "Remark",
-                  }}
-                  pagination={true}
-                  rowsPerPage={10}
-                />
+                <div className="w-full overflow-x-auto rounded-md border">
+                  <div className="min-w-[1600px]">
+                    <ShadCNTable
+                      headers={[
+                        "Delete",
+                        "Sr No",
+                        "Sanctioned Amount",
+                        "Purpose",
+                        "No Of Installments",
+                        "ROI",
+                        "Sanctioned Order No",
+                        "Sanctioned Date",
+                        "First Installment Date",
+                        "Monthly Installment",
+                        "Financial Year",
+                        "Interest Bearing Advances",
+                        "Amt O/S",
+                        "Amount Recover",
+                        "Int. ACC",
+                        "Signature Details",
+                        "Remarks",
+                      ]}
+                      data={buildTableRows()}
+                      keyMapping={{
+                        Delete: "Delete",
+                        "Sr No": "SrNo",
+                        "Sanctioned Amount": "SancAmount",
+                        Purpose: "Purpose",
+                        "No Of Installments": "NoOfInst",
+                        ROI: "ROI",
+                        "Sanctioned Order No": "SancOrderNo",
+                        "Sanctioned Date": "SancDate",
+                        "First Installment Date": "FirstInstDate",
+                        "Monthly Installment": "MonthlyInst",
+                        "Financial Year": "FinYear",
+                        "Interest Bearing Advances": "InterestBearAdv",
+                        "Amt O/S": "AmtOs",
+                        "Amount Recover": "AmtRecover",
+                        "Int. ACC": "IntAcc",
+                        "Signature Details": "SignatureImage",
+                        Remarks: "Remark",
+                      }}
+                      pagination={true}
+                      rowsPerPage={10}
+                      className="min-w-[1600px]"
+                    />
+                  </div>
+                </div>
               )}
+
             </CardContent>
           </Card>
 
