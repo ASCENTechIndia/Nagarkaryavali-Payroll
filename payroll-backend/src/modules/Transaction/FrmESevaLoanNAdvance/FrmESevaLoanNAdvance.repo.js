@@ -39,35 +39,57 @@ const insertLoanAndAdvanceRepo = async (payload) => {
 
       out_ErrorCode: {
         dir: oracledb.BIND_OUT,
-        type: oracledb.NUMBER
+        type: oracledb.NUMBER,
       },
       out_ErrorMsg: {
         dir: oracledb.BIND_OUT,
         type: oracledb.STRING,
-        maxSize: 4000
-      }
-    }
+        maxSize: 4000,
+      },
+    },
   });
 
   if (!result.success) {
     throw new Error(result.error);
   }
 
-  console.log(
-    "Loan & Advance Procedure Result =>",
-    JSON.stringify(result, null, 2)
-  );
+  console.log("Loan & Advance Procedure Result =>", JSON.stringify(result, null, 2));
 
   return {
     success: true,
     errorCode: result.outBinds.out_ErrorCode,
-    errorMsg: result.outBinds.out_ErrorMsg
+    errorMsg: result.outBinds.out_ErrorMsg,
   };
 };
 
+const updateLoanAdvanceSignatureRepo = async (imageBuffer, empId, ulbId, esevaEmpId) => {
+  console.log({imageBuffer, empId, ulbId, esevaEmpId});
+  const qry = `
+    UPDATE aopr_loanadv_det
+    SET blob_loanadv_signdet = :img
+    WHERE num_loanadv_empcode = :empId
+      AND num_loanadv_ulbid = :ulbId
+      AND num_loanadv_esevaid = :esevaEmpId
+  `;
 
+  const result = await executeQuery(qry, {
+    img: imageBuffer,
+    empId: empId,
+    ulbId: ulbId,
+    esevaEmpId: esevaEmpId,
+  });
+  console.log({result, qry, 
+    img: imageBuffer,
+    empId: empId,
+    ulbId: ulbId,
+    esevaEmpId: esevaEmpId,
+  });
+
+  return result;
+};
 
 module.exports = {
   getLoanAdvanceListRepo,
-  insertLoanAndAdvanceRepo
+  insertLoanAndAdvanceRepo,
+  updateLoanAdvanceSignatureRepo
 };
