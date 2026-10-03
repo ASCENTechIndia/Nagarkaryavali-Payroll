@@ -1,4 +1,6 @@
+const oracledb = require("oracledb");
 const { executeQuery } = require("../../../db/queryExecutor");
+const { executeProcedure } = require("../../../db/procedureExecutor");
 
 const getActionTypeListRepo = async () => {
   let qry = "";
@@ -64,7 +66,9 @@ const insertPenalActionRepo = async (payload) => {
       in_caseno: payload.caseNumber,
       in_details: payload.details,
       in_orderno: payload.ifRevokeOrderNo,
-      in_orderdat: payload.dateOfOrder,
+      in_orderdat: payload.dateOfOrder
+        ? { val: new Date(payload.dateOfOrder), dir: oracledb.BIND_IN, type: oracledb.DATE }
+        : { val: null, dir: oracledb.BIND_IN, type: oracledb.DATE },
       in_orderdetails: payload.detailsOfOrder,
 
       in_whetherimpact: payload.impactOnPension === 0 || payload.impactOnPension === null ? null : payload.impactOnPension,

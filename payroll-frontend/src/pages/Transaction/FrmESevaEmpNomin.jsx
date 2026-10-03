@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
   Card,
@@ -28,15 +28,13 @@ const FrmESevaEmpNomin = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const { empId, esevaEmployeeID } = useOutletContext();
+  const esevaEmpId = esevaEmployeeID;
 
-  const empId =
-    location.state?.empId || Number(sessionStorage.getItem("EmpidEseva"));
-  const esevaEmpId =
-    location.state?.esevaEmpId || Number(sessionStorage.getItem("esevaempid"));
-  const mode = location.state?.mode || (esevaEmpId ? 2 : 1);
+  const mode = searchParams.get("@") === "1" ? 2 : 1;
 
   // ==================== STATE ====================
   const [accHeadOptions, setAccHeadOptions] = useState([]);
@@ -48,14 +46,7 @@ const FrmESevaEmpNomin = () => {
 
   // ==================== INIT ====================
   useEffect(() => {
-    if (!token) return;
-
-    // if (!empId) {
-    //   Swal.fire({ text: "Invalid Employee Id.", icon: "warning" }).then(() => {
-    //     navigate("/Transactions/FrmEsevaEmpList");
-    //   });
-    //   return;
-    // }
+    if (!token || !empId) return;
 
     if (mode === 2 && !esevaEmpId) {
       navigate("/Transactions/FrmEsevaEmpList");
@@ -82,8 +73,8 @@ const FrmESevaEmpNomin = () => {
 
       setAccHeadOptions(
         rows.map((r) => ({
-          value: r.VALUE_ID?.toString(),
-          label: r.DISPLAY_TEXT,
+          value: (r.VALUE_ID ?? r.value_id)?.toString(),
+          label: r.DISPLAY_TEXT ?? r.display_text,
         }))
       );
     } catch (error) {
@@ -98,12 +89,13 @@ const FrmESevaEmpNomin = () => {
       Swal.fire({
         text: "Loading...",
         allowOutsideClick: false,
+        allowEscapeKey: false,
         didOpen: () => Swal.showLoading(),
       });
 
       const payload = {
         ulbid: Number(ulbId),
-        empId: Number(empId),
+        empId: Number(empId),          
         esevaEmpId: Number(esevaEmpId),
       };
 
@@ -115,19 +107,19 @@ const FrmESevaEmpNomin = () => {
 
       const rows = res?.data?.data || [];
 
-      if (rows.length > 0) {
-        const mapped = rows.map((row, idx) => ({
-          Id: idx + 1,
-          AccountHead: row.ACCOUNTHEAD || "",
-          AccountHeadId: row.ACCOUNTHEADID?.toString() || "",
-          Nominee: row.NOMINEE || "",
-          Percentage: row.PERCENTAGE?.toString() || "",
-        }));
+      const mapped = rows.map((row, idx) => ({
+        Id: idx + 1,
+        AccountHead: row.ACCOUNTHEAD ?? row.accounthead ?? "",
+        AccountHeadId: (
+          row.ACCOUNTHEADID ?? row.accountheadid ?? ""
+        ).toString(),
+        Nominee: row.NOMINEE ?? row.nominee ?? "",
+        Percentage: (row.PERCENTAGE ?? row.percentage ?? "").toString(),
+      }));
 
-        setTableData(mapped);
-      }
+      setTableData(mapped);
 
-      Swal.close();
+      requestAnimationFrame(() => Swal.close());
     } catch (error) {
       Swal.close();
       await Swal.fire({
@@ -136,7 +128,6 @@ const FrmESevaEmpNomin = () => {
           error?.response?.data?.error ||
           error?.message ||
           "Failed to load data",
-        icon: "error",
       });
     }
   };
@@ -155,15 +146,15 @@ const FrmESevaEmpNomin = () => {
   // ==================== ADD / UPDATE ====================
   const handleAddOrUpdate = () => {
     if (!selectedAccHead || selectedAccHead === "0") {
-      Swal.fire({ text: "Please select Account Head", icon: "warning" });
+      Swal.fire({ text: "Please select Account Head" });
       return;
     }
     if (!nomineeAlternate.trim()) {
-      Swal.fire({ text: "Nominee cannot be blank", icon: "warning" });
+      Swal.fire({ text: "Nominee cannot be blank" });
       return;
     }
     if (!percentage.trim()) {
-      Swal.fire({ text: "Percentage cannot be blank", icon: "warning" });
+      Swal.fire({ text: "Percentage cannot be blank" });
       return;
     }
 
@@ -212,7 +203,6 @@ const FrmESevaEmpNomin = () => {
   const handleDeleteRow = (id) => {
     Swal.fire({
       text: "Are you sure you want to delete this record?",
-      icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes",
       cancelButtonText: "No",
@@ -230,7 +220,6 @@ const FrmESevaEmpNomin = () => {
       if (tableData.length === 0) {
         Swal.fire({
           text: "Please Add At least One Nominee",
-          icon: "warning",
         });
         return;
       }
@@ -266,17 +255,19 @@ const FrmESevaEmpNomin = () => {
 
       Swal.close();
 
-      const outerSuccess = res?.data?.success;
+      const outerSuccess = res?.data?.success ?? res?.data?.ok;
       const errorMsg =
-        res?.data?.data?.message || res?.data?.message || "Saved successfully";
+        res?.data?.data?.message ||
+        res?.data?.message ||
+        "Saved successfully";
 
       if (outerSuccess) {
-        await Swal.fire({ text: errorMsg, icon: "success" });
-        navigate("/Transactions/FrmESevaEmpPostingRecord", {
+        await Swal.fire({ text: errorMsg });
+        navigate("/Transactions/FrmESevaEmpPostingRecord?@=1", {
           state: { empId, esevaEmpId, mode },
         });
       } else {
-        await Swal.fire({ text: errorMsg, icon: "info" });
+        await Swal.fire({ text: errorMsg});
       }
     } catch (error) {
       Swal.close();
@@ -286,7 +277,6 @@ const FrmESevaEmpNomin = () => {
           error?.response?.data?.error ||
           error?.message ||
           "Something went wrong",
-        icon: "error",
       });
     }
   };
@@ -323,9 +313,7 @@ const FrmESevaEmpNomin = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
         <CardHeader className="border-b">
-          <CardTitle className="text-xl font-bold">
-            Nomination
-          </CardTitle>
+          <CardTitle className="text-xl font-bold">Nomination</CardTitle>
         </CardHeader>
 
         <CardContent className="pt-4 space-y-6">

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,34 +10,45 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import ShadCNTable from "@/components/ui/table";
 
+const API = (BASE_URL) =>
+  `${BASE_URL}/api/FrmESevaEmpEducationalInformation`;
+
+const toDDMMYYYY = (isoDateStr) => {
+  if (!isoDateStr) return "";
+  const [y, m, d] = isoDateStr.split("-");
+  return `${d}-${m}-${y}`;
+};
+
 const FrmESevaEmpEducationalInformation = () => {
   const { user } = useAuth();
   const token = user?.token;
   const ulbId = user?.ulbId;
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const { empId, esevaEmployeeID } = useOutletContext();
+  const esevaEmpId = esevaEmployeeID;
 
-  const empId = location.state?.empId;
-  const mode = location.state?.mode || 1;
-  const esevaEmpId = location.state?.esevaEmpId;
+  const mode = searchParams.get("@") === "1" ? 2 : 1;
 
-  // ==================== EDUCATIONAL INFO STATE ====================
+  const authHeaders = { Authorization: `Bearer ${token}` };
+
+  // ==================== EDUCATIONAL INFO ====================
   const [eduDegree, setEduDegree] = useState("");
   const [eduUniversity, setEduUniversity] = useState("");
   const [eduPassingYear, setEduPassingYear] = useState("");
   const [eduTableData, setEduTableData] = useState([]);
   const [eduEditId, setEduEditId] = useState(null);
 
-  // ==================== ADDITIONAL TRAINING STATE ====================
+  // ==================== ADDITIONAL TRAINING ====================
   const [atCourseName, setAtCourseName] = useState("");
   const [atOrgDetails, setAtOrgDetails] = useState("");
   const [atCommencementDate, setAtCommencementDate] = useState("");
   const [atTableData, setAtTableData] = useState([]);
   const [atEditId, setAtEditId] = useState(null);
 
-  // ==================== PROFESSIONAL TRAINING STATE ====================
+  // ==================== PROFESSIONAL TRAINING ====================
   const [ptDegree, setPtDegree] = useState("");
   const [ptUniversity, setPtUniversity] = useState("");
   const [ptPassingYear, setPtPassingYear] = useState("");
@@ -56,82 +67,66 @@ const FrmESevaEmpEducationalInformation = () => {
     Swal.fire({
       text: "Loading...",
       allowOutsideClick: false,
+      allowEscapeKey: false,
       didOpen: () => Swal.showLoading(),
     });
 
     try {
       const payload = {
         ulbid: Number(ulbId),
-        empId: Number(empId),
+        empId: Number(empId),      
         esevaEmpId: Number(esevaEmpId),
       };
 
-      const headers = { Authorization: `Bearer ${token}` };
-
       const [eduRes, atRes, ptRes] = await Promise.allSettled([
-        axios.post(
-          `${BASE_URL}/api/FrmESevaEmpEducationalInformation/education-info`,
-          payload,
-          { headers }
-        ),
-        axios.post(
-          `${BASE_URL}/api/FrmESevaEmpEducationalInformation/additional-training`,
-          payload,
-          { headers }
-        ),
-        axios.post(
-          `${BASE_URL}/api/FrmESevaEmpEducationalInformation/professional-training`,
-          payload,
-          { headers }
-        ),
+        axios.post(`${API(BASE_URL)}/education-info`, payload, { headers: authHeaders }),
+        axios.post(`${API(BASE_URL)}/additional-training`, payload, { headers: authHeaders }),
+        axios.post(`${API(BASE_URL)}/professional-training`, payload, { headers: authHeaders }),
       ]);
 
-      // Educational Info
       if (eduRes.status === "fulfilled") {
         const rows = eduRes.value?.data?.data || [];
         setEduTableData(
           rows.map((row, idx) => ({
             Id: idx + 1,
-            Degree: row.DEGREE || row.degree || "",
-            University: row.UNIVERSITY || row.university || "",
-            PassingYear: row.PASSYEAR || row.passyear || "",
+            Degree: row.DEGREE ?? row.degree ?? "",
+            University: row.UNIVERSITY ?? row.university ?? "",
+            PassingYear: row.PASSYEAR ?? row.passyear ?? "",
           }))
         );
       } else {
         console.error("Education fetch failed:", eduRes.reason);
       }
 
-      // Additional Training
       if (atRes.status === "fulfilled") {
         const rows = atRes.value?.data?.data || [];
         setAtTableData(
           rows.map((row, idx) => ({
             Id: idx + 1,
-            CourseName: row.COURSENAME || row.coursename || "",
-            OrganizationDetails: row.ORGDETAILS || row.orgdetails || "",
-            CommencementDates: row.COMMENCEDATE || row.commencedate || "",
+            CourseName: row.COURSENAME ?? row.coursename ?? "",
+            OrganizationDetails: row.ORGDETAILS ?? row.orgdetails ?? "",
+            CommencementDates: row.COMMENCEDATE ?? row.commencedate ?? "",
           }))
         );
       } else {
         console.error("Additional training fetch failed:", atRes.reason);
       }
 
-      // Professional Training
       if (ptRes.status === "fulfilled") {
         const rows = ptRes.value?.data?.data || [];
         setPtTableData(
           rows.map((row, idx) => ({
             Id: idx + 1,
-            Degree: row.DEGREE || row.degree || "",
-            University: row.UNIVERSITY || row.university || "",
-            PassingYear: row.PASSYEAR || row.passyear || "",
+            Degree: row.DEGREE ?? row.degree ?? "",
+            University: row.UNIVERSITY ?? row.university ?? "",
+            PassingYear: row.PASSYEAR ?? row.passyear ?? "",
           }))
         );
       } else {
         console.error("Professional training fetch failed:", ptRes.reason);
       }
 
-      Swal.close();
+      requestAnimationFrame(() => Swal.close());
     } catch (error) {
       Swal.close();
       await Swal.fire({
@@ -149,29 +144,15 @@ const FrmESevaEmpEducationalInformation = () => {
 
   // ==================== EDUCATIONAL INFO: ADD / UPDATE ====================
   const handleAddEducation = () => {
-    if (!eduDegree.trim()) {
-      Swal.fire({ text: "Please enter degree.", icon: "warning" });
-      return;
-    }
-    if (!eduUniversity.trim()) {
-      Swal.fire({ text: "Please enter university.", icon: "warning" });
-      return;
-    }
-    if (!eduPassingYear.trim()) {
-      Swal.fire({ text: "Please enter passing year.", icon: "warning" });
-      return;
-    }
+    if (!eduDegree.trim()) return Swal.fire({ text: "Please enter degree." });
+    if (!eduUniversity.trim()) return Swal.fire({ text: "Please enter university." });
+    if (!eduPassingYear.trim()) return Swal.fire({ text: "Please enter passing year." });
 
     if (eduEditId !== null) {
       setEduTableData(
         eduTableData.map((r) =>
           r.Id === eduEditId
-            ? {
-                ...r,
-                Degree: eduDegree.trim(),
-                University: eduUniversity.trim(),
-                PassingYear: eduPassingYear.trim(),
-              }
+            ? { ...r, Degree: eduDegree.trim(), University: eduUniversity.trim(), PassingYear: eduPassingYear.trim() }
             : r
         )
       );
@@ -187,7 +168,6 @@ const FrmESevaEmpEducationalInformation = () => {
         },
       ]);
     }
-
     setEduDegree("");
     setEduUniversity("");
     setEduPassingYear("");
@@ -195,29 +175,15 @@ const FrmESevaEmpEducationalInformation = () => {
 
   // ==================== ADDITIONAL TRAINING: ADD / UPDATE ====================
   const handleAddAdditionalTraining = () => {
-    if (!atCourseName.trim()) {
-      Swal.fire({ text: "Course Name cannot be blank", icon: "warning" });
-      return;
-    }
-    if (!atOrgDetails.trim()) {
-      Swal.fire({ text: "Organization cannot be blank", icon: "warning" });
-      return;
-    }
-    if (!atCommencementDate.trim()) {
-      Swal.fire({ text: "Commencement Date cannot be blank", icon: "warning" });
-      return;
-    }
+    if (!atCourseName.trim()) return Swal.fire({ text: "Course Name cannot be blank", });
+    if (!atOrgDetails.trim()) return Swal.fire({ text: "Organization cannot be blank"});
+    if (!atCommencementDate.trim()) return Swal.fire({ text: "Commencement Date cannot be blank" });
 
     if (atEditId !== null) {
       setAtTableData(
         atTableData.map((r) =>
           r.Id === atEditId
-            ? {
-                ...r,
-                CourseName: atCourseName.trim(),
-                OrganizationDetails: atOrgDetails.trim(),
-                CommencementDates: atCommencementDate.trim(),
-              }
+            ? { ...r, CourseName: atCourseName.trim(), OrganizationDetails: atOrgDetails.trim(), CommencementDates: atCommencementDate.trim() }
             : r
         )
       );
@@ -233,7 +199,6 @@ const FrmESevaEmpEducationalInformation = () => {
         },
       ]);
     }
-
     setAtCourseName("");
     setAtOrgDetails("");
     setAtCommencementDate("");
@@ -241,29 +206,15 @@ const FrmESevaEmpEducationalInformation = () => {
 
   // ==================== PROFESSIONAL TRAINING: ADD / UPDATE ====================
   const handleAddProfessionalTraining = () => {
-    if (!ptDegree.trim()) {
-      Swal.fire({ text: "Please enter degree.", icon: "warning" });
-      return;
-    }
-    if (!ptUniversity.trim()) {
-      Swal.fire({ text: "Please enter university.", icon: "warning" });
-      return;
-    }
-    if (!ptPassingYear.trim()) {
-      Swal.fire({ text: "Please enter passing year.", icon: "warning" });
-      return;
-    }
+    if (!ptDegree.trim()) return Swal.fire({ text: "Please enter degree."});
+    if (!ptUniversity.trim()) return Swal.fire({ text: "Please enter university."});
+    if (!ptPassingYear.trim()) return Swal.fire({ text: "Please enter passing year." });
 
     if (ptEditId !== null) {
       setPtTableData(
         ptTableData.map((r) =>
           r.Id === ptEditId
-            ? {
-                ...r,
-                Degree: ptDegree.trim(),
-                University: ptUniversity.trim(),
-                PassingYear: ptPassingYear.trim(),
-              }
+            ? { ...r, Degree: ptDegree.trim(), University: ptUniversity.trim(), PassingYear: ptPassingYear.trim() }
             : r
         )
       );
@@ -279,7 +230,6 @@ const FrmESevaEmpEducationalInformation = () => {
         },
       ]);
     }
-
     setPtDegree("");
     setPtUniversity("");
     setPtPassingYear("");
@@ -296,7 +246,19 @@ const FrmESevaEmpEducationalInformation = () => {
   const handleUpdateAdditionalTraining = (row) => {
     setAtCourseName(row.CourseName);
     setAtOrgDetails(row.OrganizationDetails);
-    setAtCommencementDate(row.CommencementDates);
+    if (row.CommencementDates) {
+      const s = String(row.CommencementDates);
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        setAtCommencementDate(s.slice(0, 10));
+      } else if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        const [d, m, y] = s.split("-");
+        setAtCommencementDate(`${y}-${m}-${d}`);
+      } else {
+        setAtCommencementDate("");
+      }
+    } else {
+      setAtCommencementDate("");
+    }
     setAtEditId(row.Id);
   };
 
@@ -313,58 +275,37 @@ const FrmESevaEmpEducationalInformation = () => {
       setEduTableData(eduTableData.filter((r) => r.Id !== id));
       if (eduEditId === id) {
         setEduEditId(null);
-        setEduDegree("");
-        setEduUniversity("");
-        setEduPassingYear("");
+        setEduDegree(""); setEduUniversity(""); setEduPassingYear("");
       }
     } else if (tableType === "at") {
       setAtTableData(atTableData.filter((r) => r.Id !== id));
       if (atEditId === id) {
         setAtEditId(null);
-        setAtCourseName("");
-        setAtOrgDetails("");
-        setAtCommencementDate("");
+        setAtCourseName(""); setAtOrgDetails(""); setAtCommencementDate("");
       }
     } else if (tableType === "pt") {
       setPtTableData(ptTableData.filter((r) => r.Id !== id));
       if (ptEditId === id) {
         setPtEditId(null);
-        setPtDegree("");
-        setPtUniversity("");
-        setPtPassingYear("");
+        setPtDegree(""); setPtUniversity(""); setPtPassingYear("");
       }
     }
   };
 
-  // ==================== SAVE ALL ====================
+  // ==================== SAVE ====================
   const handleSave = async () => {
     try {
       if (eduTableData.length === 0) {
-        Swal.fire({
-          text: "Please Add At least One Educational Information",
-          icon: "warning",
-        });
+        Swal.fire({ text: "Please Add At least One Educational Information" });
         return;
       }
 
       const buildString = (data, fields) =>
         data.map((row) => fields.map((f) => row[f] || "").join("$")).join("#");
 
-      const strEdu = buildString(eduTableData, [
-        "Degree",
-        "University",
-        "PassingYear",
-      ]);
-      const strAT = buildString(atTableData, [
-        "CourseName",
-        "OrganizationDetails",
-        "CommencementDates",
-      ]);
-      const strPT = buildString(ptTableData, [
-        "Degree",
-        "University",
-        "PassingYear",
-      ]);
+      const strEdu = buildString(eduTableData, ["Degree", "University", "PassingYear"]);
+      const strAT = buildString(atTableData, ["CourseName", "OrganizationDetails", "CommencementDates"]);
+      const strPT = buildString(ptTableData, ["Degree", "University", "PassingYear"]);
 
       Swal.fire({
         text: "Saving...",
@@ -372,36 +313,46 @@ const FrmESevaEmpEducationalInformation = () => {
         didOpen: () => Swal.showLoading(),
       });
 
+      const strATConverted = atTableData
+        .map((r) =>
+          [
+            r.CourseName || "",
+            r.OrganizationDetails || "",
+            r.CommencementDates ? toDDMMYYYY(r.CommencementDates) : "",
+          ].join("$")
+        )
+        .join("#");
+
       const payload = {
         userid: user?.userId,
         esevaempid: Number(esevaEmpId),
         ulbid: Number(ulbId),
         empid: Number(empId),
         STR: strEdu,
-        STR_AT: strAT,
+        STR_AT: strATConverted, 
         STR_PT: strPT,
-        mode: mode,
+        mode,
       };
 
       const res = await axios.post(
-        `${BASE_URL}/api/FrmESevaEmpEducationalInformation/insert-education-info`,
+        `${API(BASE_URL)}/insert-education-info`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: authHeaders }
       );
 
       Swal.close();
 
-      const errorCode = res?.data?.data?.errorCode;
-      const errorMsg =
-        res?.data?.data?.message || res?.data?.message || "Saved successfully";
+      const data = res?.data?.data || {};
+      const errorCode = data.errorCode;
+      const errorMsg = data.message || res?.data?.message || "Saved successfully";
 
       if (errorCode === 9999) {
-        await Swal.fire({ text: errorMsg, icon: "success" });
+        await Swal.fire({ text: errorMsg });
         navigate("/Transactions/FrmESevaEmpNomin", {
           state: { empId, esevaEmpId, mode },
         });
       } else {
-        await Swal.fire({ text: errorMsg, icon: "info" });
+        await Swal.fire({ text: errorMsg });
       }
     } catch (error) {
       Swal.close();
@@ -421,24 +372,14 @@ const FrmESevaEmpEducationalInformation = () => {
       ...row,
       SrNo: idx + 1,
       Update: (
-        <Button
-          variant="outline"
-          size="sm"
+        <Button variant="outline" size="sm"
           className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          onClick={() => handleUpdateEducation(row)}
-        >
-          Update
-        </Button>
+          onClick={() => handleUpdateEducation(row)}>Update</Button>
       ),
       Delete: (
-        <Button
-          variant="outline"
-          size="sm"
+        <Button variant="outline" size="sm"
           className="border-red-600 text-red-600 hover:bg-red-50"
-          onClick={() => handleDeleteRow("edu", row.Id)}
-        >
-          Delete
-        </Button>
+          onClick={() => handleDeleteRow("edu", row.Id)}>Delete</Button>
       ),
     }));
 
@@ -447,24 +388,14 @@ const FrmESevaEmpEducationalInformation = () => {
       ...row,
       SrNo: idx + 1,
       Update: (
-        <Button
-          variant="outline"
-          size="sm"
+        <Button variant="outline" size="sm"
           className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          onClick={() => handleUpdateAdditionalTraining(row)}
-        >
-          Update
-        </Button>
+          onClick={() => handleUpdateAdditionalTraining(row)}>Update</Button>
       ),
       Delete: (
-        <Button
-          variant="outline"
-          size="sm"
+        <Button variant="outline" size="sm"
           className="border-red-600 text-red-600 hover:bg-red-50"
-          onClick={() => handleDeleteRow("at", row.Id)}
-        >
-          Delete
-        </Button>
+          onClick={() => handleDeleteRow("at", row.Id)}>Delete</Button>
       ),
     }));
 
@@ -473,107 +404,64 @@ const FrmESevaEmpEducationalInformation = () => {
       ...row,
       SrNo: idx + 1,
       Update: (
-        <Button
-          variant="outline"
-          size="sm"
+        <Button variant="outline" size="sm"
           className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          onClick={() => handleUpdateProfessionalTraining(row)}
-        >
-          Update
-        </Button>
+          onClick={() => handleUpdateProfessionalTraining(row)}>Update</Button>
       ),
       Delete: (
-        <Button
-          variant="outline"
-          size="sm"
+        <Button variant="outline" size="sm"
           className="border-red-600 text-red-600 hover:bg-red-50"
-          onClick={() => handleDeleteRow("pt", row.Id)}
-        >
-          Delete
-        </Button>
+          onClick={() => handleDeleteRow("pt", row.Id)}>Delete</Button>
       ),
     }));
 
+  // ==================== RENDER ====================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
         <CardHeader className="border-b">
-          <CardTitle className="text-xl font-bold">
-            Educational Information
-          </CardTitle>
+          <CardTitle className="text-xl font-bold">Educational Information</CardTitle>
         </CardHeader>
 
         <CardContent className="pt-4 space-y-6">
+          {/* EDUCATIONAL INFO */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
-              <CardTitle className="text-lg font-bold">
-                Educational Information
-              </CardTitle>
+              <CardTitle className="text-lg font-bold">Educational Information</CardTitle>
             </CardHeader>
-
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Degree" />
-                    <span>:</span>
+                    <Label required text="Degree" /><span>:</span>
                   </div>
-                  <Input
-                    value={eduDegree}
-                    onChange={(e) => setEduDegree(e.target.value)}
-                    placeholder="Enter degree"
-                  />
+                  <Input value={eduDegree} onChange={(e) => setEduDegree(e.target.value)} placeholder="Enter degree" />
                 </div>
-
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="University" />
-                    <span>:</span>
+                    <Label required text="University" /><span>:</span>
                   </div>
-                  <Input
-                    value={eduUniversity}
-                    onChange={(e) => setEduUniversity(e.target.value)}
-                    placeholder="Enter university"
-                  />
+                  <Input value={eduUniversity} onChange={(e) => setEduUniversity(e.target.value)} placeholder="Enter university" />
                 </div>
-
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Passing Year" />
-                    <span>:</span>
+                    <Label required text="Passing Year" /><span>:</span>
                   </div>
-                  <Input
-                    value={eduPassingYear}
-                    onChange={(e) => setEduPassingYear(e.target.value)}
-                    placeholder="Enter passing year"
-                  />
+                  <Input value={eduPassingYear} onChange={(e) => setEduPassingYear(e.target.value)} placeholder="Enter passing year" />
                 </div>
               </div>
-
               <div className="flex justify-center my-3">
                 <Button onClick={handleAddEducation}>
                   {eduEditId !== null ? "Update" : "Add"}
                 </Button>
               </div>
-
               {eduTableData.length > 0 && (
                 <ShadCNTable
-                  headers={[
-                    "Delete",
-                    "Update",
-                    "Sr No",
-                    "Degree",
-                    "University",
-                    "Passing Year",
-                  ]}
+                  headers={["Delete","Update","Sr No","Degree","University","Passing Year"]}
                   data={buildEduRows()}
                   keyMapping={{
-                    Delete: "Delete",
-                    Update: "Update",
-                    "Sr No": "SrNo",
-                    Degree: "Degree",
-                    University: "University",
-                    "Passing Year": "PassingYear",
+                    Delete: "Delete", Update: "Update", "Sr No": "SrNo",
+                    Degree: "Degree", University: "University", "Passing Year": "PassingYear",
                   }}
                   pagination={true}
                   rowsPerPage={10}
@@ -581,76 +469,45 @@ const FrmESevaEmpEducationalInformation = () => {
               )}
             </CardContent>
           </Card>
-          
+
+          {/* ADDITIONAL TRAINING */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
-              <CardTitle className="text-lg font-bold">
-                Additional Training
-              </CardTitle>
+              <CardTitle className="text-lg font-bold">Additional Training</CardTitle>
             </CardHeader>
-
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Course Name" />
-                    <span>:</span>
+                    <Label required text="Course Name" /><span>:</span>
                   </div>
-                  <Input
-                    value={atCourseName}
-                    onChange={(e) => setAtCourseName(e.target.value)}
-                    placeholder="Enter course name"
-                  />
+                  <Input value={atCourseName} onChange={(e) => setAtCourseName(e.target.value)} placeholder="Enter course name" />
                 </div>
-
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Organization Details" />
-                    <span>:</span>
+                    <Label required text="Organization Details" /><span>:</span>
                   </div>
-                  <Input
-                    value={atOrgDetails}
-                    onChange={(e) => setAtOrgDetails(e.target.value)}
-                    placeholder="Enter organization"
-                  />
+                  <Input value={atOrgDetails} onChange={(e) => setAtOrgDetails(e.target.value)} placeholder="Enter organization" />
                 </div>
-
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Commencement Dates (In Year)" />
-                    <span>:</span>
+                    <Label required text="Commencement Dates (In Year)" /><span>:</span>
                   </div>
-                  <Input
-                    type="date"
-                    value={atCommencementDate}
-                    onChange={(e) => setAtCommencementDate(e.target.value)}
-                  />
+                  <Input type="date" value={atCommencementDate} onChange={(e) => setAtCommencementDate(e.target.value)} />
                 </div>
               </div>
-
               <div className="flex justify-center my-3">
                 <Button onClick={handleAddAdditionalTraining}>
                   {atEditId !== null ? "Update" : "Add"}
                 </Button>
               </div>
-
               {atTableData.length > 0 && (
                 <ShadCNTable
-                  headers={[
-                    "Delete",
-                    "Update",
-                    "Sr No",
-                    "Course Name",
-                    "Organization Details",
-                    "Commencement Date",
-                  ]}
+                  headers={["Delete","Update","Sr No","Course Name","Organization Details","Commencement Date"]}
                   data={buildATRows()}
                   keyMapping={{
-                    Delete: "Delete",
-                    Update: "Update",
-                    "Sr No": "SrNo",
-                    "Course Name": "CourseName",
-                    "Organization Details": "OrganizationDetails",
+                    Delete: "Delete", Update: "Update", "Sr No": "SrNo",
+                    "Course Name": "CourseName", "Organization Details": "OrganizationDetails",
                     "Commencement Date": "CommencementDates",
                   }}
                   pagination={true}
@@ -660,76 +517,46 @@ const FrmESevaEmpEducationalInformation = () => {
             </CardContent>
           </Card>
 
+          {/* PROFESSIONAL TRAINING */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-lg font-bold">
                 Professional And Technical Training After Appointment
               </CardTitle>
             </CardHeader>
-
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Degree" />
-                    <span>:</span>
+                    <Label required text="Degree" /><span>:</span>
                   </div>
-                  <Input
-                    value={ptDegree}
-                    onChange={(e) => setPtDegree(e.target.value)}
-                    placeholder="Enter degree"
-                  />
+                  <Input value={ptDegree} onChange={(e) => setPtDegree(e.target.value)} placeholder="Enter degree" />
                 </div>
-
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="University" />
-                    <span>:</span>
+                    <Label required text="University" /><span>:</span>
                   </div>
-                  <Input
-                    value={ptUniversity}
-                    onChange={(e) => setPtUniversity(e.target.value)}
-                    placeholder="Enter university"
-                  />
+                  <Input value={ptUniversity} onChange={(e) => setPtUniversity(e.target.value)} placeholder="Enter university" />
                 </div>
-
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="sm:w-36 shrink-0 flex justify-between items-center">
-                    <Label required text="Passing Year" />
-                    <span>:</span>
+                    <Label required text="Passing Year" /><span>:</span>
                   </div>
-                  <Input
-                    value={ptPassingYear}
-                    onChange={(e) => setPtPassingYear(e.target.value)}
-                    placeholder="Enter passing year"
-                  />
+                  <Input value={ptPassingYear} onChange={(e) => setPtPassingYear(e.target.value)} placeholder="Enter passing year" />
                 </div>
               </div>
-
               <div className="flex justify-center my-3">
                 <Button onClick={handleAddProfessionalTraining}>
                   {ptEditId !== null ? "Update" : "Add"}
                 </Button>
               </div>
-
               {ptTableData.length > 0 && (
                 <ShadCNTable
-                  headers={[
-                    "Delete",
-                    "Update",
-                    "Sr No",
-                    "Degree",
-                    "University",
-                    "Passing Year",
-                  ]}
+                  headers={["Delete","Update","Sr No","Degree","University","Passing Year"]}
                   data={buildPTRows()}
                   keyMapping={{
-                    Delete: "Delete",
-                    Update: "Update",
-                    "Sr No": "SrNo",
-                    Degree: "Degree",
-                    University: "University",
-                    "Passing Year": "PassingYear",
+                    Delete: "Delete", Update: "Update", "Sr No": "SrNo",
+                    Degree: "Degree", University: "University", "Passing Year": "PassingYear",
                   }}
                   pagination={true}
                   rowsPerPage={10}
@@ -737,11 +564,9 @@ const FrmESevaEmpEducationalInformation = () => {
               )}
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-center gap-4 pt-2">
-            <Button onClick={handleSave} className="min-w-32">
-              Process
-            </Button>
+            <Button onClick={handleSave} className="min-w-32">Process</Button>
           </div>
         </CardContent>
       </Card>
