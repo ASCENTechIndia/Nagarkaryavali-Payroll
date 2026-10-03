@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,23 @@ const formatDate = (d) => {
 const parseDate = (str) => {
   if (!str) return null;
   const [day, month, year] = str.split("-");
+  if (!day || !month || !year) return null;
   return new Date(`${year}-${month}-${day}`);
+};
+
+const unwrapRows = (res) => {
+  const outer = res?.data?.data;
+  if (Array.isArray(outer)) return outer;
+  if (Array.isArray(outer?.rows)) return outer.rows;
+  if (Array.isArray(outer?.data)) return outer.data;
+  return [];
+};
+
+const pick = (obj, ...keys) => {
+  for (const k of keys) {
+    if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+  }
+  return "";
 };
 
 const dataURLtoFile = (dataURL, filename) => {
@@ -40,7 +56,7 @@ const dataURLtoFile = (dataURL, filename) => {
   return new File([u8arr], filename, { type: mime });
 };
 
-// ==================== MAIN COMPONENT ====================
+// ==================== MAIN ====================
 const FrmESevaLoanNAdvance = () => {
   const { user } = useAuth();
   const token = user?.token;
@@ -53,8 +69,9 @@ const FrmESevaLoanNAdvance = () => {
   const queryMode = searchParams.get("@");
   const mode = queryMode === "1" ? 2 : 1;
 
-  const empIdEseva = sessionStorage.getItem("EmpidEseva");
-  const esevaEmpId = sessionStorage.getItem("esevaempid");
+  const { empId, esevaEmployeeID } = useOutletContext();
+  const empIdEseva = empId;
+  const esevaEmpId = esevaEmployeeID;
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -81,79 +98,81 @@ const FrmESevaLoanNAdvance = () => {
   const [editId, setEditId] = useState(null);
   const [signaturePreview, setSignaturePreview] = useState(null);
 
-  // ==================== HELPERS ====================
   const updateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const getNextId = (data) =>
     data.length > 0 ? Math.max(...data.map((r) => r.Id)) + 1 : 1;
 
-  // ==================== INITIAL LOAD ====================
+  const showAlert = async (text, redirectTo = null) => {
+    await Swal.fire({ text });
+    if (redirectTo) navigate(redirectTo);
+  };
+
+  // ==================== INIT ====================
   useEffect(() => {
-    // if (!empIdEseva) {
-    //   Swal.fire({ text: "Invalid Employee Id." }).then(() =>
-    //     navigate("/Transactions/FrmEsevaEmpList")
-    //   );
-    //   return;
-    // }
-    // if (mode === 2 && !esevaEmpId) {
-    //   navigate("/Transactions/FrmEsevaEmpList");
-    //   return;
-    // }
+    if (!token || !empIdEseva) return;
 
     const today = new Date();
-    setForm((prev) => ({
-      ...prev,
-      sancDate: today,
-      firstInstDate: today,
-    }));
+    setForm((prev) => ({ ...prev, sancDate: today, firstInstDate: today }));
 
-    if (mode === 2) {
-      loadExistingData();
-    }
-  }, [token, mode]);
+    const load = async () => {
+      Swal.fire({
+        text: "Please wait",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      try {
+        if (mode === 2 && esevaEmpId) {
+          await loadExistingData();
+        }
+      } finally {
+        requestAnimationFrame(() => Swal.close());
+      }
+    };
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, mode, empIdEseva, esevaEmpId]);
 
-  // ==================== LOAD EXISTING DATA ====================
+  // ==================== LOAD EXISTING ====================
   const loadExistingData = async () => {
-    Swal.fire({
-      text: "Loading...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
-
     try {
       const payload = {
-        ulbid: Number(ulbId),
+        ulbId: Number(ulbId),
         empId: Number(empIdEseva),
         esevaEmpId: Number(esevaEmpId),
       };
 
       const res = await axios.post(
-        `${API(BASE_URL)}/loan-advance-record`,
+        `${API(BASE_URL)}/getLoanAdvanceList`,
         payload,
         { headers: authHeaders }
       );
 
-      const rows = res?.data?.data?.data || [];
+      const rows = unwrapRows(res);
 
       const mapped = rows.map((row, idx) => {
-        const signBase64 = row.BLOB_SIGNDET || null;
+        const signRaw = pick(row, "BLOB_LOANADV_SIGNDET", "blob_loanadv_signdet");
+        const signBase64 =
+          typeof signRaw === "string" && signRaw.length > 0 ? signRaw : null;
+
         return {
           Id: idx + 1,
-          SancAmount: row.NUM_SANCTIONEDAMT?.toString() || "",
-          Purpose: row.VAR_PURPOSE || "",
-          NoOfInst: row.NUM_NUMOFINSTALL?.toString() || "",
-          ROI: row.VAR_ROI || "",
-          SancOrderNo: row.VAR_SANCTORDERNO || "",
-          SancDate: row.DAT_SANCTDATE || "",
-          FirstInstDate: row.DAT_FINSTALLDAT || "",
-          MonthlyInst: row.NUM_MONTHINSTALL?.toString() || "",
-          FinYear: row.VAR_FINANCYEAR || "",
-          InterestBearAdv: row.VAR_INTBERADV || "",
-          AmtOs: row.NUM_AMTOS?.toString() || "",
-          AmtRecover: row.NUM_AMTRECOVER?.toString() || "",
-          IntAcc: row.VAR_INTACC || "",
-          Remark: row.VAR_REMARK || "",
+          SancAmount: (pick(row, "NUM_LOANADV_SANCTIONEDAMT", "num_loanadv_sanctionedamt")).toString(),
+          Purpose: pick(row, "VAR_LOANADV_PURPOSE", "var_loanadv_purpose"),
+          NoOfInst: (pick(row, "NUM_LOANADV_NUMOFINSTALL", "num_loanadv_numofinstall")).toString(),
+          ROI: pick(row, "VAR_LOANADV_ROI", "var_loanadv_roi"),
+          SancOrderNo: pick(row, "VAR_LOANADV_SANCTORDERNO", "var_loanadv_sanctorderno"),
+          SancDate: pick(row, "DAT_LOANADV_SANCTDATE", "dat_loanadv_sanctdate"),
+          FirstInstDate: pick(row, "DAT_LOANADV_FINSTALLDAT", "dat_loanadv_finstalldat"),
+          MonthlyInst: (pick(row, "NUM_LOANADV_MONTHINSTALL", "num_loanadv_monthinstall")).toString(),
+          FinYear: pick(row, "VAR_LOANADV_FINANCYEAR", "var_loanadv_financyear"),
+          InterestBearAdv: pick(row, "VAR_LOANADV_INTBERADV", "var_loanadv_intberadv"),
+          AmtOs: (pick(row, "NUM_LOANADV_AMTOS", "num_loanadv_amtos")).toString(),
+          AmtRecover: (pick(row, "NUM_LOANADV_AMTRECOVER", "num_loanadv_amtrecover")).toString(),
+          IntAcc: pick(row, "VAR_LOANADV_INTACC", "var_loanadv_intacc"),
+          Remark: pick(row, "VAR_LOANADV_REMARK", "var_loanadv_remark"),
           SignatureBase64: signBase64
             ? `data:image/png;base64,${signBase64}`
             : null,
@@ -162,9 +181,7 @@ const FrmESevaLoanNAdvance = () => {
       });
 
       setTableData(mapped);
-      Swal.close();
     } catch (error) {
-      Swal.close();
       await Swal.fire({
         text:
           error?.response?.data?.message ||
@@ -181,10 +198,7 @@ const FrmESevaLoanNAdvance = () => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      Swal.fire({
-        text: "Please upload a valid image file.",
-        icon: "warning",
-      });
+      Swal.fire({ text: "Please upload a valid image file.", icon: "warning" });
       return;
     }
 
@@ -198,28 +212,11 @@ const FrmESevaLoanNAdvance = () => {
 
   // ==================== ADD / UPDATE ====================
   const handleAddOrUpdate = () => {
-    if (!form.sancAmt.trim()) {
-      Swal.fire({ text: "Please enter sanctioned amount.", icon: "warning" });
-      return;
-    }
-    if (!form.sancDate) {
-      Swal.fire({ text: "Please select sanctioned date.", icon: "warning" });
-      return;
-    }
-    if (!form.firstInstDate) {
-      Swal.fire({
-        text: "Please select first installment date.",
-        icon: "warning",
-      });
-      return;
-    }
-    if (new Date(form.firstInstDate) < new Date(form.sancDate)) {
-      Swal.fire({
-        text: "First installment date should be greater than sanctioned date.",
-        icon: "warning",
-      });
-      return;
-    }
+    if (!form.sancAmt.trim()) return Swal.fire({ text: "Please enter sanctioned amount.", icon: "warning" });
+    if (!form.sancDate) return Swal.fire({ text: "Please select sanctioned date.", icon: "warning" });
+    if (!form.firstInstDate) return Swal.fire({ text: "Please select first installment date.", icon: "warning" });
+    if (new Date(form.firstInstDate) < new Date(form.sancDate))
+      return Swal.fire({ text: "First installment date should be greater than sanctioned date.", icon: "warning" });
 
     const record = {
       Id: editId !== null ? editId : getNextId(tableData),
@@ -258,20 +255,9 @@ const FrmESevaLoanNAdvance = () => {
   const clearFields = () => {
     const today = new Date();
     setForm({
-      sancAmt: "",
-      purpose: "",
-      noOfInst: "",
-      roi: "",
-      sancOrderNo: "",
-      sancDate: today,
-      firstInstDate: today,
-      monthlyInst: "",
-      finYear: "",
-      interestBearAdv: "",
-      amtOs: "",
-      amtRecover: "",
-      intAcc: "",
-      remark: "",
+      sancAmt: "", purpose: "", noOfInst: "", roi: "", sancOrderNo: "",
+      sancDate: today, firstInstDate: today, monthlyInst: "", finYear: "",
+      interestBearAdv: "", amtOs: "", amtRecover: "", intAcc: "", remark: "",
       signatureFile: null,
     });
     setSignaturePreview(null);
@@ -279,7 +265,29 @@ const FrmESevaLoanNAdvance = () => {
     if (fileInput) fileInput.value = "";
   };
 
-  // ==================== DELETE ROW ====================
+  const handleUpdateRow = (row) => {
+    setForm({
+      sancAmt: row.SancAmount,
+      purpose: row.Purpose,
+      noOfInst: row.NoOfInst,
+      roi: row.ROI,
+      sancOrderNo: row.SancOrderNo,
+      sancDate: parseDate(row.SancDate) || new Date(),
+      firstInstDate: parseDate(row.FirstInstDate) || new Date(),
+      monthlyInst: row.MonthlyInst,
+      finYear: row.FinYear,
+      interestBearAdv: row.InterestBearAdv,
+      amtOs: row.AmtOs,
+      amtRecover: row.AmtRecover,
+      intAcc: row.IntAcc,
+      remark: row.Remark,
+      signatureFile: null,
+    });
+    setSignaturePreview(row.SignatureBase64);
+    setEditId(row.Id);
+    // Row is NOT removed — Cancel keeps it
+  };
+
   const handleDeleteRow = (id) => {
     setTableData(tableData.filter((r) => r.Id !== id));
     if (editId === id) {
@@ -288,49 +296,26 @@ const FrmESevaLoanNAdvance = () => {
     }
   };
 
-  // ==================== PROCESS / SAVE ====================
+  // ==================== PROCESS ====================
   const handleProcess = async () => {
     try {
       if (tableData.length === 0) {
-        Swal.fire({
+        return Swal.fire({
           text: "Please Add At least One Loan and Advance record",
           icon: "warning",
         });
-        return;
       }
 
-      // Build STR — same order as .NET
-      const str = tableData
+      // Same order as .NET:
+      // sancamount $ purpose $ noofinstl $ roi $ sancorderno $
+      // sancdt $ firstinstldt $ monthlyinstl $ finyear $ interestbearadv $
+      // amtos $ amtrecover $ intacc $ remarks
+      const loanAdvStr = tableData
         .map(
           (row) =>
             `${row.SancAmount}$${row.Purpose}$${row.NoOfInst}$${row.ROI}$${row.SancOrderNo}$${row.SancDate}$${row.FirstInstDate}$${row.MonthlyInst}$${row.FinYear}$${row.InterestBearAdv}$${row.AmtOs}$${row.AmtRecover}$${row.IntAcc}$${row.Remark}`
         )
         .join("#");
-
-      const sigMeta = [];
-      const formData = new FormData();
-
-      tableData.forEach((row) => {
-        let file = row.SignatureFile;
-
-        if (!file && row.SignatureBase64) {
-          // Reconstruct file from base64 (for records loaded from DB)
-          file = dataURLtoFile(row.SignatureBase64, `sign_${row.Id}.png`);
-        }
-
-        if (file) {
-          sigMeta.push({ recordId: row.Id, seq: row.Id });
-          formData.append(`sign_${row.Id}`, file);
-        }
-      });
-
-      formData.append("userid", userId || "");
-      formData.append("mode", mode);
-      formData.append("empid", Number(empIdEseva));
-      formData.append("ulbid", Number(ulbId));
-      formData.append("esevaempid", Number(esevaEmpId));
-      formData.append("STR", str);
-      formData.append("signatures", JSON.stringify(sigMeta));
 
       Swal.fire({
         text: "Saving...",
@@ -338,29 +323,56 @@ const FrmESevaLoanNAdvance = () => {
         didOpen: () => Swal.showLoading(),
       });
 
-      const res = await axios.post(
-        `${API(BASE_URL)}/insert-loan-advance`,
-        formData,
+      // ---------- STEP 1: insert STR via JSON ----------
+      const insertRes = await axios.post(
+        `${API(BASE_URL)}/insertLoanAndAdvance`,
         {
-          headers: {
-            ...authHeaders,
-            "Content-Type": "multipart/form-data",
-          },
-        }
+          userId,
+          mode,
+          empId: Number(empIdEseva),
+          ulbId: Number(ulbId),
+          esevaEmpId: mode === 1 ? 0 : Number(esevaEmpId),
+          loanAdvStr,
+        },
+        { headers: authHeaders }
       );
 
-      Swal.close();
+      const insertData = insertRes?.data?.data || {};
+      const errorCode = insertData.errorCode;
+      const errorMsg = insertData.errorMsg || insertData.message || "Saved successfully";
 
-      const data = res?.data?.data || {};
-      const errorCode = data.errorCode;
-      const errorMsg = data.message || "Saved successfully";
-
-      if (errorCode === 9999 || data.success) {
-        await Swal.fire({ text: errorMsg, icon: "success" });
-        navigate("/Transactions/FrmEsevaEmpPenalAction");
-      } else {
-        await Swal.fire({ text: errorMsg, icon: "info" });
+      if (!(errorCode === 9999 || insertData.success)) {
+        Swal.close();
+        return Swal.fire({ text: errorMsg, icon: "error" });
       }
+
+      // ---------- STEP 2: upload signature(s) ----------
+      // Backend key is (empcode, ulbid, esevaid) — matches .NET SaveSignatureImage.
+      // If multiple rows have signatures, the last one wins (same as .NET).
+      const sigRows = tableData.filter((row) => row.SignatureFile || row.SignatureBase64);
+      for (const row of sigRows) {
+        let file = row.SignatureFile;
+        if (!file && row.SignatureBase64) {
+          file = dataURLtoFile(row.SignatureBase64, `sign_${row.Id}.png`);
+        }
+        if (!file) continue;
+
+        const fd = new FormData();
+        fd.append("signature", file);
+        fd.append("empId", Number(empIdEseva));
+        fd.append("ulbId", Number(ulbId));
+        fd.append("esevaEmpId", Number(esevaEmpId));
+
+        // Note: Content-Type is set automatically by axios for FormData
+        await axios.post(
+          `${API(BASE_URL)}/updateLoanAdvanceSignature`,
+          fd
+        );
+      }
+
+      Swal.close();
+      await Swal.fire({ text: errorMsg, icon: "success" });
+      navigate("/Transactions/FrmEsevaEmpPenalAction?@=1");
     } catch (error) {
       Swal.close();
       await Swal.fire({
@@ -379,25 +391,29 @@ const FrmESevaLoanNAdvance = () => {
       ...row,
       SrNo: idx + 1,
       SignatureImage: row.SignatureBase64 ? (
-        <img
-          src={row.SignatureBase64}
-          alt="Signature"
-          className="h-10 w-auto object-contain"
-        />
+        <img src={row.SignatureBase64} alt="Signature" className="h-10 w-auto object-contain" />
       ) : (
         <span className="text-gray-400 text-xs">No signature</span>
       ),
-      Actions: (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-red-600 text-red-600 hover:bg-red-50"
-            onClick={() => handleDeleteRow(row.Id)}
-          >
-            Delete
-          </Button>
-        </div>
+      Update: (
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          onClick={() => handleUpdateRow(row)}
+        >
+          Update
+        </Button>
+      ),
+      Delete: (
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-red-600 text-red-600 hover:bg-red-50"
+          onClick={() => handleDeleteRow(row.Id)}
+        >
+          Delete
+        </Button>
       ),
     }));
 
@@ -417,132 +433,56 @@ const FrmESevaLoanNAdvance = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="border shadow-sm">
         <CardHeader className="border-b">
-          <CardTitle className="text-xl font-bold">
-            Loan and Advance
-          </CardTitle>
+          <CardTitle className="text-xl font-bold">Loan and Advance</CardTitle>
         </CardHeader>
 
         <CardContent className="pt-4 space-y-6">
-          {/* ============ ENTRY FORM ============ */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
-              <CardTitle className="text-lg font-bold">
-                Loan Advances
-              </CardTitle>
+              <CardTitle className="text-lg font-bold">Loan Advances</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 gap-y-4">
-                {renderField(
-                  "Sanctioned Amount",
-                  <Input
-                    value={form.sancAmt}
-                    onChange={(e) => updateForm("sancAmt", e.target.value)}
-                  />,
-                  true
+                {renderField("Sanctioned Amount",
+                  <Input value={form.sancAmt} onChange={(e) => updateForm("sancAmt", e.target.value)} />, true
                 )}
-
-                {renderField(
-                  "Purpose",
-                  <Input
-                    value={form.purpose}
-                    onChange={(e) => updateForm("purpose", e.target.value)}
-                  />
+                {renderField("Purpose",
+                  <Input value={form.purpose} onChange={(e) => updateForm("purpose", e.target.value)} />
                 )}
-
-                {renderField(
-                  "No Of Installments",
-                  <Input
-                    value={form.noOfInst}
-                    onChange={(e) => updateForm("noOfInst", e.target.value)}
-                  />
+                {renderField("No Of Installments",
+                  <Input value={form.noOfInst} onChange={(e) => updateForm("noOfInst", e.target.value)} />
                 )}
-
-                {renderField(
-                  "ROI",
-                  <Input
-                    value={form.roi}
-                    onChange={(e) => updateForm("roi", e.target.value)}
-                  />
+                {renderField("ROI",
+                  <Input value={form.roi} onChange={(e) => updateForm("roi", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Sanctioned Order No",
-                  <Input
-                    value={form.sancOrderNo}
-                    onChange={(e) => updateForm("sancOrderNo", e.target.value)}
-                  />
+                {renderField("Sanctioned Order No",
+                  <Input value={form.sancOrderNo} onChange={(e) => updateForm("sancOrderNo", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Sanctioned Date",
-                  <DatePicker
-                    value={form.sancDate}
-                    onChange={(d) => updateForm("sancDate", d)}
-                  />,
-                  true
+                {renderField("Sanctioned Date",
+                  <DatePicker value={form.sancDate} onChange={(d) => updateForm("sancDate", d)} />, true
                 )}
-
-                {renderField(
-                  "First Installment Date",
-                  <DatePicker
-                    value={form.firstInstDate}
-                    onChange={(d) => updateForm("firstInstDate", d)}
-                  />,
-                  true
+                {renderField("First Installment Date",
+                  <DatePicker value={form.firstInstDate} onChange={(d) => updateForm("firstInstDate", d)} />, true
                 )}
-
-                {renderField(
-                  "Monthly Installment",
-                  <Input
-                    value={form.monthlyInst}
-                    onChange={(e) => updateForm("monthlyInst", e.target.value)}
-                  />
+                {renderField("Monthly Installment",
+                  <Input value={form.monthlyInst} onChange={(e) => updateForm("monthlyInst", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Financial Year",
-                  <Input
-                    value={form.finYear}
-                    onChange={(e) => updateForm("finYear", e.target.value)}
-                  />
+                {renderField("Financial Year",
+                  <Input value={form.finYear} onChange={(e) => updateForm("finYear", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Interest Bearing Advances",
-                  <Input
-                    value={form.interestBearAdv}
-                    onChange={(e) =>
-                      updateForm("interestBearAdv", e.target.value)
-                    }
-                  />
+                {renderField("Interest Bearing Advances",
+                  <Input value={form.interestBearAdv} onChange={(e) => updateForm("interestBearAdv", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Amount O/S",
-                  <Input
-                    value={form.amtOs}
-                    onChange={(e) => updateForm("amtOs", e.target.value)}
-                  />
+                {renderField("Amount O/S",
+                  <Input value={form.amtOs} onChange={(e) => updateForm("amtOs", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Amount Recover",
-                  <Input
-                    value={form.amtRecover}
-                    onChange={(e) => updateForm("amtRecover", e.target.value)}
-                  />
+                {renderField("Amount Recover",
+                  <Input value={form.amtRecover} onChange={(e) => updateForm("amtRecover", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Int. ACC",
-                  <Input
-                    value={form.intAcc}
-                    onChange={(e) => updateForm("intAcc", e.target.value)}
-                  />
+                {renderField("Int. ACC",
+                  <Input value={form.intAcc} onChange={(e) => updateForm("intAcc", e.target.value)} />
                 )}
-
-                {renderField(
-                  "Signature Details",
+                {renderField("Signature Details",
                   <div className="flex flex-col gap-2">
                     <Input
                       type="file"
@@ -552,35 +492,32 @@ const FrmESevaLoanNAdvance = () => {
                     />
                     {signaturePreview && (
                       <div className="border rounded p-1 w-fit">
-                        <img
-                          src={signaturePreview}
-                          alt="Signature Preview"
-                          className="h-16 w-auto object-contain"
-                        />
+                        <img src={signaturePreview} alt="Signature Preview" className="h-16 w-auto object-contain" />
                       </div>
                     )}
                   </div>
                 )}
-                
-                {renderField(
-                  "Remarks",
-                  <Input
-                    value={form.remark}
-                    onChange={(e) => updateForm("remark", e.target.value)}
-                  />
+                {renderField("Remarks",
+                  <Input value={form.remark} onChange={(e) => updateForm("remark", e.target.value)} />
                 )}
               </div>
 
-              <div className="flex justify-center my-4">
+              <div className="flex justify-center gap-3 my-4">
                 <Button onClick={handleAddOrUpdate}>
                   {editId !== null ? "Update" : "Add"}
                 </Button>
+                {editId !== null && (
+                  <Button variant="secondary" onClick={() => { setEditId(null); clearFields(); }}>
+                    Cancel
+                  </Button>
+                )}
               </div>
 
               {tableData.length > 0 && (
                 <ShadCNTable
                   headers={[
                     "Delete",
+                    "Update",
                     "Sr No",
                     "Sanctioned Amount",
                     "Purpose",
@@ -600,7 +537,8 @@ const FrmESevaLoanNAdvance = () => {
                   ]}
                   data={buildTableRows()}
                   keyMapping={{
-                    Delete: "Actions",
+                    Delete: "Delete",
+                    Update: "Update",
                     "Sr No": "SrNo",
                     "Sanctioned Amount": "SancAmount",
                     Purpose: "Purpose",
@@ -625,11 +563,8 @@ const FrmESevaLoanNAdvance = () => {
             </CardContent>
           </Card>
 
-          {/* ============ ACTION BUTTONS ============ */}
           <div className="flex justify-center gap-4 pt-2 border-t">
-            <Button onClick={handleProcess} className="min-w-32">
-              Process
-            </Button>
+            <Button onClick={handleProcess} className="min-w-32">Process</Button>
           </div>
         </CardContent>
       </Card>

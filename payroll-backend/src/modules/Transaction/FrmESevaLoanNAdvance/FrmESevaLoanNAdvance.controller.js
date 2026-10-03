@@ -20,7 +20,20 @@ const insertLoanAndAdvance = asyncHandler(async (req, res) => {
   return fail(res, data.errorMsg, 400);
 });
 
+const updateLoanAdvanceSignature = asyncHandler(async (req, res) => {
+  const { empId, ulbId, esevaEmpId } = req.body;
+  console.log({req:req.body, file:req.file});
+  if (!req.file) {
+    return fail(res, "Signature image is required", 400);
+  }
+
+  const result = await service.updateLoanAdvanceSignatureService(req.file.buffer, empId, ulbId, esevaEmpId);
+
+  return ok(res, result, "Signature updated successfully");
+});
+
 module.exports = {
   getLoanAdvanceList,
   insertLoanAndAdvance,
+  updateLoanAdvanceSignature
 };

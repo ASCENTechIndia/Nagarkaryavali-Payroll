@@ -22,7 +22,13 @@ const insertLoanAndAdvanceService = async (payload) => {
   };
 };
 
+const updateLoanAdvanceSignatureService = async (imageBuffer, empId, ulbId, esevaEmpId) => {
+  // console.log({imageBuffer, empId, ulbId, esevaEmpId});
+  return await repo.updateLoanAdvanceSignatureRepo(imageBuffer, empId, ulbId, esevaEmpId);
+};
+
 module.exports = {
   getLoanAdvanceListService,
   insertLoanAndAdvanceService,
+  updateLoanAdvanceSignatureService
 };
