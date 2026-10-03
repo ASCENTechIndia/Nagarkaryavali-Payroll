@@ -29,4 +29,6 @@ router.post(
 
 router.post("/bill-dmc-pdf", auth(), controller.generateBillDmcPDF);
 
+router.post("/summary-report-pdf", auth(), controller.generateSummaryReportPDF);
+
 module.exports = router;
