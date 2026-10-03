@@ -435,3 +435,40 @@ export const FrmPayHeadListValidationSchema = z.object({
         path: ["month"],
     }
 );
+
+
+export const FrmBillDmcValidationSchema = z.object({
+  month: z
+    .string()
+    .min(1, "Month is required")
+    .refine((val) => val !== "-1", {
+      message: "Please select a month",
+    }),
+  year: z
+    .string()
+    .min(1, "Year is required")
+    .refine((val) => val !== "-1", {
+      message: "Please select a year",
+    }),
+  department: z
+    .string()
+    .min(1, "Department is required")
+    .refine((val) => val !== "-1", {
+      message: "Please select a Department",
+    }),
+  gender: z.string().optional(),
+})
+  .refine(
+    (data) => {
+      const year = parseInt(data.year, 10);
+      const month = parseInt(data.month, 10);
+      if (isNaN(year) || isNaN(month)) return false;
+      if (year < 1900 || year > 2100) return false;
+      if (month < 1 || month > 12) return false;
+      return true;
+    },
+    {
+      message: "Invalid date selection",
+      path: ["month"],
+    }
+  );
