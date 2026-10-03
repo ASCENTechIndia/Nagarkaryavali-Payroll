@@ -46,24 +46,10 @@ async function getEmployeeListService({
     };
 }
 
-async function getSalaryDetailService({
-    lstdate,
-    ulbid,
-    deptId,
-    gender
-}) {
-
-    if (!lstdate) {
-        throw new Error("Salary Date is required");
-    }
-
-    if (!ulbid) {
-        throw new Error("ULB ID is required");
-    }
-
-    if (!deptId) {
-        throw new Error("Department ID is required");
-    }
+async function getSalaryDetailService({ lstdate, ulbid, deptId, gender }) {
+    if (!lstdate) throw new Error("Salary Date is required");
+    if (!ulbid) throw new Error("ULB ID is required");
+    if (!deptId) throw new Error("Department ID is required");
 
     const result = await repo.getSalaryDetailRepo({
         lstdate,
@@ -84,24 +70,10 @@ async function getSalaryDetailService({
     };
 }
 
-
-async function getEmployeeSubDetailService({
-    lstdate,
-    ulbid,
-    deptId,
-    gender
-}) {
-    if (!lstdate) {
-        throw new Error("Salary Date is required");
-    }
-
-    if (!ulbid) {
-        throw new Error("ULB ID is required");
-    }
-
-    if (!deptId) {
-        throw new Error("Department ID is required");
-    }
+async function getEmployeeSubDetailService({ lstdate, ulbid, deptId, gender }) {
+    if (!lstdate) throw new Error("Salary Date is required");
+    if (!ulbid) throw new Error("ULB ID is required");
+    if (!deptId) throw new Error("Department ID is required");
 
     const data = await repo.getEmployeeSubDetailRepo({
         lstdate,
@@ -110,9 +82,7 @@ async function getEmployeeSubDetailService({
         gender
     });
 
-    if (!data || data.length === 0) {
-        throw new Error("Record not Found");
-    }
+    if (!data || data.length === 0) throw new Error("Record not Found");
 
     return {
         success: true,
@@ -121,29 +91,11 @@ async function getEmployeeSubDetailService({
     };
 }
 
-
-async function getPayheadSalaryDetailService({
-    lstdate,
-    ulbid,
-    deptId,
-    gender
-}) {
-    if (!lstdate) {
-        throw new Error("Salary Date is required");
-    }
-
-    if (!ulbid) {
-        throw new Error("ULB ID is required");
-    }
-
-    if (!deptId) {
-        throw new Error("Department ID is required");
-    }
-
-    // Gender is required only for Department 406
-    if (String(deptId) === "406" && !gender) {
-        throw new Error("Gender is required");
-    }
+async function getPayheadSalaryDetailService({ lstdate, ulbid, deptId, gender }) {
+    if (!lstdate) throw new Error("Salary Date is required");
+    if (!ulbid) throw new Error("ULB ID is required");
+    if (!deptId) throw new Error("Department ID is required");
+    if (String(deptId) === "406" && !gender) throw new Error("Gender is required");
 
     const data = await repo.getPayheadSalaryDetailRepo({
         lstdate,
@@ -152,9 +104,7 @@ async function getPayheadSalaryDetailService({
         gender
     });
 
-    if (!data || data.length === 0) {
-        throw new Error("Record not Found");
-    }
+    if (!data || data.length === 0) throw new Error("Record not Found");
 
     return {
         success: true,

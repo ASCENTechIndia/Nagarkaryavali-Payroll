@@ -10,28 +10,23 @@ router.post(
   controller.generateEmployeeListPDF,
 );
 router.post(
-    "/salary-detail",
- 
-    controller.getSalaryDetail
+  "/salary-detail",
+
+  controller.getSalaryDetail,
 );
-
-
 
 router.post(
-    "/employee-sub-detail",
-  
-    controller.getEmployeeSubDetail
+  "/employee-sub-detail",
+
+  controller.getEmployeeSubDetail,
 );
-
-
 
 router.post(
-    "/payhead-salary-detail",
- 
-    controller.getPayheadSalaryDetail
+  "/payhead-salary-detail",
+
+  controller.getPayheadSalaryDetail,
 );
 
-
-
+router.post("/bill-dmc-pdf", auth(), controller.generateBillDmcPDF);
 
 module.exports = router;

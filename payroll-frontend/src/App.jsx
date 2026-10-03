@@ -111,6 +111,7 @@ import FrmEsevaEmpLayout from './layout/eSeva-layout';
 import FrmAttendenceEntryDMC from './pages/Transaction/FrmAttendenceEntryDMC';
 import FrmAttendenceEntryAuth from './pages/Transaction/FrmAttendenceEntryAuth';
 import FrmAttendenceExcellAuthList from './pages/Transaction/FrmAttendenceExcellAuthList';
+import FrmBillDmc from './pages/Reports/FrmBillDmc';
 
 export const router = createBrowserRouter([
   {
@@ -583,6 +584,10 @@ export const router = createBrowserRouter([
       {
         path: "Transactions/FrmAttendenceEntryAuth",
         element: <FrmAttendenceEntryAuth />
+      },
+      {
+        path: "ReportsForm/FrmBillDmc",
+        element: <FrmBillDmc />
       },
 
       // Loan and Advance 
