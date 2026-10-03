@@ -46,7 +46,6 @@ const FrmESevaEmpMaster = () => {
 
   const { empId, esevaEmployeeID } = useOutletContext();
 
-  // ================== FORM STATE ==================
   const [form, setForm] = useState({
     name: "",
     fatherName: "",
@@ -108,7 +107,6 @@ const FrmESevaEmpMaster = () => {
 
   const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
-  // ================== FAMILY ==================
   const [familyDetails, setFamilyDetails] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [famForm, setFamForm] = useState({
@@ -124,7 +122,6 @@ const FrmESevaEmpMaster = () => {
     fammemisdepid: "Y",
   });
 
-  // ================== DROPDOWNS ==================
   const [nationalityOptions, setNationalityOptions] = useState([]);
   const [religionOptions, setReligionOptions] = useState([]);
   const [castOptions, setCastOptions] = useState([]);
@@ -133,7 +130,6 @@ const FrmESevaEmpMaster = () => {
   const [bloodGroupOptions, setBloodGroupOptions] = useState([]);
   const [relationOptions, setRelationOptions] = useState([]);
 
-  // ================== HELPERS ==================
   const updateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -148,7 +144,6 @@ const FrmESevaEmpMaster = () => {
       label: r.DISPLAY_TEXT,
     }));
 
-  // ================== DROPDOWN FETCHERS ==================
   const fetchNationality = async () => {
     try {
       const res = await axios.post(
@@ -253,15 +248,11 @@ const FrmESevaEmpMaster = () => {
     }
   };
 
-  // ================== LOAD MASTERS ==================
-
-  // Cascade Religion → Cast
   useEffect(() => {
     if (form.religion && form.religion !== "0") fetchCast(form.religion);
     else setCastOptions([]);
   }, [form.religion]);
 
-  // Cascade Cast → SubCast
   useEffect(() => {
     if (form.cast && form.cast !== "0") fetchSubCast(form.cast, form.religion);
     else setSubCastOptions([]);
@@ -302,7 +293,6 @@ useEffect(() => {
   if (detailsLoaded) Swal.close();
 }, [detailsLoaded]);
 
-  // ================== BIND EMP DETAILS (Mode 1) ==================
   const bindEmpDetails = async () => {
     try {
       const res = await axios.post(
@@ -330,7 +320,6 @@ useEffect(() => {
     }
   };
 
-  // ================== BIND ESEVA DETAILS (Mode 2) ==================
   const bindDetails = async () => {
     try {
       const res = await axios.post(
@@ -440,7 +429,6 @@ useEffect(() => {
     }
   };
 
-  // ================== FAMILY GRID HANDLERS ==================
   const handleAddOrUpdateFamily = () => {
     if (!famForm.fammemname) return showAlert("Please Enter Name.");
     if (!famForm.fammemdob) return showAlert("Please select date of birth.");
@@ -482,27 +470,9 @@ useEffect(() => {
       fammemisdepid: "Y",
     });
 
-  const handleEditFamily = (index) => {
-    const r = familyDetails[index];
-    setFamForm({
-      fammemname: r.fammemname || "",
-      fammemdob: r.fammemdob ? new Date(r.fammemdob) : null,
-      fammemrelation: r.fammemrelationid || "",
-      fammemrelationid: r.fammemrelationid || "",
-      fammemmarstatus: r.fammemmarstatus || "",
-      fammemmarstatusid: r.fammemmarstatusid || "N",
-      fammemocc: r.fammemocc || "",
-      fammemmoninc: r.fammemmoninc || "",
-      fammemisdep: r.fammemisdep || "",
-      fammemisdepid: r.fammemisdepid || "Y",
-    });
-    setEditIndex(index);
-  };
-
   const handleDeleteFamily = (index) =>
     setFamilyDetails((prev) => prev.filter((_, i) => i !== index));
 
-  // ================== COMM ADDR SYNC ==================
   useEffect(() => {
     if (!sameAsPermanent) return;
     setForm((prev) => ({
@@ -545,32 +515,59 @@ useEffect(() => {
     }
   };
 
-  // ================== VALIDATE ==================
   const validate = () => {
-    if (!form.name) return "Please enter name.";
-    if (!form.fatherName) return "Please enter fathers name.";
-    if (!form.motherName) return "Please enter mothers name.";
-    if (!form.nationality || form.nationality === "0")
-      return "Please select nationality.";
-    if (!form.category || form.category === "0")
-      return "Please select category.";
-    if (!form.mobileNo) return "Please enter mobile no.";
-    if (!form.emailId) return "Please enter email id.";
-    if (form.isMarried === "Y" && !form.spouseName)
-      return "Please enter spouse name.";
-    if (form.isPhysicallyHandicapped === "Y" && !form.handicappedDetails)
-      return "Please specify physically handicapped details.";
-    if (!form.height)
-      return "Please enter exact height by measurement.";
-    if (!form.permanentAddress) return "Please enter permanent address.";
-    if (!form.permanentDistrict) return "Please enter district.";
-    if (!form.permanentState) return "Please enter state.";
-    if (!form.permanentCountry) return "Please enter country.";
-    if (!form.permanentPincode) return "Please enter pincode.";
-    return null;
-  };
+  if (!form.name) return "Please enter name.";
+  if (!form.fatherName) return "Please enter fathers name.";
+  if (!form.motherName) return "Please enter mothers name.";
+  if (!form.nationality || form.nationality === "0")
+    return "Please select nationality.";
+  if (!form.category || form.category === "0")
+    return "Please select category.";
 
-  // FamilyDetStr: name#dob#relationLabel#marStatusLabel#occ#income#isDepLabel$...
+  if (!form.mobileNo) return "Please enter mobile no.";
+  if (!isTenDigits(form.mobileNo))
+    return "Mobile Number must be exactly 10 digits (numbers only).";
+
+  if (!form.emailId) return "Please enter email id.";
+  if (!isEmail(form.emailId))
+    return "Please enter a valid Email-Id (must contain @).";
+
+  if (form.isMarried === "Y" && !form.spouseName)
+    return "Please enter spouse name.";
+  if (form.isPhysicallyHandicapped === "Y" && !form.handicappedDetails)
+    return "Please specify physically handicapped details.";
+
+  if (!form.height) return "Please enter exact height by measurement.";
+  if (!onlyDigits(form.height))
+    return "Exact Height by Measurement must contain numbers only.";
+
+  if (!form.permanentAddress) return "Please enter permanent address.";
+  if (!form.permanentDistrict) return "Please enter district.";
+  if (!form.permanentState) return "Please enter state.";
+  if (!form.permanentCountry) return "Please enter country.";
+
+  if (!form.permanentPincode) return "Please enter pincode.";
+  if (!isSixDigits(form.permanentPincode))
+    return "Permanent Pincode must be exactly 6 digits (numbers only).";
+
+  if (form.communicationPincode && !isSixDigits(form.communicationPincode))
+    return "Communication Pincode must be exactly 6 digits (numbers only).";
+
+  if (
+    form.permanentMobileNumber &&
+    !isTenDigits(form.permanentMobileNumber)
+  )
+    return "Permanent Mobile Number must be exactly 10 digits.";
+
+  if (
+    form.communicationMobileNumber &&
+    !isTenDigits(form.communicationMobileNumber)
+  )
+    return "Communication Mobile Number must be exactly 10 digits.";
+
+  return null;
+};
+
   const buildFamilyDetailsStr = () =>
     familyDetails
       .map((r) =>
@@ -578,17 +575,14 @@ useEffect(() => {
           r.fammemname || "",
           r.fammemdob ? fmtDate(r.fammemdob) : "",
           r.fammemrelation || "",
-          //r.fammemmarstatus || "",
           r.fammemmarstatusid === "Y" ? "Y" : "N",
           r.fammemocc || "",
           r.fammemmoninc || "",
-          //r.fammemisdep || "",
           r.fammemisdepid === "Y" ? "Y" : "N",
         ].join("#")
       )
       .join("$");
 
-  // ================== SUBMIT ==================
   const handleStep1Submit = async () => {
     const err = validate();
     if (err) return showAlert(err);
@@ -927,15 +921,20 @@ useEffect(() => {
                 <Input
                   value={form.mobileNo}
                   maxLength={10}
-                  onChange={(e) => updateForm("mobileNo", e.target.value)}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("mobileNo", v);
+                  }}
                 />
               )}
 
               {renderField(
                 "Email-Id",
                 <Input
+                  type="email"
                   value={form.emailId}
-                  onChange={(e) => updateForm("emailId", e.target.value)}
+                  onChange={(e) => updateForm("emailId", e.target.value.trim())}
                 />
               )}
 
@@ -1006,7 +1005,11 @@ useEffect(() => {
                 "Exact Height by Measurement",
                 <Input
                   value={form.height}
-                  onChange={(e) => updateForm("height", e.target.value)}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9]/g, "");
+                    updateForm("height", v);
+                  }}
                 />
               )}
 
@@ -1113,37 +1116,49 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Pincode",
                 <Input
                   value={form.permanentPincode}
-                  onChange={(e) =>
-                    updateForm("permanentPincode", e.target.value)
-                  }
+                  maxLength={6}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    updateForm("permanentPincode", v);
+                  }}
                 />
               )}
+
               {renderField(
                 "Mobile Number",
                 <Input
                   value={form.permanentMobileNumber}
-                  onChange={(e) =>
-                    updateForm("permanentMobileNumber", e.target.value)
-                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("permanentMobileNumber", v);
+                  }}
                 />
               )}
+
               {renderField(
                 "Alternate Number",
                 <Input
                   value={form.permanentAlternateNumber}
-                  onChange={(e) =>
-                    updateForm("permanentAlternateNumber", e.target.value)
-                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("permanentAlternateNumber", v);
+                  }}
                 />
               )}
+
             </div>
           </section>
 
-          {/* ============ COMMUNICATION ADDRESS ============ */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">Communication Address</h3>
@@ -1206,40 +1221,52 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Pincode",
                 <Input
                   value={form.communicationPincode}
                   disabled={sameAsPermanent}
-                  onChange={(e) =>
-                    updateForm("communicationPincode", e.target.value)
-                  }
+                  maxLength={6}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    updateForm("communicationPincode", v);
+                  }}
                 />
               )}
+
               {renderField(
                 "Mobile Number",
                 <Input
                   value={form.communicationMobileNumber}
                   disabled={sameAsPermanent}
-                  onChange={(e) =>
-                    updateForm("communicationMobileNumber", e.target.value)
-                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("communicationMobileNumber", v);
+                  }}
                 />
               )}
+
               {renderField(
                 "Alternate Number",
                 <Input
                   value={form.communicationAlternateNumber}
                   disabled={sameAsPermanent}
-                  onChange={(e) =>
-                    updateForm("communicationAlternateNumber", e.target.value)
-                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("communicationAlternateNumber", v);
+                  }}
                 />
               )}
+
             </div>
           </section>
 
-          {/* ============ EMERGENCY CONTACT ============ */}
           <section>
             <h3 className="font-semibold text-lg mb-3">
               Emergency Contact Details
@@ -1274,15 +1301,20 @@ useEffect(() => {
                   </SelectContent>
                 </Select>
               )}
+
               {renderField(
                 "Mobile Number",
                 <Input
                   value={form.emergencyContactMobileNumber}
-                  onChange={(e) =>
-                    updateForm("emergencyContactMobileNumber", e.target.value)
-                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("emergencyContactMobileNumber", v);
+                  }}
                 />
               )}
+
               {renderField(
                 "Alternate Person",
                 <Input
@@ -1315,18 +1347,20 @@ useEffect(() => {
                   </SelectContent>
                 </Select>
               )}
+
               {renderField(
                 "Mobile Number",
                 <Input
                   value={form.emergencyAlternateMobileNumber}
-                  onChange={(e) =>
-                    updateForm(
-                      "emergencyAlternateMobileNumber",
-                      e.target.value
-                    )
-                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    updateForm("emergencyAlternateMobileNumber", v);
+                  }}
                 />
               )}
+
             </div>
           </section>
 

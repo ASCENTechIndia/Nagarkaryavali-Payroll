@@ -1,7 +1,8 @@
 const repo = require("./FrmESevaLoanNAdvance.repo");
 
 const getLoanAdvanceListService = async (ulbId, empId, esevaEmpId) => {
-  return await repo.getLoanAdvanceListRepo(ulbId, empId, esevaEmpId);
+  const result = await repo.getLoanAdvanceListRepo(ulbId, empId, esevaEmpId);
+  return result.rows;
 };
 
 const insertLoanAndAdvanceService = async (payload) => {
