@@ -53,7 +53,10 @@ async function getNewEsevaEmpIdService({ ulbid, empId }) {
     if (!empId) throw new Error("empId is required");
     const result = await repo.getNewEsevaEmpIdRepo({ ulbid, empId });
     // if (!result.success) throw new Error(result.error);
-    if (result.rows.length === 0) throw new Error("No employee found");
+     if (!result || result.rows.length === 0) {
+        return {success: false, message: "No ESeva Employee ID found", data: []};
+    }
+    // if (result.rows.length === 0) throw new Error("No employee found");
     return result.rows[0];
 }
 async function getEmployeeDefService({ ulbid, empId }) {

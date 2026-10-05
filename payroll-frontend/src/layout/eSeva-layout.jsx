@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const FrmEsevaEmpLayout = () => {
     const navigate = useNavigate();
@@ -72,11 +73,23 @@ const FrmEsevaEmpLayout = () => {
 
             const id = Number(res.data?.data?.NUM_ESEVAEMP_ID) || 0;
 
+            if (!id) {
+                await Swal.fire({
+                    // icon: "error",
+                    text: res?.data?.data?.message || "No ESeva Employee ID found"
+                });
+                navigate("/Transactions/FrmEsevaEmpList")
+            }
+
             // console.log("API esevaEmployeeID:", id);
             setEsevaEmployeeID(id);
         } catch (err) {
             console.error("Error fetching esevaEmployeeID:", err);
             setEsevaEmployeeID(0);
+            await Swal.fire({
+                icon: "error",
+                text: err?.response?.data?.error || err?.response?.data?.message || "Failed to Fetch ESeva Employee ID"
+            });
         }
     };
 
