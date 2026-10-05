@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,13 @@ const fmtDate = (d) => {
   const dd = String(dt.getDate()).padStart(2, "0");
   const mm = String(dt.getMonth() + 1).padStart(2, "0");
   return `${dd}-${mm}-${dt.getFullYear()}`;
+  
 };
+
+const isTenDigits = (v) => /^\d{10}$/.test(String(v ?? "").trim());
+const isSixDigits = (v) => /^\d{6}$/.test(String(v ?? "").trim());
+const onlyDigits = (v) => /^\d+$/.test(String(v ?? "").trim());
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v ?? "").trim());
 
 const FrmESevaEmpMaster = () => {
   const { user } = useAuth();
@@ -36,6 +42,8 @@ const FrmESevaEmpMaster = () => {
   const userId = user?.userId;
   const [detailsLoaded, setDetailsLoaded] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log({location});
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -301,6 +309,7 @@ useEffect(() => {
         { headers: authHeaders }
       );
       const row = res?.data?.data;
+      console.log({res});
       if (!row) return;
 
       setForm((prev) => ({
@@ -343,23 +352,23 @@ useEffect(() => {
       }
 
       setForm({
-        name: row.VAR_ESEVAEMP_NAME || "",
+        name: row.VAR_EMPLOYEE_ENGNAME || "",
         fatherName: row.VAR_ESEVAEMP_FATNAME || "",
         motherName: row.VAR_ESEVAEMP_MOTNAME || "",
-        dob: row.DAT_ESEVAEMP_DOB ? new Date(row.DAT_ESEVAEMP_DOB) : null,
+        dob: row.DATE_EMPLOYEE_DOB ? new Date(row.DATE_EMPLOYEE_DOB) : null,
         nationality: row.NUM_ESEVAEMP_NATIONALITY?.toString() || "",
-        religion: row.NUM_ESEVAEMP_RELOGION?.toString() || "",
-        cast: row.NUM_ESEVAEMP_CAST?.toString() || "",
-        subCast: row.NUM_ESEVAEMP_SUBCAST?.toString() || "",
-        category: row.NUM_ESEVAEMP_CATEGORY?.toString() || "",
-        mobileNo: row.NUM_ESEVAEMP_MOBNO?.toString() || "",
-        emailId: row.VAR_ESEVAEMP_EMAIL || "",
+        religion: row.NUM_EMPLOYEE_RELIGION?.toString() || "",
+        cast: row.VAR_EMPLOYEE_CAST?.toString() || "",
+        subCast: row.VAR_EMPLOYEE_SUBCAST?.toString() || "",
+        category: row.NUM_EMPLOYEE_CASTCAT?.toString() || "",
+        mobileNo: row.NUM_EMPLOYEE_MOBILENO?.toString() || "",
+        emailId: row.VAR_EMPLOYEE_EMAILID || "",
         bloodGroup: row.NUM_ESEVAEMP_BLOODGRP?.toString() || "",
         isPhysicallyHandicapped: row.VAR_ESEVAEMP_PHYHANDICAPPED || "N",
         handicappedDetails: row.VAR_ESEVAEMP_PHYHANDICAP_IFY || "",
-        isMarried: row.VAR_ESEVAEMP_MARRGSTATUS || "N",
+        isMarried: row.VAR_EMPLOYEE_MARSTATUS || "N",
         spouseName: row.VAR_ESEVAEMP_MARRGSTATUS_IFY || "",
-        permanentAddress: row.VAR_ESEVAEMP_PARMADDRES || "",
+        permanentAddress: row.VAR_EMPLOYEE_PMNTADDRESS || "",
         permanentDistrict: row.VAR_ESEVAEMP_DISTRICT || "",
         permanentState: row.VAR_ESEVAEMP_STATE || "",
         permanentCountry: row.VAR_ESEVAEMP_COUNTRY || "",
