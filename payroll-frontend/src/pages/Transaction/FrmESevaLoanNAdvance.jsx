@@ -200,7 +200,7 @@ const FrmESevaLoanNAdvance = () => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      Swal.fire({ text: "Please upload a valid image file.", icon: "warning" });
+      Swal.fire({ text: "Please upload a valid image file."});
       return;
     }
 
@@ -214,38 +214,38 @@ const FrmESevaLoanNAdvance = () => {
 
   const handleAddOrUpdate = () => {
     // Existing checks
-    if (!form.sancAmt.trim()) return Swal.fire({ text: "Please enter sanctioned amount.", icon: "warning" });
+    if (!form.sancAmt.trim()) return Swal.fire({ text: "Please enter sanctioned amount."});
     if (!onlyDigits(form.sancAmt.trim()))
-      return Swal.fire({ text: "Sanctioned Amount must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "Sanctioned Amount must contain digits only."});
 
     if (!form.noOfInst.trim())
-      return Swal.fire({ text: "Please enter no of installments.", icon: "warning" });
+      return Swal.fire({ text: "Please enter no of installments." });
     if (!onlyDigits(form.noOfInst.trim()))
-      return Swal.fire({ text: "No Of Installments must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "No Of Installments must contain digits only." });
 
     if (form.roi.trim() && !onlyDigits(form.roi.trim()))
-      return Swal.fire({ text: "R.O.I must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "R.O.I must contain digits only." });
 
     if (form.sancOrderNo.trim() && !onlyDigits(form.sancOrderNo.trim()))
-      return Swal.fire({ text: "Sanctioned Order No must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "Sanctioned Order No must contain digits only."});
 
     if (form.monthlyInst.trim() && !onlyDigits(form.monthlyInst.trim()))
-      return Swal.fire({ text: "Monthly Installment must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "Monthly Installment must contain digits only." });
 
     if (form.amtOs.trim() && !onlyDigits(form.amtOs.trim()))
-      return Swal.fire({ text: "Amount O/S must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "Amount O/S must contain digits only." });
 
     if (form.amtRecover.trim() && !onlyDigits(form.amtRecover.trim()))
-      return Swal.fire({ text: "Amount Recover must contain digits only.", icon: "warning" });
+      return Swal.fire({ text: "Amount Recover must contain digits only." });
 
     // Financial Year: 4-digit limit (only when provided)
     if (form.finYear.trim() && !isFourDigits(form.finYear.trim()))
-      return Swal.fire({ text: "Financial Year must be exactly 4 digits.", icon: "warning" });
+      return Swal.fire({ text: "Financial Year must be exactly 4 digits." });
 
-    if (!form.sancDate) return Swal.fire({ text: "Please select sanctioned date.", icon: "warning" });
-    if (!form.firstInstDate) return Swal.fire({ text: "Please select first installment date.", icon: "warning" });
+    if (!form.sancDate) return Swal.fire({ text: "Please select sanctioned date."});
+    if (!form.firstInstDate) return Swal.fire({ text: "Please select first installment date."});
     if (new Date(form.firstInstDate) < new Date(form.sancDate))
-      return Swal.fire({ text: "First installment date should be greater than sanctioned date.", icon: "warning" });
+      return Swal.fire({ text: "First installment date should be greater than sanctioned date."});
 
     const record = {
       Id: editId !== null ? editId : getNextId(tableData),
@@ -307,7 +307,6 @@ const FrmESevaLoanNAdvance = () => {
       if (tableData.length === 0) {
         return Swal.fire({
           text: "Please Add At least One Loan and Advance record",
-          icon: "warning",
         });
       }
 
@@ -343,7 +342,7 @@ const FrmESevaLoanNAdvance = () => {
 
       if (!(errorCode === 9999 || insertData.success)) {
         Swal.close();
-        return Swal.fire({ text: errorMsg, icon: "error" });
+        return Swal.fire({ text: errorMsg });
       }
 
       const sigRows = tableData.filter((row) => row.SignatureFile || row.SignatureBase64);
@@ -367,7 +366,7 @@ const FrmESevaLoanNAdvance = () => {
       }
 
       Swal.close();
-      await Swal.fire({ text: errorMsg, icon: "success" });
+      await Swal.fire({ text: errorMsg});
       navigate("/Transactions/FrmEsevaEmpPenalAction?@=1");
     } catch (error) {
       Swal.close();

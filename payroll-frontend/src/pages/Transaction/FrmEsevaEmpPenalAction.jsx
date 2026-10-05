@@ -171,14 +171,14 @@ const FrmEsevaEmpPenalAction = () => {
   };
 
   const handleSubmit = async () => {
-    if (!form.actionType) return Swal.fire({ text: "Please Select Action Type", icon: "warning" });
-    if (!form.reason.trim()) return Swal.fire({ text: "Please Enter Reason", icon: "warning" });
-    if (!form.currentStatus.trim()) return Swal.fire({ text: "Please Enter Current Status", icon: "warning" });
-    if (!form.caseNumber.trim()) return Swal.fire({ text: "Please Enter Case Number", icon: "warning" });
-    if (!form.details.trim()) return Swal.fire({ text: "Please Enter Details", icon: "warning" });
-    if (!form.ifRevokeOrderNo.trim()) return Swal.fire({ text: "Please Enter Order Number", icon: "warning" });
-    if (!form.detailsOfOrder.trim()) return Swal.fire({ text: "Please Enter Details Of Order", icon: "warning" });
-    if (!form.impactOnPension) return Swal.fire({ text: "Please Select Whether Impact On Pension", icon: "warning" });
+    if (!form.actionType) return Swal.fire({ text: "Please Select Action Type"});
+    if (!form.reason.trim()) return Swal.fire({ text: "Please Enter Reason" });
+    if (!form.currentStatus.trim()) return Swal.fire({ text: "Please Enter Current Status" });
+    if (!form.caseNumber.trim()) return Swal.fire({ text: "Please Enter Case Number" });
+    if (!form.details.trim()) return Swal.fire({ text: "Please Enter Details" });
+    if (!form.ifRevokeOrderNo.trim()) return Swal.fire({ text: "Please Enter Order Number" });
+    if (!form.detailsOfOrder.trim()) return Swal.fire({ text: "Please Enter Details Of Order" });
+    if (!form.impactOnPension) return Swal.fire({ text: "Please Select Whether Impact On Pension" });
 
     try {
       setLoading(true);
@@ -219,10 +219,10 @@ const FrmEsevaEmpPenalAction = () => {
       const errorMsg = data.errorMsg || data.message || "Saved successfully";
 
       if (errorCode === 9999 || data.success) {
-        await Swal.fire({ text: errorMsg, icon: "success" });
+        await Swal.fire({ text: errorMsg});
         navigate("/Transactions/FrmEsevaEmpList");
       } else {
-        await Swal.fire({ text: errorMsg, icon: "error" });
+        await Swal.fire({ text: errorMsg});
       }
     } catch (error) {
       Swal.close();
