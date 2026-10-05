@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
@@ -51,9 +51,18 @@ const FrmBillDmc = () => {
   ];
 
   const yearOptions = [
-    { value: new Date().getFullYear().toString(), label: new Date().getFullYear().toString() },
-    { value: (new Date().getFullYear() - 1).toString(), label: (new Date().getFullYear() - 1).toString() },
-    { value: (new Date().getFullYear() - 2).toString(), label: (new Date().getFullYear() - 2).toString() },
+    {
+      value: new Date().getFullYear().toString(),
+      label: new Date().getFullYear().toString(),
+    },
+    {
+      value: (new Date().getFullYear() - 1).toString(),
+      label: (new Date().getFullYear() - 1).toString(),
+    },
+    {
+      value: (new Date().getFullYear() - 2).toString(),
+      label: (new Date().getFullYear() - 2).toString(),
+    },
   ];
 
   const genderOptions = [
@@ -72,7 +81,20 @@ const FrmBillDmc = () => {
     const yearNum = parseInt(year);
     const monthNum = parseInt(month);
     const lastDay = new Date(yearNum, monthNum, 0).getDate();
-    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const monthAbbr = monthNames[monthNum - 1];
     return `${String(lastDay).padStart(2, "0")}-${monthAbbr}-${yearNum}`;
   };
@@ -83,7 +105,7 @@ const FrmBillDmc = () => {
       const res = await axios.post(
         `${BASE_URL}/api/FrmSalaryCalulation/department`,
         { ulbid: Number(ulbId) },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       const apiData = res.data?.data?.data || res.data?.data || [];
       if (apiData.length > 0) {
@@ -114,11 +136,18 @@ const FrmBillDmc = () => {
 
   const generateReport = async (values) => {
     let loaderSwal;
+
     try {
       const validationResult = FrmBillDmcValidationSchema.safeParse(values);
+
       if (!validationResult.success) {
         const firstError = validationResult.error.issues[0];
-        await Swal.fire({ text: firstError.message, confirmButtonColor: "#1e3a8a" });
+
+        await Swal.fire({
+          text: firstError.message,
+          confirmButtonColor: "#1e3a8a",
+        });
+
         return;
       }
 
@@ -126,15 +155,20 @@ const FrmBillDmc = () => {
 
       loaderSwal = Swal.fire({
         title: "Generating...",
-        text: "Please wait while the report is being generated",
+        text: "Please wait while the reports are being generated",
         allowOutsideClick: false,
         showConfirmButton: false,
         didOpen: () => Swal.showLoading(),
       });
 
       const formattedSalaryDate = formatDateForAPI(values.year, values.month);
-      const deptName = departmentOptions.find((d) => d.value === values.department)?.label || "";
-      const monthName = monthOptions.find((m) => m.value === values.month)?.label || "";
+
+      const deptName =
+        departmentOptions.find((d) => d.value === values.department)?.label ||
+        "";
+
+      const monthName =
+        monthOptions.find((m) => m.value === values.month)?.label || "";
 
       const payload = {
         ulbid: Number(ulbId),
@@ -146,37 +180,68 @@ const FrmBillDmc = () => {
         yearName: values.year,
       };
 
-      const response = await axios.post(
+      const billDmcResponse = await axios.post(
         `${BASE_URL}/api/FrmEmpLstRpt/bill-dmc-pdf`,
         payload,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           responseType: "json",
-        }
+        },
       );
 
-      loaderSwal.close();
+      console.log("📄 Bill DMC Response:", billDmcResponse.data);
 
-      if (response.data?.success && response.data?.pdfUrl) {
-        window.open(response.data.pdfUrl, "_blank");
-        Swal.fire({
-          text: "Report generated successfully!",
-          confirmButtonColor: "#1e3a8a",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      } else {
-        Swal.fire({
-          text: response.data?.message || "Failed to generate report",
-          confirmButtonColor: "#1e3a8a",
-        });
+      if (!billDmcResponse.data?.success || !billDmcResponse.data?.pdfUrl) {
+        throw new Error(
+          billDmcResponse.data?.message || "Failed to generate Bill DMC report",
+        );
       }
+
+      const billDmcPdfUrl = billDmcResponse.data.pdfUrl;
+
+      const summaryResponse = await axios.post(
+        `${BASE_URL}/api/FrmEmpLstRpt/summary-report-pdf`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "json",
+        },
+      );
+
+
+      if (!summaryResponse.data?.success || !summaryResponse.data?.pdfUrl) {
+        throw new Error(
+          summaryResponse.data?.message || "Failed to generate Summary Report",
+        );
+      }
+
+      const summaryPdfUrl = summaryResponse.data.pdfUrl;
+
+      loaderSwal?.close();
+
+      window.open(billDmcPdfUrl, "_blank");
+      window.open(summaryPdfUrl, "_blank");
+
+      await Swal.fire({
+        text: "Both reports generated successfully!",
+        confirmButtonColor: "#1e3a8a",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error) {
       console.error("Report Generation Error:", error);
-      console.log("Report Generation Error:", error);
+
       loaderSwal?.close();
+
       Swal.fire({
-        text: error.response?.data?.message || error.message || "Error generating report",
+        text:
+          error.response?.data?.message ||
+          error.message ||
+          "Error generating reports",
         confirmButtonColor: "#1e3a8a",
       });
     } finally {
@@ -200,7 +265,9 @@ const FrmBillDmc = () => {
         <Form>
           <Card className="shadow-sm border">
             <CardHeader className="border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <CardTitle className="text-lg font-semibold">तेरीज पत्रक</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                तेरीज पत्रक
+              </CardTitle>
             </CardHeader>
 
             <CardContent className="p-4 space-y-4">
@@ -252,7 +319,9 @@ const FrmBillDmc = () => {
                   </div>
                   <Select
                     value={values.department}
-                    onValueChange={(v) => handleDepartmentChange(v, setFieldValue)}
+                    onValueChange={(v) =>
+                      handleDepartmentChange(v, setFieldValue)
+                    }
                   >
                     <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="-- Select Department --" />

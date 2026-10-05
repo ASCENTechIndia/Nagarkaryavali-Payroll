@@ -228,7 +228,7 @@ const FrmEsevaEmpList = () => {
 
     const transformedTableData = tableData.map((item) => ({
         ...item,
-        action: (<Button type="button" variant="link" onClick={() => handleEmployeeSelect(item)}>Select</Button>)
+        action: (<Button type="button" className="text-[#083c76]" variant="link" onClick={() => handleEmployeeSelect(item)}>Select</Button>)
     }));
 
     const handleReset = () => {
@@ -315,8 +315,9 @@ const FrmEsevaEmpList = () => {
                             data={transformedTableData}
                             keyMapping={keyMapping}
                             // columnStyles={columnStyles}
-                            pagination={true}
-                            rowsPerPage={5}
+                            // pagination={true}
+                            // rowsPerPage={5}
+                            className="md:min-w-7xl"
                         />
                     )}
 
