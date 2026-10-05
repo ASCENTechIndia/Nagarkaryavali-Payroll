@@ -43,7 +43,7 @@ const FrmESevaEmpMaster = () => {
   const [detailsLoaded, setDetailsLoaded] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  console.log({location});
+  console.log("master", {location});
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
