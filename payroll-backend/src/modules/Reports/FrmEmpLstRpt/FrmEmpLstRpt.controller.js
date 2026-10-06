@@ -9,46 +9,56 @@ const {
   generateBillDmcPDF: generateBillDmcPDFHelper,
 } = require("../../../utils/pdfHelper/FrmBillDmcTeriz.js");
 const { generateBillDmcPDF2 } = require("../../../utils/pdfHelper/FrmBillDmcTeriz2.js");
-
-
-
 const { getCorporationService } = require("../../MenuAccess/MenuAccess.service");
 
-
 exports.getEmployeeList = asyncHandler(async (req, res) => {
-    const {
-        ulbid,
-        empId,
-        categoryId,
-        deptId,
-        desigId,
-        gender,
-        empStatus
-    } = req.body;
+  const {
+    ulbid,
+    empId,
+    categoryId,
+    deptId,
+    desigId,
+    gender,
+    empStatus,
+  } = req.body;
 
-    const result = await service.getEmployeeListService({
-        ulbid,
-        empId,
-        categoryId,
-        deptId,
-        desigId,
-        gender,
-        empStatus
-    });
+  const result = await service.getEmployeeListService({
+    ulbid,
+    empId,
+    categoryId,
+    deptId,
+    desigId,
+    gender,
+    empStatus,
+  });
 
-    return ok(res, result, "Employee list fetched successfully");
+  if (!result.success) {
+    return fail(
+      res,
+      result.message,
+      result.errorCode || 500
+    );
+  }
+
+  return ok(
+    res,
+    result,
+    result.message || "Employee list fetched successfully"
+  );
 });
 
 exports.generateEmployeeListPDF = asyncHandler(async (req, res) => {
-
   const filters = req.body;
 
   const result = await service.getEmployeeListService(filters);
 
-//   const ulbInfo = await getCorporationService({
-//     ulbId: filters.ulbid,
-//   });
-
+  if (!result.success) {
+    return fail(
+      res,
+      result.message,
+      result.errorCode || 500
+    );
+  }
 
   const ulbInfo = {
     ULBLOGO: "",
@@ -61,129 +71,208 @@ exports.generateEmployeeListPDF = asyncHandler(async (req, res) => {
   });
 
   const baseUrl = `${req.protocol}://${req.get("host")}`;
-
-  const pdfUrl =
-    `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
+  const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
   return res.json({
     success: true,
+    errorCode: 0,
     message: "Employee List PDF Generated Successfully",
     fileName: pdf.fileName,
     pdfUrl,
   });
 });
 
-
 exports.getSalaryDetail = asyncHandler(async (req, res) => {
-    const { lstdate, ulbid, deptId, gender } = req.body;
+  const { lstdate, ulbid, deptId, gender } = req.body;
 
-    const result = await service.getSalaryDetailService({
-        lstdate,
-        ulbid,
-        deptId,
-        gender
-    });
+  const result = await service.getSalaryDetailService({
+    lstdate,
+    ulbid,
+    deptId,
+    gender,
+  });
 
-    return ok(res, result, "Salary detail fetched successfully");
+  if (!result.success) {
+    return fail(
+      res,
+      result.message,
+      result.errorCode || 500
+    );
+  }
+
+  return ok(
+    res,
+    result,
+    result.message || "Salary detail fetched successfully"
+  );
 });
 
 exports.getEmployeeSubDetail = asyncHandler(async (req, res) => {
-    const { lstdate, ulbid, deptId, gender } = req.body;
+  const { lstdate, ulbid, deptId, gender } = req.body;
 
-    const result = await service.getEmployeeSubDetailService({
-        lstdate,
-        ulbid,
-        deptId,
-        gender
-    });
+  const result = await service.getEmployeeSubDetailService({
+    lstdate,
+    ulbid,
+    deptId,
+    gender,
+  });
 
-    return ok(res, result, "Employee sub detail fetched successfully");
+  if (!result.success) {
+    return fail(
+      res,
+      result.message,
+      result.errorCode || 500
+    );
+  }
+
+  return ok(
+    res,
+    result,
+    result.message || "Employee sub detail fetched successfully"
+  );
 });
 
 exports.getPayheadSalaryDetail = asyncHandler(async (req, res) => {
-    const { lstdate, ulbid, deptId, gender } = req.body;
+  const { lstdate, ulbid, deptId, gender } = req.body;
 
-    const result = await service.getPayheadSalaryDetailService({
-        lstdate,
-        ulbid,
-        deptId,
-        gender
-    });
+  const result = await service.getPayheadSalaryDetailService({
+    lstdate,
+    ulbid,
+    deptId,
+    gender,
+  });
 
-    return ok(res, result, "Payhead salary detail fetched successfully");
+  if (!result.success) {
+    return fail(
+      res,
+      result.message,
+      result.errorCode || 500
+    );
+  }
+
+  return ok(
+    res,
+    result,
+    result.message || "Payhead salary detail fetched successfully"
+  );
 });
 
 exports.generateBillDmcPDF = asyncHandler(async (req, res) => {
-    const { ulbid, deptId, deptName, gender, lstdate, monthName, yearName } = req.body;
+  const {
+    ulbid,
+    deptId,
+    deptName,
+    gender,
+    lstdate,
+    monthName,
+    yearName,
+  } = req.body;
 
-    if (!ulbid) return fail(res, "ULB ID is required", 400);
-    if (!deptId || deptId === "-1") return fail(res, "Please Select Department Name", 400);
+  if (!ulbid) {
+    return fail(res, "ULB ID is required", 400);
+  }
 
-    const billDetail = await service.getSalaryDetailService({
-        lstdate,
-        ulbid,
-        deptId,
-        gender
-    });
+  if (!deptId || deptId === "-1") {
+    return fail(res, "Please Select Department Name", 400);
+  }
 
-    const subDetail = await service.getEmployeeSubDetailService({
-        lstdate,
-        ulbid,
-        deptId,
-        gender
-    });
+  const billDetail = await service.getSalaryDetailService({
+    lstdate,
+    ulbid,
+    deptId,
+    gender,
+  });
 
-    const payhead = await service.getPayheadSalaryDetailService({
-        lstdate,
-        ulbid,
-        deptId,
-        gender
-    });
+  if (!billDetail.success) {
+    return fail(
+      res,
+      billDetail.message,
+      billDetail.errorCode || 500
+    );
+  }
 
-    console.log("billDetail: ", billDetail);
-    console.log("subDetail: ", subDetail);
-    console.log("payhead: ", payhead);
+  const subDetail = await service.getEmployeeSubDetailService({
+    lstdate,
+    ulbid,
+    deptId,
+    gender,
+  });
 
-    let corpInfo = {};
-    try {
-        corpInfo = await getCorporationService({ ulbId: ulbid });
-    } catch (e) {
-        corpInfo = {};
-    }
+  if (!subDetail.success) {
+    return fail(
+      res,
+      subDetail.message,
+      subDetail.errorCode || 500
+    );
+  }
 
-    const corporationName =
-        corpInfo?.ABC_MUNICIPAL_TEXT || corpInfo?.ULBNAME || deptName || "";
-    const logo = corpInfo?.ULBLOGO || "";
+  const payhead = await service.getPayheadSalaryDetailService({
+    lstdate,
+    ulbid,
+    deptId,
+    gender,
+  });
 
-    const genderText =
-        String(deptId) === "406"
-            ? (gender === "Male" || gender === "M" ? "पुरुष" : "स्त्री")
-            : "";
+  if (!payhead.success) {
+    return fail(
+      res,
+      payhead.message,
+      payhead.errorCode || 500
+    );
+  }
 
-    const pdf = await generateBillDmcPDFHelper({
-        billDetailRows: billDetail.data,
-        netEarning: billDetail.netEarning,
-        subDetailRows: subDetail.data,
-        payheadRows: payhead.data,
-        departmentName: deptName,
-        genderText,
-        monthName,
-        yearName,
-        lstdate,
-        deptId,
-        corporationName,
-        logo,
-    });
+  console.log("billDetail: ", billDetail);
+  console.log("subDetail: ", subDetail);
+  console.log("payhead: ", payhead);
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
+  let corpInfo = {};
 
-    return res.json({
-        success: true,
-        message: "Bill DMC PDF Generated Successfully",
-        fileName: pdf.fileName,
-        pdfUrl,
-    });
+  try {
+    corpInfo = await getCorporationService({ ulbId: ulbid });
+  } catch (e) {
+    corpInfo = {};
+  }
+
+  const corporationName =
+    corpInfo?.ABC_MUNICIPAL_TEXT ||
+    corpInfo?.ULBNAME ||
+    deptName ||
+    "";
+
+  const logo = corpInfo?.ULBLOGO || "";
+
+  const genderText =
+    String(deptId) === "406"
+      ? gender === "Male" || gender === "M"
+        ? "पुरुष"
+        : "स्त्री"
+      : "";
+
+  const pdf = await generateBillDmcPDFHelper({
+    billDetailRows: billDetail.data,
+    netEarning: billDetail.netEarning,
+    subDetailRows: subDetail.data,
+    payheadRows: payhead.data,
+    departmentName: deptName,
+    genderText,
+    monthName,
+    yearName,
+    lstdate,
+    deptId,
+    corporationName,
+    logo,
+  });
+
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
+
+  return res.json({
+    success: true,
+    errorCode: 0,
+    message: "Bill DMC PDF Generated Successfully",
+    fileName: pdf.fileName,
+    pdfUrl,
+  });
 });
 
 exports.generateSummaryReportPDF = asyncHandler(async (req, res) => {
@@ -197,9 +286,13 @@ exports.generateSummaryReportPDF = asyncHandler(async (req, res) => {
     yearName,
   } = req.body;
 
-  if (!ulbid) return fail(res, "ULB ID is required", 400);
-  if (!deptId || deptId === "-1")
+  if (!ulbid) {
+    return fail(res, "ULB ID is required", 400);
+  }
+
+  if (!deptId || deptId === "-1") {
     return fail(res, "Please Select Department Name", 400);
+  }
 
   const billDetail = await service.getSalaryDetailService({
     lstdate,
@@ -208,12 +301,28 @@ exports.generateSummaryReportPDF = asyncHandler(async (req, res) => {
     gender,
   });
 
+  if (!billDetail.success) {
+    return fail(
+      res,
+      billDetail.message,
+      billDetail.errorCode || 500
+    );
+  }
+
   const subDetail = await service.getEmployeeSubDetailService({
     lstdate,
     ulbid,
     deptId,
     gender,
   });
+
+  if (!subDetail.success) {
+    return fail(
+      res,
+      subDetail.message,
+      subDetail.errorCode || 500
+    );
+  }
 
   const payhead = await service.getPayheadSalaryDetailService({
     lstdate,
@@ -222,7 +331,16 @@ exports.generateSummaryReportPDF = asyncHandler(async (req, res) => {
     gender,
   });
 
+  if (!payhead.success) {
+    return fail(
+      res,
+      payhead.message,
+      payhead.errorCode || 500
+    );
+  }
+
   let corpInfo = {};
+
   try {
     corpInfo = await getCorporationService({ ulbId: ulbid });
   } catch (e) {
@@ -230,7 +348,11 @@ exports.generateSummaryReportPDF = asyncHandler(async (req, res) => {
   }
 
   const corporationName =
-    corpInfo?.ABC_MUNICIPAL_TEXT || corpInfo?.ULBNAME || deptName || "";
+    corpInfo?.ABC_MUNICIPAL_TEXT ||
+    corpInfo?.ULBNAME ||
+    deptName ||
+    "";
+
   const logo = corpInfo?.ULBLOGO || "";
 
   const genderText =
@@ -260,6 +382,7 @@ exports.generateSummaryReportPDF = asyncHandler(async (req, res) => {
 
   return res.json({
     success: true,
+    errorCode: 0,
     message: "Summary Report PDF Generated Successfully",
     fileName: pdf.fileName,
     pdfUrl,

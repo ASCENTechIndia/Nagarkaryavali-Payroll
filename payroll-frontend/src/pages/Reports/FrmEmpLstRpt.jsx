@@ -241,40 +241,40 @@ const FrmEmployeeListReport = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {/* Department */}
-               <div className="flex items-center gap-3">
-  <div className="w-36 shrink-0">
-    <Label text={labels.department} />
-  </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0">
+                    <Label text={labels.department} />
+                  </div>
 
-  <span>:</span>
+                  <span>:</span>
 
-  <div className="flex-1 min-w-0">
-    <Select
-      value={values.department}
-      onValueChange={(value) =>
-        setFieldValue("department", value)
-      }
-    >
-      <SelectTrigger className="w-full h-9">
-        <SelectValue placeholder="-- ALL --" />
-      </SelectTrigger>
+                  <div className="flex-1 min-w-0">
+                    <Select
+                      value={values.department}
+                      onValueChange={(value) =>
+                        setFieldValue("department", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="-- ALL --" />
+                      </SelectTrigger>
 
-      <SelectContent className="max-h-72">
-        <SelectItem value="-1">-- ALL --</SelectItem>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value="-1">-- ALL --</SelectItem>
 
-        {departmentList.map((item) => (
-          <SelectItem
-            key={item.DEPTID}
-            value={String(item.DEPTID)}
-            className="truncate"
-          >
-            {item.DEPTNAME}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-</div>
+                        {departmentList.map((item) => (
+                          <SelectItem
+                            key={item.DEPTID}
+                            value={String(item.DEPTID)}
+                            className="truncate"
+                          >
+                            {item.DEPTNAME}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
                 {/* Designation */}
                 <div className="flex items-center gap-3">
