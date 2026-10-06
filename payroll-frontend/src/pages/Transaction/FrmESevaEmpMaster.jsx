@@ -602,7 +602,6 @@ useEffect(() => {
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
       const payload = {
         mode,
         userid: userId,
@@ -707,7 +706,9 @@ useEffect(() => {
           sessionStorage.setItem("empIdEseva", data.esevaEmpId.toString());
 
         await Swal.fire({ text: data.message });
-        navigate("/Transactions/FrmESevaEmpEducationalInformation?@=1");
+        navigate("/Transactions/FrmESevaEmpEducationalInformation?@=1", {
+          state: { empId, esevaEmpId: data?.esevaEmpId, mode },
+        });
       } else {
         await Swal.fire({
           text: res?.data?.message || "Something went wrong",
@@ -792,7 +793,6 @@ useEffect(() => {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* ============ BASIC INFO ============ */}
           <section>
             <h3 className="font-semibold text-lg mb-3">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 gap-y-4">
@@ -1076,7 +1076,6 @@ useEffect(() => {
             </div>
           </section>
 
-          {/* ============ PERMANENT ADDRESS ============ */}
           <section>
             <h3 className="font-semibold text-lg mb-3">Permanent Address</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -1089,6 +1088,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "District",
                 <Input
@@ -1098,6 +1098,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "State",
                 <Input
@@ -1107,6 +1108,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Country",
                 <Input
@@ -1116,6 +1118,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Post Office",
                 <Input
@@ -1190,6 +1193,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "District",
                 <Input
@@ -1200,6 +1204,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "State",
                 <Input
@@ -1210,6 +1215,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Country",
                 <Input
@@ -1220,6 +1226,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Post Office",
                 <Input
@@ -1290,6 +1297,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Relation",
                 <Select
@@ -1373,7 +1381,6 @@ useEffect(() => {
             </div>
           </section>
 
-          {/* ============ HOMETOWN INFO ============ */}
           <section>
             <h3 className="font-semibold text-lg mb-3">
               Hometown Information
@@ -1388,6 +1395,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Near By Railway Station",
                 <Input
@@ -1400,6 +1408,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Near By Airport",
                 <Input
@@ -1409,6 +1418,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Subsequent Change Of Home Town",
                 <Input
@@ -1418,6 +1428,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Near By Railway Station",
                 <Input
@@ -1430,6 +1441,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Near By Airport",
                 <Input
@@ -1442,7 +1454,6 @@ useEffect(() => {
             </div>
           </section>
 
-          {/* ============ MEDICAL REPORT ============ */}
           <section>
             <h3 className="font-semibold text-lg mb-3">
               Report To Medical Test
@@ -1457,6 +1468,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Certificate Date",
                 <DatePicker
@@ -1464,6 +1476,7 @@ useEffect(() => {
                   onChange={(d) => updateForm("medTestRptDate", d)}
                 />
               )}
+
               {renderField(
                 "Issuing Authority and His Designation",
                 <Input
@@ -1473,6 +1486,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Note",
                 <Input
@@ -1483,7 +1497,6 @@ useEffect(() => {
             </div>
           </section>
 
-          {/* ============ FAMILY DETAILS ============ */}
           <section>
             <h3 className="font-semibold text-lg mb-3">Family Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-3">
@@ -1496,6 +1509,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Date of Birth",
                 <DatePicker
@@ -1505,6 +1519,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Relationship",
                 <Select
@@ -1525,6 +1540,7 @@ useEffect(() => {
                   </SelectContent>
                 </Select>
               )}
+
               {renderField(
                 "Marital Status",
                 <div className="flex items-center gap-4">
@@ -1562,6 +1578,7 @@ useEffect(() => {
                   </label>
                 </div>
               )}
+
               {renderField(
                 "Occupation",
                 <Input
@@ -1571,6 +1588,7 @@ useEffect(() => {
                   }
                 />
               )}
+
               {renderField(
                 "Monthly Income",
                 <Input
@@ -1580,6 +1598,7 @@ useEffect(() => {
                   }
                 />
               )}
+              
               {renderField(
                 "Is Dependent",
                 <div className="flex items-center gap-4">
@@ -1649,7 +1668,6 @@ useEffect(() => {
             )}
           </section>
 
-          {/* ============ ACTION BUTTONS ============ */}
           <div className="flex justify-center gap-4 pt-4 border-t">
             <Button onClick={handleStep1Submit}>Process</Button>
             <Button variant="secondary" onClick={handleClose}>

@@ -250,6 +250,7 @@ const FrmESevaEmpNomin = () => {
 
       Swal.close();
 
+      const apiData      = res?.data?.data || {};
       const outerSuccess = res?.data?.success ?? res?.data?.ok;
       const errorMsg =
         res?.data?.data?.message ||
@@ -259,7 +260,7 @@ const FrmESevaEmpNomin = () => {
       if (outerSuccess) {
         await Swal.fire({ text: errorMsg });
         navigate("/Transactions/FrmESevaEmpPostingRecord?@=1", {
-          state: { empId, esevaEmpId, mode },
+          state: { empId, esevaEmpId: apiData?.esevaEmpId ?? esevaEmpId, mode },
         });
       } else {
         await Swal.fire({ text: errorMsg});

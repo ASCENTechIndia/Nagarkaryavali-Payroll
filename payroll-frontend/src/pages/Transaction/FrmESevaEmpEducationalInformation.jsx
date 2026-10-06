@@ -307,24 +307,22 @@ const FrmESevaEmpEducationalInformation = () => {
         data.map((row) => fields.map((f) => row[f] || "").join("$")).join("#");
 
       const strEdu = buildString(eduTableData, ["Degree", "University", "PassingYear"]);
-      const strAT = buildString(atTableData, ["CourseName", "OrganizationDetails", "CommencementDates"]);
       const strPT = buildString(ptTableData, ["Degree", "University", "PassingYear"]);
+      const strATConverted = atTableData
+        .map((r) =>
+          [
+            r.CourseName || "",
+            r.OrganizationDetails || "",
+            r.CommencementDates || "",
+          ].join("$")
+        )
+        .join("#");
 
       Swal.fire({
         text: "Saving...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
-      const strATConverted = atTableData
-        .map((r) =>
-          [
-            r.CourseName || "",
-            r.OrganizationDetails || "",
-            r.CommencementDates ? toDDMMYYYY(r.CommencementDates) : "",
-          ].join("$")
-        )
-        .join("#");
 
       const payload = {
         userid: user?.userId,
@@ -337,7 +335,7 @@ const FrmESevaEmpEducationalInformation = () => {
         mode,
       };
 
-      const res = await axios.post(
+      const response  = await axios.post(
         `${API(BASE_URL)}/insert-education-info`,
         payload,
         { headers: authHeaders }
@@ -345,14 +343,16 @@ const FrmESevaEmpEducationalInformation = () => {
 
       Swal.close();
 
-      const data = res?.data?.data || {};
-      const errorCode = data.errorCode;
-      const errorMsg = data.message || res?.data?.message || "Saved successfully";
+    const apiData = response?.data?.data || {};
+    const errorCode = apiData.errorCode;
+    const errorMsg =
+      apiData.message || response?.data?.message || "Saved successfully";
 
       if (errorCode === 9999) {
         await Swal.fire({ text: errorMsg });
+        
         navigate("/Transactions/FrmESevaEmpNomin", {
-          state: { empId, esevaEmpId, mode },
+          state: { empId, esevaEmpId: apiData?.esevaEmpId, mode },
         });
       } else {
         await Swal.fire({ text: errorMsg });
@@ -425,7 +425,7 @@ const FrmESevaEmpEducationalInformation = () => {
         </CardHeader>
 
         <CardContent className="pt-4 space-y-6">
-          {/* EDUCATIONAL INFO */}
+
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-lg font-bold">Educational Information</CardTitle>
@@ -479,7 +479,6 @@ const FrmESevaEmpEducationalInformation = () => {
             </CardContent>
           </Card>
 
-          {/* ADDITIONAL TRAINING */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-lg font-bold">Additional Training</CardTitle>
@@ -534,7 +533,6 @@ const FrmESevaEmpEducationalInformation = () => {
             </CardContent>
           </Card>
 
-          {/* PROFESSIONAL TRAINING */}
           <Card className="border shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-lg font-bold">

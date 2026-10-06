@@ -74,11 +74,11 @@ const FrmEsevaEmpLayout = () => {
             const id = Number(res.data?.data?.NUM_ESEVAEMP_ID) || 0;
 
             if (!id) {
-                await Swal.fire({
-                    // icon: "error",
-                    text: res?.data?.data?.message || "No ESeva Employee ID found"
-                });
-                navigate("/Transactions/FrmEsevaEmpList")
+                // await Swal.fire({
+                //     // icon: "error",
+                //     text: res?.data?.data?.message || "No ESeva Employee ID found"
+                // });
+                navigate("/Transactions/FrmEsevaEmpMaster")
             }
 
             // console.log("API esevaEmployeeID:", id);

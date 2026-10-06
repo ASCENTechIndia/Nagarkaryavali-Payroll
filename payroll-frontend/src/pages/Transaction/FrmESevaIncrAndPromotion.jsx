@@ -48,6 +48,8 @@ const pick = (obj, ...keys) => {
   return "";
 };
 
+const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
 const FrmESevaIncrAndPromotion = () => {
   const { user } = useAuth();
   const token = user?.token;
@@ -64,8 +66,10 @@ const FrmESevaIncrAndPromotion = () => {
   const mode = queryMode === "1" ? 2 : 1;
 
   const { empId, esevaEmployeeID } = useOutletContext();
-  const empIdEseva = empId;
-  const esevaEmpId = esevaEmployeeID;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const empIdEseva = empId || storedUser?.empId || storedUser?.employeeId;
+  const esevaEmpId = esevaEmployeeID || storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -99,9 +103,6 @@ const FrmESevaIncrAndPromotion = () => {
     await Swal.fire({ text });
     if (redirectTo) navigate(redirectTo);
   };
-
-  const getNextId = (data) =>
-    data.length > 0 ? Math.max(...data.map((r) => r.Id)) + 1 : 1;
 
   useEffect(() => {
     if (!token || !empIdEseva) return;
@@ -142,25 +143,44 @@ const FrmESevaIncrAndPromotion = () => {
       const rowsOf = (r) => (r.status === "fulfilled" ? unwrapRows(r.value) : []);
 
       setPayscaleOptions(
-        rowsOf(payRes).map((r) => ({
-          value: r.PAYSCALEID?.toString(),
-          label: r.PAYSCALENAME ?? "",
-        }))
+        Array.from(
+          new Map(
+            rowsOf(payRes)
+              .filter((r) => r.PAYSCALEID != null)
+              .map((r) => [
+                r.PAYSCALEID.toString(),
+                { value: r.PAYSCALEID.toString(), label: r.PAYSCALENAME ?? "" },
+              ])
+          ).values()
+        )
       );
 
       setDesigOptions(
-        rowsOf(desigRes).map((r) => ({
-          value: r.DESIG_ID?.toString(),
-          label: r.DESIG_ENAME ?? "",
-        }))
+        Array.from(
+          new Map(
+            rowsOf(desigRes)
+              .filter((r) => r.DESIG_ID != null)
+              .map((r) => [
+                r.DESIG_ID.toString(),
+                { value: r.DESIG_ID.toString(), label: r.DESIG_ENAME ?? "" },
+              ])
+          ).values()
+        )
       );
 
       setDeptOptions(
-        rowsOf(deptRes).map((r) => ({
-          value: r.DEPTID?.toString(),
-          label: r.DEPTNAME ?? "",
-        }))
+        Array.from(
+          new Map(
+            rowsOf(deptRes)
+              .filter((r) => r.DEPTID != null)
+              .map((r) => [
+                r.DEPTID.toString(),
+                { value: r.DEPTID.toString(), label: r.DEPTNAME ?? "" },
+              ])
+          ).values()
+        )
       );
+
     } catch (e) {
       console.error("Failed to fetch dropdowns:", e);
     }
@@ -180,7 +200,7 @@ const FrmESevaIncrAndPromotion = () => {
       );
       const rows = unwrapRows(res);
       const mapped = rows.map((row, idx) => ({
-        Id: idx + 1,
+        Id: makeId(),
         OrigPayscale: pick(row, "ORIGINALPAYSCALEN", "originalpayscalen"),
         OrigPayscaleId: (pick(row, "ORIGINALPAYSCALE", "originalpayscale")).toString(),
         RevPayscale: pick(row, "REVISEDPAYSCALEN", "revisedpayscalen"),
@@ -214,7 +234,7 @@ const FrmESevaIncrAndPromotion = () => {
       );
       const rows = unwrapRows(res);
       const mapped = rows.map((row, idx) => ({
-        Id: idx + 1,
+        Id: makeId(),
         OrigDesig: pick(row, "ORIGINALDESIGNATIONN", "originaldesignationn"),
         OrigDesigId: (pick(row, "ORIGINALDESIGNATION", "originaldesignation")).toString(),
         OrigDept: pick(row, "ORIGINALDEPTN", "originaldeptn"),
@@ -268,7 +288,7 @@ const FrmESevaIncrAndPromotion = () => {
     const revLabel = payscaleOptions.find((p) => p.value === incForm.revPayscaleId)?.label || "";
 
     const record = {
-      Id: incEditId !== null ? incEditId : getNextId(incTableData),
+      Id: incEditId !== null ? incEditId : makeId(),
       OrigPayscale: origLabel,
       OrigPayscaleId: incForm.origPayscaleId,
       RevPayscale: revLabel,
@@ -337,7 +357,7 @@ const FrmESevaIncrAndPromotion = () => {
     const findLabel = (options, value) => options.find((o) => o.value === value)?.label || "";
 
     const record = {
-      Id: promEditId !== null ? promEditId : getNextId(promTableData),
+      Id: promEditId !== null ? promEditId : makeId(),
       OrigDesig: findLabel(desigOptions, p.origDesigId),
       OrigDesigId: p.origDesigId,
       OrigDept: findLabel(deptOptions, p.origDeptId),
@@ -446,7 +466,9 @@ const FrmESevaIncrAndPromotion = () => {
 
       if (errorCode === 9999 || data.success) {
         await Swal.fire({ text: errorMsg });
-        navigate("/Transactions/FrmESevaLoanNAdvance?@=1");
+        navigate("/Transactions/FrmESevaLoanNAdvance?@=1", {
+          state: { empId, esevaEmpId: data?.esevaEmpId, mode },
+        });
       } else {
         await Swal.fire({ text: errorMsg });
       }

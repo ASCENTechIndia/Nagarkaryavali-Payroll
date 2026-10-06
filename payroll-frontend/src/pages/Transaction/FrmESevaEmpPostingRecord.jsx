@@ -60,9 +60,11 @@ const FrmESevaEmpPostingRecord = () => {
   const queryMode = searchParams.get("@");
   const mode = queryMode === "1" ? 2 : 1;
 
-  const { empId, esevaEmployeeID } = useOutletContext();
-  const empIdEseva = empId;              
-  const esevaEmpId = esevaEmployeeID;   
+  const { empId, esevaEmployeeID } = useOutletContext();  
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const empIdEseva = empId || storedUser?.empId || storedUser?.employeeId;
+  const esevaEmpId = esevaEmployeeID || storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -265,21 +267,6 @@ const FrmESevaEmpPostingRecord = () => {
     if (fileInput) fileInput.value = "";
   };
 
-  const handleUpdateRow = (row) => {
-    setForm({
-      fromDate: parseDate(row.FromDate),
-      toDate: parseDate(row.ToDate),
-      postHeldBy: row.PostHeldBy,
-      deptName: row.Department,
-      designation: row.Designation,
-      serviceId: row.ServiceId,
-      purpose: row.Purpose,
-      signatureFile: row.SignatureFile || null,
-    });
-    setSignaturePreview(row.SignatureBase64);
-    setEditId(row.Id);
-  };
-
   const handleDeleteRow = (id) => {
     setTableData(tableData.filter((r) => r.Id !== id));
     if (editId === id) {
@@ -354,7 +341,7 @@ const FrmESevaEmpPostingRecord = () => {
       if (errorCode === 9999 || data.success) {
         await Swal.fire({ text: errorMsg});
         navigate("/Transactions/FrmESevaEmpLeaveRecord?@=1", {
-          state: { empId: empIdEseva, esevaEmpId, mode },
+          state: { empId, esevaEmpId: data?.esevaEmpId, mode },
         });
       } else {
         await Swal.fire({ text: errorMsg });
