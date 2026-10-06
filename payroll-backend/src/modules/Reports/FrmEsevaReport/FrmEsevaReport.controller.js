@@ -4,6 +4,9 @@ const { AppError } = require("../../../libs/errors");
 const service = require("./FrmEsevaReport.service");
 const { EsevaReportPDFHelper } = require("../../../utils/pdfHelper/FrmEsevaReport");
 const path = require("path");
+require("dotenv").config({
+  path: path.join(__dirname, ".env")
+});
 
 exports.searchEmployee = asyncHandler(async (req, res) => {
   const { ulbId, empCode } = req.body;
@@ -66,7 +69,10 @@ exports.generateEsevaReport = asyncHandler(async (req, res) => {
     userName: userName || req.user?.userName || req.user?.name || "",
   });
 
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const baseUrl = process.env.BASE_URL;
+
+  console.log(baseUrl);
+  // const baseUrl = `${req.protocol}://${req.get("host")}`;
   const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
   return res.status(200).json({
