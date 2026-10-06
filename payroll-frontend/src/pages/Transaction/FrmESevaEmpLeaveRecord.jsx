@@ -108,8 +108,34 @@ const FrmESevaEmpLeaveRecord = () => {
   const { empId, esevaEmployeeID } = useOutletContext();
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const empIdEseva = empId || storedUser?.empId || storedUser?.employeeId;
-  const esevaEmpId = esevaEmployeeID || storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+  const empIdEseva =
+    empId ||
+    location?.state?.empId ||
+    storedUser?.empId ||
+    storedUser?.employeeId;
+
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    const fromLocal =
+      storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+    if (fromLocal) return Number(fromLocal);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -227,9 +253,14 @@ const FrmESevaEmpLeaveRecord = () => {
 
   useEffect(() => {
     if (!token || !empIdEseva) return;
+
     if (queryMode === "1" && !esevaEmpId) {
       navigate("/Transactions/FrmEsevaEmpList");
       return;
+    }
+
+    if (esevaEmpId) {
+      sessionStorage.setItem("empIdEseva", String(esevaEmpId));
     }
 
     const load = async () => {
@@ -570,6 +601,10 @@ const FrmESevaEmpLeaveRecord = () => {
     if (leaveMainData.length === 0) return showAlert("Please Add At least One Detail");
     if (leaveTEData.length === 0) return showAlert("Please Add At least One Detail");
 
+    if (mode === 2 && !esevaEmpId) {
+      return showAlert("Eseva Employee ID not found. Please re-open from the list.");
+    }
+
     const buildStr = (arr, fields) =>
       arr.map((r) => fields.map((f) => r[f] ?? "").join("$")).join("#");
 
@@ -602,9 +637,9 @@ const FrmESevaEmpLeaveRecord = () => {
       const payload = {
         userId,
         mode,
-        empId: Number(empIdEseva),
+        empId: empIdEseva || 0,
         ulbId: Number(ulbId),
-        esevaEmpId: mode === 1 ? 0 : Number(esevaEmpId),
+        esevaEmpId: mode === 1 ? 0 : (esevaEmpId || 0),
         leaveStr,
         leaveStrEd: leaveStrET,
         leaveStrMat: leaveStr2,
@@ -622,17 +657,29 @@ const FrmESevaEmpLeaveRecord = () => {
       const data = res?.data?.data || {};
 
       if (data.success) {
+        const resolvedId = data?.esevaEmpId ?? esevaEmpId;
+
+        if (resolvedId) {
+          sessionStorage.setItem("empIdEseva", String(resolvedId));
+        }
+
         await Swal.fire({ text: data.errorMsg || data.message || "Saved successfully" });
         const navState = {
           empId: empIdEseva,
           esevaEmpId: esevaEmpId,
           mode,
         };
-        if (String(ulbId) === "870") {
-          navigate("/Transactions/FrmESevaIncrAndPromotionsmkc?@=1", { state: navState });
-        } else {
-          navigate("/Transactions/FrmESevaIncrAndPromotion?@=1", { state: navState });
-        }
+
+        const basePath =
+          String(ulbId) === "870"
+            ? "/Transactions/FrmESevaIncrAndPromotionsmkc"
+            : "/Transactions/FrmESevaIncrAndPromotion";
+        const nextMode = mode === 2 ? "1" : "0";
+
+        navigate(
+          `${basePath}?@=${nextMode}&esevaEmpId=${resolvedId || ""}`,
+          { state: navState }
+        );
       } else {
         showAlert(data.errorMsg || data.message || "Something went wrong");
       }

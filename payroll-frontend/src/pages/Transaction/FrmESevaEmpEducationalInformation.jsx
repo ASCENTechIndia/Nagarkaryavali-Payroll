@@ -52,8 +52,6 @@ const FrmESevaEmpEducationalInformation = () => {
 
   const esevaEmpId = resolveEsevaEmpId();
 
-  //const esevaEmpId = esevaEmployeeID;
-
   const mode = searchParams.get("@") === "1" ? 2 : 1;
 
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -350,7 +348,6 @@ const FrmESevaEmpEducationalInformation = () => {
 
       const payload = {
         userid: user?.userId,
-        //esevaempid: Number(esevaEmpId) ,
         esevaempid: esevaEmpId || 0,
         ulbid: Number(ulbId),
         empid: Number(empId),
@@ -382,7 +379,7 @@ const FrmESevaEmpEducationalInformation = () => {
 
         await Swal.fire({ text: errorMsg });
         
-        navigate("/Transactions/FrmESevaEmpNomin", {
+        navigate("/Transactions/FrmESevaEmpNomin?@=1", {
           state: { empId, esevaEmpId: apiData?.esevaEmpId, mode },
         });
       } else {

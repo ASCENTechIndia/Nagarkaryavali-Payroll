@@ -55,18 +55,14 @@ const FrmESevaEmpMaster = () => {
   const { empId, esevaEmployeeID } = useOutletContext();
 
   const resolveEsevaEmpId = () => {
-  // 1. Outlet context (from eseva-layout API)
   if (esevaEmployeeID) return Number(esevaEmployeeID);
 
-  // 2. React Router navigation state
   const fromState = location?.state?.esevaEmpId;
   if (fromState) return Number(fromState);
 
-  // 3. URL query param
   const fromUrl = searchParams.get("esevaEmpId");
   if (fromUrl) return Number(fromUrl);
 
-  // 4. SessionStorage (set after successful insert)
   const fromSession =
     sessionStorage.getItem("empIdEseva") ||
     sessionStorage.getItem("esevaempid");
@@ -360,7 +356,6 @@ useEffect(() => {
 
       const resolvedEsevaEmpId = resolveEsevaEmpId();
 
-      // Safety guard: if mode 2 but no esevaEmpId, bail out
       if (mode === 2 && !resolvedEsevaEmpId) {
         showAlert("Eseva Employee ID not found. Please re-open from the list.",
           "/Transactions/FrmEsevaEmpList");
@@ -644,7 +639,6 @@ useEffect(() => {
         userid: userId,
         ulbid: Number(ulbId),
         empid: Number(empId),
-        //esevaempid: mode === 1 ? 0 : Number(esevaEmployeeID),
         esevaempid: mode === 1 ? 0 : resolveEsevaEmpId(),
 
         esevaempdetid: 0,

@@ -68,8 +68,34 @@ const FrmESevaIncrAndPromotion = () => {
   const { empId, esevaEmployeeID } = useOutletContext();
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const empIdEseva = empId || storedUser?.empId || storedUser?.employeeId;
-  const esevaEmpId = esevaEmployeeID || storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+  const empIdEseva =
+    empId ||
+    location?.state?.empId ||
+    storedUser?.empId ||
+    storedUser?.employeeId;
+
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    const fromLocal =
+      storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+    if (fromLocal) return Number(fromLocal);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -106,6 +132,10 @@ const FrmESevaIncrAndPromotion = () => {
 
   useEffect(() => {
     if (!token || !empIdEseva) return;
+
+    if (esevaEmpId) {
+      sessionStorage.setItem("empIdEseva", String(esevaEmpId));
+    }
 
     const load = async () => {
       Swal.fire({
@@ -190,8 +220,8 @@ const FrmESevaIncrAndPromotion = () => {
     try {
       const payload = {
         ulbId: Number(ulbId),
-        empId: Number(empIdEseva),
-        esevaEmpId: Number(esevaEmpId),
+        empId: empIdEseva || 0,
+        esevaEmpId: esevaEmpId || 0,
       };
       const res = await axios.post(
         `${API(BASE_URL)}/getIncrementList`,
@@ -224,8 +254,8 @@ const FrmESevaIncrAndPromotion = () => {
     try {
       const payload = {
         ulbId: Number(ulbId),
-        empId: Number(empIdEseva),
-        esevaEmpId: Number(esevaEmpId),
+        empId: empIdEseva || 0,
+        esevaEmpId: esevaEmpId || 0,
       };
       const res = await axios.post(
         `${API(BASE_URL)}/getPromotionList`,
@@ -416,7 +446,15 @@ const FrmESevaIncrAndPromotion = () => {
   };
 
   const handleProcess = async () => {
+
     try {
+
+      if (mode === 2 && !esevaEmpId) {
+        return Swal.fire({
+          text: "Eseva Employee ID not found. Please re-open from the list.",
+        });
+      }
+
       if (incTableData.length === 0) {
         Swal.fire({ text: "Please Add At least One Increment Detail" });
         return;
@@ -439,9 +477,9 @@ const FrmESevaIncrAndPromotion = () => {
       const payload = {
         userId,
         mode,
-        empId: Number(empIdEseva),
+        empId: empIdEseva || 0,
         ulbId: Number(ulbId),
-        esevaEmpId: mode === 1 ? 0 : Number(esevaEmpId),
+        esevaEmpId: mode === 1 ? 0 : (esevaEmpId || 0), 
         incStr: str,
         proStr: strAT,
       };
@@ -465,10 +503,20 @@ const FrmESevaIncrAndPromotion = () => {
       const errorMsg = data.errorMsg || data.message || "Saved successfully";
 
       if (errorCode === 9999 || data.success) {
+
+        const resolvedId = data?.esevaEmpId ?? esevaEmpId;
+
+        if (resolvedId) {
+          sessionStorage.setItem("empIdEseva", String(resolvedId));
+        }
+
         await Swal.fire({ text: errorMsg });
-        navigate("/Transactions/FrmESevaLoanNAdvance?@=1", {
-          state: { empId, esevaEmpId: data?.esevaEmpId, mode },
-        });
+        navigate("/Transactions/FrmESevaLoanNAdvance?@=1",
+          {
+            state: { empId: empIdEseva, esevaEmpId: data?.esevaEmpId, mode },
+          }
+        );
+
       } else {
         await Swal.fire({ text: errorMsg });
       }

@@ -49,9 +49,36 @@ const FrmEsevaEmpPenalAction = () => {
   const mode = queryMode === "1" ? 2 : 1;
 
   const { empId, esevaEmployeeID } = useOutletContext();
-  console.log({esevaEmployeeID});
-  const empIdEseva = empId;
-  const esevaEmpId = esevaEmployeeID;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const empIdEseva =
+    empId ||
+    location?.state?.empId ||
+    storedUser?.empId ||
+    storedUser?.employeeId;
+
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    const fromLocal =
+      storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+    if (fromLocal) return Number(fromLocal);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -109,6 +136,10 @@ const FrmEsevaEmpPenalAction = () => {
   useEffect(() => {
     if (!token || !empIdEseva) return;
 
+     if (esevaEmpId) {
+        sessionStorage.setItem("empIdEseva", String(esevaEmpId));
+     }
+
     const load = async () => {
       Swal.fire({
         text: "Please wait",
@@ -132,8 +163,8 @@ const FrmEsevaEmpPenalAction = () => {
     try {
       const payload = {
         ulbId: Number(ulbId),
-        empId: Number(empIdEseva),
-        esevaEmpId: Number(esevaEmpId),
+        empId: empIdEseva || 0,
+        esevaEmpId: esevaEmpId || 0,
       };
 
       const res = await axios.post(
@@ -184,6 +215,12 @@ const FrmEsevaEmpPenalAction = () => {
     if (!form.detailsOfOrder.trim()) return Swal.fire({ text: "Please Enter Details Of Order" });
     if (!form.impactOnPension) return Swal.fire({ text: "Please Select Whether Impact On Pension" });
 
+    if (!esevaEmpId) {
+      return Swal.fire({
+        text: "Eseva Employee ID not found. Please re-open from the list.",
+      });
+    }
+
     try {
       setLoading(true);
       Swal.fire({
@@ -197,8 +234,8 @@ const FrmEsevaEmpPenalAction = () => {
       const payload = {
         userId,
         mode: submitMode,
-        esevaEmpId: Number(esevaEmpId),
-        empId: Number(empIdEseva),
+        esevaEmpId: esevaEmpId || 0,
+        empId: empIdEseva || 0,
         ulbId: Number(ulbId),
         actionType: Number(form.actionType) || null,
         reason: form.reason.trim(),
@@ -232,6 +269,8 @@ const FrmEsevaEmpPenalAction = () => {
 
       if (errorCode === 0 || errorCode === 9999 || data.success === true || data.success) {
         await Swal.fire({ text: errorMsg});
+        sessionStorage.removeItem("empIdEseva");
+        sessionStorage.removeItem("esevaempid");
         navigate("/Transactions/FrmEsevaEmpList", {
           state: { empId, esevaEmpId: data?.esevaEmpId, mode },
         });
@@ -252,6 +291,8 @@ const FrmEsevaEmpPenalAction = () => {
   };
 
   const handleClose = () => {
+    sessionStorage.removeItem("empIdEseva");
+    sessionStorage.removeItem("esevaempid");
     navigate("/Transactions/FrmEsevaEmpList");
   };
 
