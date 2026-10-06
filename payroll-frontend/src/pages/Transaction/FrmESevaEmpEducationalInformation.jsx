@@ -33,7 +33,26 @@ const FrmESevaEmpEducationalInformation = () => {
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const { empId, esevaEmployeeID } = useOutletContext();
-  const esevaEmpId = esevaEmployeeID;
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
+
+  //const esevaEmpId = esevaEmployeeID;
 
   const mode = searchParams.get("@") === "1" ? 2 : 1;
 
@@ -60,6 +79,7 @@ const FrmESevaEmpEducationalInformation = () => {
   useEffect(() => {
     if (!token) return;
     if (mode === 2 && empId && esevaEmpId) {
+      sessionStorage.setItem("empIdEseva", String(esevaEmpId));
       loadExistingData();
     }
   }, [token, mode, empId, esevaEmpId]);
@@ -324,9 +344,14 @@ const FrmESevaEmpEducationalInformation = () => {
         didOpen: () => Swal.showLoading(),
       });
 
+      if (mode === 2 && !esevaEmpId) {
+        return Swal.fire({ text: "Eseva Employee ID not found. Please re-open from the list." });
+      }
+
       const payload = {
         userid: user?.userId,
-        esevaempid: Number(esevaEmpId),
+        //esevaempid: Number(esevaEmpId) ,
+        esevaempid: esevaEmpId || 0,
         ulbid: Number(ulbId),
         empid: Number(empId),
         STR: strEdu,
@@ -349,6 +374,12 @@ const FrmESevaEmpEducationalInformation = () => {
       apiData.message || response?.data?.message || "Saved successfully";
 
       if (errorCode === 9999) {
+
+        const resolvedId = apiData?.esevaEmpId || esevaEmpId;
+        if (resolvedId) {
+          sessionStorage.setItem("empIdEseva", String(resolvedId));
+        }
+
         await Swal.fire({ text: errorMsg });
         
         navigate("/Transactions/FrmESevaEmpNomin", {
