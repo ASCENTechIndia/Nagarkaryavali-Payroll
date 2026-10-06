@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -55,7 +55,6 @@ const dataURLtoFile = (dataURL, filename) => {
   return new File([u8arr], filename, { type: mime });
 };
 
-// ==================== VALIDATORS ====================
 const onlyDigits = (v = "") => /^[0-9]*$/.test(String(v));
 const isFourDigits = (v = "") => /^[0-9]{4}$/.test(String(v));
 
@@ -70,6 +69,8 @@ const FrmESevaLoanNAdvance = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log("loans",{location});
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -213,13 +214,13 @@ const FrmESevaLoanNAdvance = () => {
   };
 
   const handleAddOrUpdate = () => {
-    // Existing checks
     if (!form.sancAmt.trim()) return Swal.fire({ text: "Please enter sanctioned amount."});
     if (!onlyDigits(form.sancAmt.trim()))
       return Swal.fire({ text: "Sanctioned Amount must contain digits only."});
 
     if (!form.noOfInst.trim())
       return Swal.fire({ text: "Please enter no of installments." });
+
     if (!onlyDigits(form.noOfInst.trim()))
       return Swal.fire({ text: "No Of Installments must contain digits only." });
 
@@ -238,12 +239,13 @@ const FrmESevaLoanNAdvance = () => {
     if (form.amtRecover.trim() && !onlyDigits(form.amtRecover.trim()))
       return Swal.fire({ text: "Amount Recover must contain digits only." });
 
-    // Financial Year: 4-digit limit (only when provided)
     if (form.finYear.trim() && !isFourDigits(form.finYear.trim()))
       return Swal.fire({ text: "Financial Year must be exactly 4 digits." });
 
     if (!form.sancDate) return Swal.fire({ text: "Please select sanctioned date."});
+
     if (!form.firstInstDate) return Swal.fire({ text: "Please select first installment date."});
+
     if (new Date(form.firstInstDate) < new Date(form.sancDate))
       return Swal.fire({ text: "First installment date should be greater than sanctioned date."});
 
@@ -302,7 +304,7 @@ const FrmESevaLoanNAdvance = () => {
     }
   };
 
-  const handleProcess = async () => {
+    const handleProcess = async () => {
     try {
       if (tableData.length === 0) {
         return Swal.fire({
@@ -338,14 +340,19 @@ const FrmESevaLoanNAdvance = () => {
 
       const insertData = insertRes?.data?.data || {};
       const errorCode = insertData.errorCode;
-      const errorMsg = insertData.errorMsg || insertData.message || "Saved successfully";
+      const errorMsg =
+        insertData.errorMsg || insertData.message || "Saved successfully";
 
       if (!(errorCode === 9999 || insertData.success)) {
         Swal.close();
         return Swal.fire({ text: errorMsg });
       }
 
-      const sigRows = tableData.filter((row) => row.SignatureFile || row.SignatureBase64);
+      const sigRows = tableData.filter(
+        (row) => row.SignatureFile || row.SignatureBase64
+      );
+      console.log("Signature rows to upload:", sigRows.length);
+
       for (const row of sigRows) {
         let file = row.SignatureFile;
         if (!file && row.SignatureBase64) {
@@ -357,19 +364,57 @@ const FrmESevaLoanNAdvance = () => {
         fd.append("signature", file);
         fd.append("empId", Number(empIdEseva));
         fd.append("ulbId", Number(ulbId));
-        fd.append("esevaEmpId", Number(esevaEmpId));
+        fd.append("esevaEmpId", mode === 1 ? 0 : Number(esevaEmpId));
 
-        await axios.post(
-          `${API(BASE_URL)}/updateLoanAdvanceSignature`,
-          fd
-        );
+        try {
+          const sigRes = await axios.post(
+            `${API(BASE_URL)}/updateLoanAdvanceSignature`,
+            fd,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          console.log(
+            "Signature upload response for row",
+            row.Id,
+            sigRes.status,
+            sigRes.data
+          );
+
+          const uploadData = sigRes?.data?.data || sigRes?.data || {};
+          if (!(uploadData.errorCode === 9999 || uploadData.success)) {
+            console.warn("Signature upload failed for row", row.Id, uploadData);
+          }
+        } catch (uploadErr) {
+          console.error("Signature upload threw for row", row.Id, uploadErr);
+          Swal.close();
+          await Swal.fire({
+            text:
+              uploadErr?.response?.data?.message ||
+              uploadErr?.response?.data?.error ||
+              uploadErr?.message ||
+              "Signature upload failed",
+          });
+          return;
+        }
       }
 
       Swal.close();
-      await Swal.fire({ text: errorMsg});
-      navigate("/Transactions/FrmEsevaEmpPenalAction?@=1");
+      await Swal.fire({ text: errorMsg });
+
+      navigate("/Transactions/FrmEsevaEmpPenalAction?@=1", {
+        state: {
+          empId,
+          esevaEmpId: insertData?.esevaEmpId ?? esevaEmpId,
+          mode,
+        },
+      });
     } catch (error) {
       Swal.close();
+      console.error("Process error:", error);
       await Swal.fire({
         text:
           error?.response?.data?.message ||

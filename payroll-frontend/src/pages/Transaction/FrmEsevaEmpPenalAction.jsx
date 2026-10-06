@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,8 @@ const FrmEsevaEmpPenalAction = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log("penal acion",{location});
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -47,6 +49,7 @@ const FrmEsevaEmpPenalAction = () => {
   const mode = queryMode === "1" ? 2 : 1;
 
   const { empId, esevaEmployeeID } = useOutletContext();
+  console.log({esevaEmployeeID});
   const empIdEseva = empId;
   const esevaEmpId = esevaEmployeeID;
 
@@ -67,6 +70,7 @@ const FrmEsevaEmpPenalAction = () => {
   const [actionTypeOptions, setActionTypeOptions] = useState([]);
   const [impactOptions, setImpactOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const updateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -141,11 +145,8 @@ const FrmEsevaEmpPenalAction = () => {
       const rows = unwrapRows(res);
       const row = rows[0];
 
-      if (!row) {
-        await showAlert("No record found.", "/Transactions/FrmEsevaEmpList");
-        return;
-      }
-
+      if (row) {
+        setIsEditMode(true);
       setForm({
         actionType: pick(row, "NUM_PENACTION_ACTIONTYP", "num_penaction_actiontyp")?.toString() || "",
         reason: pick(row, "VAR_PENACTION_REASON", "var_penaction_reason"),
@@ -159,6 +160,9 @@ const FrmEsevaEmpPenalAction = () => {
         ifRevokeOrderNo: pick(row, "VAR_PENACTION_ORDERNO", "var_penaction_orderno"),
         detailsOfOrder: pick(row, "VAR_PENACTION_ORDERDETAILS", "var_penaction_orderdetails"),
       });
+      } else {
+        setIsEditMode(false);
+      }
     } catch (error) {
       await Swal.fire({
         text:
@@ -188,10 +192,12 @@ const FrmEsevaEmpPenalAction = () => {
         didOpen: () => Swal.showLoading(),
       });
 
+      const submitMode = isEditMode ? 2 : 1;
+
       const payload = {
         userId,
-        mode,
-        esevaEmpId: mode === 1 ? 0 : Number(esevaEmpId),
+        mode: submitMode,
+        esevaEmpId: Number(esevaEmpId),
         empId: Number(empIdEseva),
         ulbId: Number(ulbId),
         actionType: Number(form.actionType) || null,
@@ -205,11 +211,17 @@ const FrmEsevaEmpPenalAction = () => {
         impactOnPension: Number(form.impactOnPension) || null,
       };
 
+      console.log("INSERT PAYLOAD:", JSON.stringify(payload, null, 2));
+      console.log("ENDPOINT:", `${API(BASE_URL)}/insertPenalAction`);
+      console.log("HEADERS:", authHeaders);
+
       const res = await axios.post(
         `${API(BASE_URL)}/insertPenalAction`,
         payload,
         { headers: authHeaders }
       );
+
+      console.log("RAW RESPONSE:", res.data);
 
       Swal.close();
       setLoading(false);
@@ -218,9 +230,11 @@ const FrmEsevaEmpPenalAction = () => {
       const errorCode = data.errorCode;
       const errorMsg = data.errorMsg || data.message || "Saved successfully";
 
-      if (errorCode === 9999 || data.success) {
+      if (errorCode === 0 || errorCode === 9999 || data.success === true || data.success) {
         await Swal.fire({ text: errorMsg});
-        navigate("/Transactions/FrmEsevaEmpList");
+        navigate("/Transactions/FrmEsevaEmpList", {
+          state: { empId, esevaEmpId: data?.esevaEmpId, mode },
+        });
       } else {
         await Swal.fire({ text: errorMsg});
       }

@@ -423,7 +423,7 @@ const normalizeLeave = (leave) => {
 
     earnedLeaveAvailable: array(
       data.earnedLeaveAvailable ||
-        data.leaveAvail
+      data.leaveAvail
     ),
 
     leaveAvailHPL: array(
@@ -432,7 +432,7 @@ const normalizeLeave = (leave) => {
 
     leaveAvailableHPL: array(
       data.leaveAvailableHPL ||
-        data.leaveAvailHPL
+      data.leaveAvailHPL
     ),
 
     casualLeave: array(
@@ -449,7 +449,7 @@ const normalizeLeave = (leave) => {
 
     childCareLeave: array(
       data.childCareLeave ||
-        data.commutedLeave
+      data.commutedLeave
     ),
 
     maternityLeave: array(
@@ -470,7 +470,7 @@ const normalizeLeave = (leave) => {
 
     ltcDetails: array(
       data.ltcDetails ||
-        data.ltaLeave
+      data.ltaLeave
     ),
   };
 };
@@ -580,7 +580,7 @@ const normalizeReportData = (
 
   const educationDetails = array(
     reportData.education ||
-      reportData.educationDetails
+    reportData.educationDetails
   );
 
   const additionalTraining = array(
@@ -597,25 +597,25 @@ const normalizeReportData = (
 
   const nominationDetails = array(
     reportData.nomination ||
-      reportData.nominationDetails
+    reportData.nominationDetails
   );
 
   const postingRecords =
     normalizePosting(
       reportData.posting ||
-        reportData.postingRecords
+      reportData.postingRecords
     );
 
   const leaveRecords =
     normalizeLeave(
       reportData.leaveDetails ||
-        reportData.leaveRecords
+      reportData.leaveRecords
     );
 
   const loanAdvanceRecords =
     normalizeLoans(
       reportData.loanDetails ||
-        reportData.loanAdvanceRecords
+      reportData.loanAdvanceRecords
     );
 
   const appendixRecords = array(
@@ -722,7 +722,7 @@ const EsevaReportPDFHelper = async ({
       "E-Seva report data is required"
     );
   }
-
+  console.log("PDF HELPER")
   const templatePath = path.resolve(
     __dirname,
     "../../templates/FrmEsevaReport.html"
@@ -744,7 +744,7 @@ const EsevaReportPDFHelper = async ({
 
   const normalized =
     normalizeReportData(reportData);
-
+  console.log("normalized")
   const employeePhoto =
     resolveEmployeePhoto(
       normalized.personalInfo?.PHOTOIMAGE
@@ -791,23 +791,28 @@ const EsevaReportPDFHelper = async ({
         "en-GB"
       ),
   };
-
+  console.log("{templateData}")
   const html = template(
     templateData
   );
 
-  const browser =
-    await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-      ],
-    });
+  const chromePath = path.resolve(
+    __dirname,
+    "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe"
+  );
 
+  const launchOptions = {
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  };
+
+  if (fs.existsSync(chromePath)) {
+    launchOptions.executablePath = chromePath;
+  }
+
+  const browser = await puppeteer.launch(launchOptions);
   try {
-    const page =
-      await browser.newPage();
+    const page = await browser.newPage();
 
     await page.setContent(html, {
       waitUntil: "networkidle0",
@@ -826,7 +831,7 @@ const EsevaReportPDFHelper = async ({
           right: "0",
         },
       });
-
+    console.log("pdfBuffer", pdfBuffer)
     const outputDir =
       path.resolve(
         __dirname,
@@ -858,7 +863,7 @@ const EsevaReportPDFHelper = async ({
       filePath,
       pdfBuffer
     );
-
+    console.log({ fileName, filePath })
     return {
       fileName,
       filePath,

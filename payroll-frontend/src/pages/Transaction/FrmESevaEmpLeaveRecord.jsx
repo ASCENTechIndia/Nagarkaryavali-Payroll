@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -83,7 +83,6 @@ const unwrapRows = (res) => {
   return Array.isArray(d) ? d : (d?.rows || []);
 };
 
-// ==================== VALIDATORS ====================
 const onlyDigits = (v = "") => /^[0-9]*$/.test(v);
 const isFourDigits = (v = "") => /^[0-9]{4}$/.test(v);
 
@@ -98,6 +97,8 @@ const FrmESevaEmpLeaveRecord = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log("leave",{location});
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -105,8 +106,10 @@ const FrmESevaEmpLeaveRecord = () => {
   const mode = queryMode === "1" ? 2 : 1;
 
   const { empId, esevaEmployeeID } = useOutletContext();
-  const empIdEseva = empId;
-  const esevaEmpId = esevaEmployeeID;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const empIdEseva = empId || storedUser?.empId || storedUser?.employeeId;
+  const esevaEmpId = esevaEmployeeID || storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -620,10 +623,15 @@ const FrmESevaEmpLeaveRecord = () => {
 
       if (data.success) {
         await Swal.fire({ text: data.errorMsg || data.message || "Saved successfully" });
+        const navState = {
+          empId: empIdEseva,
+          esevaEmpId: esevaEmpId,
+          mode,
+        };
         if (String(ulbId) === "870") {
-          navigate("/Transactions/FrmESevaIncrAndPromotionsmkc?@=1");
+          navigate("/Transactions/FrmESevaIncrAndPromotionsmkc?@=1", { state: navState });
         } else {
-          navigate("/Transactions/FrmESevaIncrAndPromotion?@=1");
+          navigate("/Transactions/FrmESevaIncrAndPromotion?@=1", { state: navState });
         }
       } else {
         showAlert(data.errorMsg || data.message || "Something went wrong");
@@ -690,7 +698,7 @@ const FrmESevaEmpLeaveRecord = () => {
                   </SelectContent>
                 </Select>
               )}
-              {/* Year: 4-digit numeric only */}
+
               {renderField("Year",
                 <Input
                   value={leaveMainForm.year}
@@ -701,7 +709,7 @@ const FrmESevaEmpLeaveRecord = () => {
                   }
                 />
               )}
-              {/* Previous Balances: digits only */}
+
               {renderField("Previous Balances",
                 <Input
                   value={leaveMainForm.previousBalance}
@@ -711,7 +719,7 @@ const FrmESevaEmpLeaveRecord = () => {
                   }
                 />
               )}
-              {/* Created ON 1ST Jan: digits only */}
+
               {renderField("Created ON 1ST Jan",
                 <Input
                   value={leaveMainForm.createdFirstJan}
@@ -721,10 +729,11 @@ const FrmESevaEmpLeaveRecord = () => {
                   }
                 />
               )}
+
               {renderField("Total Leave",
                 <Input value={leaveMainForm.totalLeave} readOnly className="bg-muted" />
               )}
-              {/* Debited: digits only */}
+
               {renderField("Debited",
                 <Input
                   value={leaveMainForm.debited}
@@ -734,10 +743,11 @@ const FrmESevaEmpLeaveRecord = () => {
                   }
                 />
               )}
+
               {renderField("Current Balances",
                 <Input value={leaveMainForm.currentBalance} readOnly className="bg-muted" />
               )}
-              {/* Created ON 1ST July: digits only */}
+
               {renderField("Created ON 1ST July",
                 <Input
                   value={leaveMainForm.createdFirstJuly}
@@ -747,13 +757,15 @@ const FrmESevaEmpLeaveRecord = () => {
                   }
                 />
               )}
+
               {renderField("Previous Balances",
                 <Input value={leaveMainForm.previousBalanceN} readOnly className="bg-muted" />
               )}
+
               {renderField("Total Leave",
                 <Input value={leaveMainForm.totalLeaveN} readOnly className="bg-muted" />
               )}
-              {/* Debited (2nd): digits only */}
+            
               {renderField("Debited",
                 <Input
                   value={leaveMainForm.debitedN}
@@ -763,14 +775,18 @@ const FrmESevaEmpLeaveRecord = () => {
                   }
                 />
               )}
+
               {renderField("Current Balance",
                 <Input value={leaveMainForm.currentBalanceN} readOnly className="bg-muted" />
               )}
+
               {renderField("LTC If Any",
                 <Input value={leaveMainForm.ltcIfAny}
                   onChange={(e) => updateLeaveMainField("ltcIfAny", e.target.value)} />
               )}
+
             </div>
+
             <div className="flex gap-3">
               <Button onClick={addLeaveMain}>
                 {editingLeaveMainId ? "Update Leave Record" : "Add Leave Record"}
@@ -805,6 +821,7 @@ const FrmESevaEmpLeaveRecord = () => {
                   </SelectContent>
                 </Select>
               )}
+
               {renderField("From Date",
                 <DatePicker value={leaveTEForm.fromDate}
                   onChange={(d) => {
@@ -812,6 +829,7 @@ const FrmESevaEmpLeaveRecord = () => {
                     setLeaveTEForm({ ...leaveTEForm, fromDate: d, noOfDays: days || leaveTEForm.noOfDays });
                   }} />
               )}
+
               {renderField("To Date",
                 <DatePicker value={leaveTEForm.toDate}
                   onChange={(d) => {
@@ -819,18 +837,22 @@ const FrmESevaEmpLeaveRecord = () => {
                     setLeaveTEForm({ ...leaveTEForm, toDate: d, noOfDays: days || leaveTEForm.noOfDays });
                   }} />
               )}
+
               {renderField("Purpose",
                 <Input value={leaveTEForm.purpose}
                   onChange={(e) => setLeaveTEForm({ ...leaveTEForm, purpose: e.target.value })} />
               )}
+
               {renderField("Days",
                 <Input value={leaveTEForm.noOfDays}
                   onChange={(e) => setLeaveTEForm({ ...leaveTEForm, noOfDays: e.target.value })} />
               )}
+
               {renderField("Balance",
                 <Input value={leaveTEForm.balance}
                   onChange={(e) => setLeaveTEForm({ ...leaveTEForm, balance: e.target.value })} />
               )}
+
             </div>
             <div className="flex gap-3">
               <Button onClick={addLeaveTE}>
@@ -862,18 +884,22 @@ const FrmESevaEmpLeaveRecord = () => {
                   </SelectContent>
                 </Select>
               )}
+
               {renderField("Total 180 Days",
                 <Input value={leaveL2Form.totalDays}
                   onChange={(e) => setLeaveL2Form({ ...leaveL2Form, totalDays: e.target.value })} />
               )}
+
               {renderField("Debited (Spell Calendar Wise)",
                 <Input value={leaveL2Form.debited}
                   onChange={(e) => setLeaveL2Form({ ...leaveL2Form, debited: e.target.value })} />
               )}
+
               {renderField("Balance",
                 <Input value={leaveL2Form.balance}
                   onChange={(e) => setLeaveL2Form({ ...leaveL2Form, balance: e.target.value })} />
               )}
+
             </div>
             <div className="flex gap-3">
               <Button onClick={addLeaveL2}>
@@ -905,22 +931,27 @@ const FrmESevaEmpLeaveRecord = () => {
                   </SelectContent>
                 </Select>
               )}
+
               {renderField("Leave Type",
                 <Input value={finalLeaveForm.leaveTypeText}
                   onChange={(e) => setFinalLeaveForm({ ...finalLeaveForm, leaveTypeText: e.target.value })} />
               )}
+
               {renderField("From Date",
                 <DatePicker value={finalLeaveForm.fromDate}
                   onChange={(d) => setFinalLeaveForm({ ...finalLeaveForm, fromDate: d })} />
               )}
+
               {renderField("To Date",
                 <DatePicker value={finalLeaveForm.toDate}
                   onChange={(d) => setFinalLeaveForm({ ...finalLeaveForm, toDate: d })} />
               )}
+
               {renderField("Total",
                 <Input value={finalLeaveForm.total}
                   onChange={(e) => setFinalLeaveForm({ ...finalLeaveForm, total: e.target.value })} />
               )}
+
               {renderField("Remark",
                 <Input value={finalLeaveForm.remark}
                   onChange={(e) => setFinalLeaveForm({ ...finalLeaveForm, remark: e.target.value })} />
@@ -951,14 +982,17 @@ const FrmESevaEmpLeaveRecord = () => {
                 <Input value={leaveAvailForm.blockYear}
                   onChange={(e) => setLeaveAvailForm({ ...leaveAvailForm, blockYear: e.target.value })} />
               )}
+
               {renderField("Availed Year",
                 <Input value={leaveAvailForm.availedYear}
                   onChange={(e) => setLeaveAvailForm({ ...leaveAvailForm, availedYear: e.target.value })} />
               )}
+
               {renderField("Name",
                 <Input value={leaveAvailForm.name}
                   onChange={(e) => setLeaveAvailForm({ ...leaveAvailForm, name: e.target.value })} />
               )}
+
               {renderField("Relationship",
                 <Select value={leaveAvailForm.relationship}
                   onValueChange={(v) => setLeaveAvailForm({ ...leaveAvailForm, relationship: v })}>
@@ -970,14 +1004,17 @@ const FrmESevaEmpLeaveRecord = () => {
                   </SelectContent>
                 </Select>
               )}
+              
               {renderField("Age",
                 <Input value={leaveAvailForm.age}
                   onChange={(e) => setLeaveAvailForm({ ...leaveAvailForm, age: e.target.value })} />
               )}
+
               {renderField("Place of Visit",
                 <Input value={leaveAvailForm.placeOfVisit}
                   onChange={(e) => setLeaveAvailForm({ ...leaveAvailForm, placeOfVisit: e.target.value })} />
               )}
+
               {renderField("Wheather Availed Leave Encashment",
                 <div className="flex items-center gap-4">
                   <label className="flex items-center gap-2">
@@ -996,6 +1033,7 @@ const FrmESevaEmpLeaveRecord = () => {
                   </label>
                 </div>
               )}
+              
               {renderField("Balance Out Of a Maximum Of 60 Days",
                 <Input value={leaveAvailForm.balanceOutOfMax}
                   disabled={leaveAvailForm.availLeaveEnc !== "Y"}

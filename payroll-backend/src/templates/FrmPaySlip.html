@@ -216,6 +216,14 @@
         font-weight: bold;
         margin-bottom: 25px;
       }
+
+      .logo {
+  display: block;
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  margin: 0 auto 5px auto;
+}
     </style>
   </head>
 
@@ -224,6 +232,10 @@
     <div class="page">
       <!-- Header -->
       <div class="header">
+        {{#if ../logo}}
+        <img src="{{../logo}}" alt="Logo" class="logo" />
+        {{/if}}
+
         <div class="corporation">{{../corporationName}}</div>
         <div class="office">{{Dept}}</div>
         <div class="month">वेतन प्रमाणपत्र माहे : {{monthText}}</div>
@@ -337,12 +349,27 @@
 
           <!-- NEW ROW 1: Gross Salary & Total Deduction at the Bottom of Respective Columns -->
           <tr class="total-row">
-            <td style="border-right: 1px solid #000; border-top: 1px solid #000">&nbsp;</td>
-            <td style="border-right: 1px solid #000; border-top: 1px solid #000; padding: 0">
+            <td
+              style="border-right: 1px solid #000; border-top: 1px solid #000"
+            >
+              &nbsp;
+            </td>
+            <td
+              style="
+                border-right: 1px solid #000;
+                border-top: 1px solid #000;
+                padding: 0;
+              "
+            >
               <table style="width: 100%; border-collapse: collapse">
                 <tr>
                   <td style="padding: 6px; font-weight: bold">एकूण वेतन :</td>
-                  <td class="amount" style="padding: 6px; font-weight: bold; width: 35%">{{grossSalary}}</td>
+                  <td
+                    class="amount"
+                    style="padding: 6px; font-weight: bold; width: 35%"
+                  >
+                    {{grossSalary}}
+                  </td>
                 </tr>
               </table>
             </td>
@@ -350,7 +377,12 @@
               <table style="width: 100%; border-collapse: collapse">
                 <tr>
                   <td style="padding: 6px; font-weight: bold">एकूण कपात :</td>
-                  <td class="amount" style="padding: 6px; font-weight: bold; width: 35%">{{totalDeduction}}</td>
+                  <td
+                    class="amount"
+                    style="padding: 6px; font-weight: bold; width: 35%"
+                  >
+                    {{totalDeduction}}
+                  </td>
                 </tr>
               </table>
             </td>
@@ -358,8 +390,22 @@
 
           <!-- NEW ROW 2: Net Salary Merged Across Both Earnings & Deductions Columns -->
           <tr class="net-row">
-            <td style="border-right: 1px solid #000; border-top: 1px solid #000">&nbsp;</td>
-            <td colspan="2" style="border-top: 1px solid #000; padding: 8px; text-align: left; font-weight: bold">देय वेतन : {{netSalary}}</td>
+            <td
+              style="border-right: 1px solid #000; border-top: 1px solid #000"
+            >
+              &nbsp;
+            </td>
+            <td
+              colspan="2"
+              style="
+                border-top: 1px solid #000;
+                padding: 8px;
+                text-align: left;
+                font-weight: bold;
+              "
+            >
+              देय वेतन : {{netSalary}}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -367,7 +413,9 @@
       <!-- Bottom Layout Section -->
       <div class="bottom-section">
         <div class="salary-summary">
-          <div class="net-salary">एकूण देय पगार: <span>{{netSalary}}</span></div>
+          <div class="net-salary">
+            एकूण देय पगार: <span>{{netSalary}}</span>
+          </div>
           <div class="amount-words">
             अक्षरी रक्कम रु. <br />
             <span>{{amountInWords}}</span>

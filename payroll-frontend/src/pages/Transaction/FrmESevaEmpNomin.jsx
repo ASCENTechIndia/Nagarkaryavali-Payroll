@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useSearchParams, useOutletContext, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
   Card,
@@ -28,6 +28,8 @@ const FrmESevaEmpNomin = () => {
   const ulbId = user?.ulbId;
   const userId = user?.userId;
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log("nomin",{location});
   const [searchParams] = useSearchParams();
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -248,6 +250,7 @@ const FrmESevaEmpNomin = () => {
 
       Swal.close();
 
+      const apiData      = res?.data?.data || {};
       const outerSuccess = res?.data?.success ?? res?.data?.ok;
       const errorMsg =
         res?.data?.data?.message ||
@@ -257,7 +260,7 @@ const FrmESevaEmpNomin = () => {
       if (outerSuccess) {
         await Swal.fire({ text: errorMsg });
         navigate("/Transactions/FrmESevaEmpPostingRecord?@=1", {
-          state: { empId, esevaEmpId, mode },
+          state: { empId, esevaEmpId: apiData?.esevaEmpId ?? esevaEmpId, mode },
         });
       } else {
         await Swal.fire({ text: errorMsg});
