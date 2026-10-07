@@ -47,7 +47,7 @@ async function getCompleteEsevaReportService({
   const numericUlbId = Number(ulbId);
 
   const isSpecialUlb = [751, 1690, 870].includes(numericUlbId);
-  const isSMKC = [751, 1690].includes(numericUlbId);
+  const isSMKC = [751, 1690, 870].includes(numericUlbId);
 
   const employeeRows = await repo.searchEmployeeRepo({
     ulbId,
