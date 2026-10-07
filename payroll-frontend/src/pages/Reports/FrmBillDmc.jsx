@@ -215,7 +215,7 @@ const FrmBillDmc = () => {
 
       if (!summaryResponse.data?.success || !summaryResponse.data?.pdfUrl) {
         throw new Error(
-          summaryResponse.data?.message || "Failed to generate Summary Report",
+          summaryResponse.data?.error || "Failed to generate Summary Report",
         );
       }
 
@@ -239,7 +239,7 @@ const FrmBillDmc = () => {
 
       Swal.fire({
         text:
-          error.response?.data?.message ||
+          error.response?.data?.error ||
           error.message ||
           "Error generating reports",
         confirmButtonColor: "#1e3a8a",

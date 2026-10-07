@@ -94,7 +94,7 @@ async function generatePayHeadListPDF(params) {
             payHeadName = "",
             payHeadId = "",
             reportType = "MAIN_PAYHEAD_LIST",
-            corporationName = "सांगली, मिरज आणि कुपवाड शहर महानगरपालिका",
+            corporationName,
             corporationLogo = "",
             totals = {},
             subDetail = null,

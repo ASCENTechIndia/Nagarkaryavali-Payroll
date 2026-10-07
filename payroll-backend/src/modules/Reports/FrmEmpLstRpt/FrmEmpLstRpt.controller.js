@@ -60,10 +60,14 @@ exports.generateEmployeeListPDF = asyncHandler(async (req, res) => {
     );
   }
 
-  const ulbInfo = {
-    ULBLOGO: "",
-    ABC_MUNICIPAL_TEXT: "सांगली, मिरज आणि कुपवाड शहर महानगरपालिका",
-  };
+  const ulbInfo = await getCorporationService({
+    ulbId: filters.ulbid,
+  });
+
+  // const ulbInfo = {
+  //   ULBLOGO: "",
+  //   ABC_MUNICIPAL_TEXT: "सांगली, मिरज आणि कुपवाड शहर महानगरपालिका",
+  // };
 
   const pdf = await EmployeeListPDFHelper({
     rows: result.data,

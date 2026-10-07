@@ -98,7 +98,7 @@ async function getSalaryDetailRepo({
             `;
 
             deductionBinds.gender =
-                gender === "Male" ? "M" : gender;
+                gender === "Male" ? "M" : "F";
         }
 
         deductionQuery += `
@@ -266,7 +266,7 @@ async function getSalaryDetailRepo({
             `;
 
             pensionBinds.gender =
-                gender === "Male" ? "M" : gender;
+                gender === "Male" ? "M" : "F";
         }
 
         pensionQuery += `
@@ -488,6 +488,9 @@ async function getSalaryDetailRepo({
          * 5. RETURN
          * ============================================================
          */
+
+        console.log("deductionQuery: ", deductionQuery);
+        console.log("pensionQuery: ", pensionQuery);
 
         return {
             rows: dtOverall,

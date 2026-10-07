@@ -42,14 +42,14 @@ exports.generatePayrollPDF = asyncHandler(async (req, res) => {
 
   const reportResult = await service.getPayrollReportService(filters);
 
-//   const ulbInfo = await getCorporationService({
-//     ulbId: filters.ulbid,
-//   });
+  const ulbInfo = await getCorporationService({
+    ulbId: filters.ulbid,
+  });
 
-    const ulbInfo = {
-        ULBLOGO: "", 
-        ABC_MUNICIPAL_TEXT: "सांगली, मिरज आणि कुपवाड शहर महानगरपालिका"
-    };
+    // const ulbInfo = {
+    //     ULBLOGO: "", 
+    //     ABC_MUNICIPAL_TEXT: "सांगली, मिरज आणि कुपवाड शहर महानगरपालिका"
+    // };
 
   const pdf = await PayrollReportPDFHelper({
     rows: reportResult.data,
