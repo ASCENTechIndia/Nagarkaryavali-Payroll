@@ -10,7 +10,8 @@ const getDefaultPersonImage = () => {
   );
 
   if (!fs.existsSync(imagePath)) {
-    return "";
+    console.warn("[PDF] Person.png fallback not found at:", imagePath);
+    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   }
 
   const imageBuffer = fs.readFileSync(imagePath);
@@ -27,7 +28,7 @@ const resolveEmployeePhoto = (photoImage) => {
 
   const value = String(photoImage).trim();
 
-  if (!value) {
+  if (!value || value === "null" || value === "undefined") {
     return fallback;
   }
 
@@ -35,11 +36,12 @@ const resolveEmployeePhoto = (photoImage) => {
     return value;
   }
 
-  if (
-    value.startsWith("http://") ||
-    value.startsWith("https://")
-  ) {
+  if (value.startsWith("http://") || value.startsWith("https://")) {
     return value;
+  }
+
+  if (/^[A-Za-z0-9+/=]+$/.test(value) && value.length > 100) {
+    return `data:image/png;base64,${value}`;
   }
 
   const cleanPath = value
@@ -47,16 +49,8 @@ const resolveEmployeePhoto = (photoImage) => {
     .replace(/^[/\\]+/, "");
 
   const possiblePaths = [
-    path.resolve(
-      __dirname,
-      "../../../public",
-      cleanPath
-    ),
-    path.resolve(
-      __dirname,
-      "../../../",
-      cleanPath
-    ),
+    path.resolve(__dirname, "../../../public", cleanPath),
+    path.resolve(__dirname, "../../../", cleanPath),
   ];
 
   const imagePath = possiblePaths.find((filePath) =>
@@ -77,16 +71,83 @@ const resolveEmployeePhoto = (photoImage) => {
     ".webp": "image/webp",
   };
 
-  const mimeType =
-    mimeTypes[ext] || "image/png";
+  const mimeType = mimeTypes[ext] || "image/png";
 
-  const imageBuffer = fs.readFileSync(
-    imagePath
+  const imageBuffer = fs.readFileSync(imagePath);
+
+  return `data:${mimeType};base64,${imageBuffer.toString("base64")}`;
+};
+
+const detectMimeType = (buf) => {
+  if (!buf || buf.length < 4) return "image/png";
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+    return "image/png";
+  }
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) {
+    return "image/gif";
+  }
+  if (buf[0] === 0x42 && buf[1] === 0x4d) {
+    return "image/bmp";
+  }
+  return "image/png";
+};
+
+const resolveSignatureImage = (signature) => {
+  if (!signature) return "";
+
+  if (typeof signature === "string") {
+    const value = signature.trim();
+    if (!value || value === "null" || value === "undefined") return "";
+
+    if (value.startsWith("data:image/")) return value;
+
+    if (/^[A-Za-z0-9+/=\s]+$/.test(value) && value.length > 100) {
+      const clean = value.replace(/\s+/g, "");
+      // Decode first 12 bytes to detect MIME
+      const head = Buffer.from(clean.slice(0, 16), "base64");
+      const mime = detectMimeType(head);
+      return `data:${mime};base64,${clean}`;
+    }
+    return "";
+  }
+
+  if (Buffer.isBuffer(signature)) {
+    if (signature.length === 0) return "";
+    const mime = detectMimeType(signature);
+    return `data:${mime};base64,${signature.toString("base64")}`;
+  }
+
+  if (signature instanceof Uint8Array) {
+    if (signature.length === 0) return "";
+    const buf = Buffer.from(signature);
+    const mime = detectMimeType(buf);
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  }
+
+  if (typeof signature.getData === "function") {
+    console.warn(
+      "[PDF] Lob object reached pdfHelper — should have been Buffer. " +
+      "Check repo fetchAsBuffer option."
+    );
+    return "";
+  }
+
+  if (signature.data && Array.isArray(signature.data)) {
+    const buf = Buffer.from(signature.data);
+    if (buf.length === 0) return "";
+    const mime = detectMimeType(buf);
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  }
+
+  console.warn(
+    "[PDF] Unknown signature format:",
+    typeof signature,
+    signature?.constructor?.name
   );
-
-  return `data:${mimeType};base64,${imageBuffer.toString(
-    "base64"
-  )}`;
+  return "";
 };
 
 Handlebars.registerHelper(
@@ -482,84 +543,47 @@ const normalizeLoans = (loan) => {
     data.interestBearingAdvances
   ).map((row) => ({
     ...row,
-
-    FIRSTRECOVERDATE: pick(
-      row,
-      "FIRSTRECOVERDATE",
-      "FINSTALLDAT"
-    ),
-
-    MONTHLYINSTALLMENT: pick(
-      row,
-      "MONTHLYINSTALLMENT",
-      "MONTHINSTALL"
-    ),
+    FIRSTRECOVERDATE: pick(row, "FIRSTRECOVERDATE", "FINSTALLDAT"),
+    MONTHLYINSTALLMENT: pick(row, "MONTHLYINSTALLMENT", "MONTHINSTALL"),
   }));
+
+  const rawInstallments = array(data.interestBearingAdvanceInstallments);
+
+  console.log(
+    "[PDF] SIGNDET type:",
+    typeof rawInstallments[0]?.SIGNDET,
+    "| length:",
+    rawInstallments[0]?.SIGNDET?.length,
+    "| preview:",
+    String(rawInstallments[0]?.SIGNDET || "").slice(0, 30)
+  );
 
   const installments = array(
     data.interestBearingAdvanceInstallments
   ).map((row) => ({
     ...row,
-
-    FIN_YEAR: pick(
-      row,
-      "FIN_YEAR",
-      "FINANCYEAR"
-    ),
-
-    ADVANCE: pick(
-      row,
-      "ADVANCE",
-      "INTBERADV"
-    ),
-
-    OUTSTANDING: pick(
-      row,
-      "OUTSTANDING",
-      "AMTOS"
-    ),
-
-    RECOVERED: pick(
-      row,
-      "RECOVERED",
-      "AMTRECOVER"
-    ),
-
-    INTEREST: pick(
-      row,
-      "INTEREST",
-      "INTACC"
-    ),
-
-    SIGNATURE: pick(
-      row,
-      "SIGNATURE",
-      "SIGNDET"
-    ),
-
-    REMARKS: pick(
-      row,
-      "REMARKS",
-      "REMARK"
+    FIN_YEAR:    pick(row, "FIN_YEAR", "FINANCYEAR"),
+    ADVANCE:     pick(row, "ADVANCE", "INTBERADV"),
+    OUTSTANDING: pick(row, "OUTSTANDING", "AMTOS"),
+    RECOVERED:   pick(row, "RECOVERED", "AMTRECOVER"),
+    INTEREST:    pick(row, "INTEREST", "INTACC"),
+    REMARKS:     pick(row, "REMARKS", "REMARK"),
+    SIGNATURE: resolveSignatureImage(
+      pick(row, "SIGNATURE", "SIGNDET", "BLOB_LOANADV_SIGNDET")
     ),
   }));
 
+  console.log("[PDF] SIGNATURE resolved:", installments[0]?.SIGNATURE?.slice(0, 60));
+
   return {
     ...data,
-
-    interestBearingAdvances:
-      advances,
-
-    interestBearingAdvanceInstallments:
-      installments,
-
+    interestBearingAdvances: advances,
+    interestBearingAdvanceInstallments: installments,
     installments,
   };
 };
 
-const normalizeReportData = (
-  reportData
-) => {
+const normalizeReportData = (reportData) => {
   const personalInfo = first(
     reportData.personalInfo
   );
@@ -612,10 +636,9 @@ const normalizeReportData = (
       reportData.leaveRecords
     );
 
-  const loanAdvanceRecords =
+  const loanAdvanceRecords = 
     normalizeLoans(
-      reportData.loanDetails ||
-      reportData.loanAdvanceRecords
+      reportData.loanDetails || reportData.loanAdvanceRecords
     );
 
   const appendixRecords = array(
@@ -624,34 +647,19 @@ const normalizeReportData = (
 
   return {
     ...reportData,
-
     personalInfo,
-
     addressDetails,
-
     emergencyDetails,
-
     familyDetails,
-
     educationDetails,
-
     additionalTraining,
-
     ptTraining,
-
-    subsequentQualifications:
-      ptTraining,
-
+    subsequentQualifications: ptTraining,
     training,
-
     nominationDetails,
-
     postingRecords,
-
     leaveRecords,
-
     loanAdvanceRecords,
-
     appendixRecords,
 
     resolvedEmpCode:
@@ -660,51 +668,28 @@ const normalizeReportData = (
       personalInfo.empcode ||
       "",
 
-    hasFamily:
-      familyDetails.length > 0,
-
-    hasEducation:
-      educationDetails.length > 0,
-
-    hasAdditionalTraining:
-      additionalTraining.length > 0,
-
-    hasPTTraining:
-      ptTraining.length > 0,
-
-    hasTraining:
-      training.length > 0,
-
-    hasNomination:
-      nominationDetails.length > 0,
+    hasFamily: familyDetails.length > 0,
+    hasEducation: educationDetails.length > 0,
+    hasAdditionalTraining: additionalTraining.length > 0,
+    hasPTTraining: ptTraining.length > 0,
+    hasTraining: training.length > 0,
+    hasNomination: nominationDetails.length > 0,
 
     hasPostingRecords:
-      postingRecords.previousService
-        .length > 0 ||
-      postingRecords.foreignService
-        .length > 0 ||
-      postingRecords.verifiedService
-        .length > 0,
+      postingRecords.previousService.length > 0 ||
+      postingRecords.foreignService.length > 0 ||
+      postingRecords.verifiedService.length > 0,
 
     hasLeaveRecords:
-      Object.values(
-        leaveRecords
-      ).some(
-        (value) =>
-          Array.isArray(value) &&
-          value.length > 0
+      Object.values(leaveRecords).some(
+        (value) => Array.isArray(value) && value.length > 0
       ),
 
     hasLoanAdvances:
-      loanAdvanceRecords
-        .interestBearingAdvances
-        .length > 0 ||
-      loanAdvanceRecords
-        .interestBearingAdvanceInstallments
-        .length > 0,
+      loanAdvanceRecords.interestBearingAdvances.length > 0 ||
+      loanAdvanceRecords.interestBearingAdvanceInstallments.length > 0,
 
-    hasAppendix:
-      appendixRecords.length > 0,
+    hasAppendix: appendixRecords.length > 0,
   };
 };
 
@@ -714,6 +699,7 @@ const EsevaReportPDFHelper = async ({
   userId,
   userName,
   corporationName,
+  corporationLogo,
   brNameMar,
   brAddMar,
 }) => {
@@ -742,8 +728,7 @@ const EsevaReportPDFHelper = async ({
   const template =
     Handlebars.compile(htmlFile);
 
-  const normalized =
-    normalizeReportData(reportData);
+  const normalized = normalizeReportData(reportData);
   console.log("normalized")
   const employeePhoto =
     resolveEmployeePhoto(
@@ -763,8 +748,9 @@ const EsevaReportPDFHelper = async ({
 
     corporationName:
       corporationName ||
-      normalized.corporationName ||
       "Municipal Corporation",
+
+    corporationLogo,
 
     brNameMar:
       brNameMar ||

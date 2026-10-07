@@ -176,7 +176,7 @@
     <!-- PAGE 1 -->
     <div class="page">
       <div class="top-title">
-        <img class="logo" src="{{ulbLogo}}" alt="" />
+        <img class="logo" src="{{corporationLogo}}" alt="" />
         <div>
           <div class="book-title">PAYROLL</div>
           <div class="book-subtitle">E-Seva Book</div>
@@ -206,10 +206,11 @@
       <div class="photo-title">PHOTOGRAPH</div>
       <div class="small">Attested By Head Of Office Before Pasting</div>
       <div class="photo-box">
-        <img
-          src="{{employeePhoto}}"
-          alt="Employee Photo"
-        />
+        {{#if employeePhoto}}
+          <img src="{{employeePhoto}}" alt="Employee Photo" />
+        {{else}}
+          <span class="tiny"></span>
+        {{/if}}
       </div>
 
       <table>
@@ -260,22 +261,22 @@
         <tr>
           <td>7</td>
           <td>Gender</td>
-          <td>{{personalInfo.GENDER}}</td>
+          <td>{{formatGender personalInfo.GENDER}}</td>
         </tr>
         <tr>
           <td>8</td>
           <td>दूरध्वनी क्रमांक</td>
-          <td>{{addressDetails.MOBNO}}</td>
+          <td>{{personalInfo.MOBILE}}</td>
         </tr>
         <tr>
           <td>9</td>
           <td>मातृभाषा</td>
-          <td>{{personalInfo.MOTHERLANGUAGE}}</td>
+          <td>{{personalInfo.MOTHERTONGUE}}</td>
         </tr>
         <tr>
           <td>10</td>
           <td>अन्नत भाषा</td>
-          <td>{{personalInfo.OTHERLANGUAGE}}</td>
+          <td>{{personalInfo.KNOWNLANG}}</td>
         </tr>
         <tr>
           <td>11</td>
@@ -285,12 +286,12 @@
         <tr>
           <td>12</td>
           <td>बँक</td>
-          <td>{{personalInfo.BANKNAME}}</td>
+          <td>{{personalInfo.BANK}}</td>
         </tr>
         <tr>
           <td>13</td>
           <td>शाखा</td>
-          <td>{{personalInfo.BRANCHNAME}}</td>
+          <td>{{personalInfo.BRANCH}}</td>
         </tr>
         <tr>
           <td>14</td>
@@ -409,7 +410,7 @@
         <tr>
           <td style="width: 5%" class="center">11</td>
           <td style="width: 18%">Marital Status</td>
-          <td>{{personalInfo.MARITALSTATUS}}</td>
+          <td>{{addressDetails.STATUS}}</td>
         </tr>
         <tr>
           <td></td>
@@ -560,36 +561,36 @@
             <table class="inner-table">
               <tr>
                 <td style="width: 42%">Contact Person Name</td>
-                <td>{{emergencyDetails.EMERG_NAME}}</td>
+                <td>{{emergencyDetails.CONTACT_PERSON}}</td>
               </tr>
               <tr>
-                <td>Person In Case Of Emergency / Mobile Number</td>
-                <td>{{emergencyDetails.EMERG_MOBILE}}</td>
+                <td>Relation And Mobile Number</td>
+                <td>{{emergencyDetails.RELATION}} : {{emergencyDetails.EMRGNCY_MOBNO}}</td>
               </tr>
               <tr>
                 <td>Alternate Contact Person Name</td>
-                <td>{{emergencyDetails.EMERG_ALTNAME}}</td>
+                <td>{{emergencyDetails.ALTCONTACT_PERSON}}</td>
               </tr>
               <tr>
                 <td>Relation</td>
-                <td>{{emergencyDetails.EMERG_RELATION}}</td>
+                <td>{{emergencyDetails.ALTRELATION}}</td>
               </tr>
               <tr>
                 <td>Alternate Mobile Number</td>
-                <td>{{emergencyDetails.EMERG_ALTMOBILE}}</td>
+                <td>{{emergencyDetails.ALTEMRGNCY_MOBNO}}</td>
               </tr>
               <tr>
                 <td>STD Code / Telephone Number</td>
                 <td>
-                  {{emergencyDetails.EMERG_STD}} /
-                  {{emergencyDetails.EMERG_TEL}}
+                  {{emergencyDetails.STD_CODE}} /
+                  {{emergencyDetails.TELEPHONE_NO}}
                 </td>
               </tr>
               <tr>
                 <td>STD Code(Res) / Telephone Number(Res)</td>
                 <td>
-                  {{emergencyDetails.EMERG_RESSTD}} /
-                  {{emergencyDetails.EMERG_RESTEL}}
+                  {{emergencyDetails.STD_CODE_RES}} /
+                  {{emergencyDetails.TELEPHONE_NO_RES}}
                 </td>
               </tr>
             </table>
@@ -598,7 +599,7 @@
         <tr>
           <td class="center">15</td>
           <td>Blood Group</td>
-          <td>{{personalInfo.BLOODGROUP}}</td>
+          <td>{{emergencyDetails.BLOODGROOP}}</td>
         </tr>
         <tr>
           <td class="center">16</td>
@@ -612,10 +613,10 @@
                 <th>Declaration Date</th>
               </tr>
               <tr>
-                <td>{{personalInfo.HOMETOWN}}</td>
-                <td>{{personalInfo.RAILWAYSTATION}}</td>
-                <td>{{personalInfo.AIRPORT}}</td>
-                <td>{{formatDate personalInfo.HOMEDECLDATE}}</td>
+                <td>{{emergencyDetails.HOME_TOWN}}</td>
+                <td>{{emergencyDetails.NEARRAILWAY}}</td>
+                <td>{{emergencyDetails.NEARAIRPORT}}</td>
+                <td>{{formatDate emergencyDetails.DECLARATION_DATE}}</td>
               </tr>
             </table>
           </td>
@@ -647,9 +648,6 @@
       <div class="signature" style="margin-top: 30px">
         <div style="text-align: right; margin-right: 8px">
           Signature Of Govt. Servent With Date
-        </div>
-        <div style="text-align: right; margin-right: 8px; margin-top: 12px">
-          {{userName}}
         </div>
         <div style="text-align: right; margin-right: 8px; margin-top: 8px">
           (Signature &amp; Designation Of Attesting Officer Along With Date And
@@ -702,33 +700,18 @@
                 <th>Monthly Income</th>
               </tr>
               {{#each familyDetails}}
-              <tr>
-                <td class="center">{{increment @index}}</td>
-                <td>{{FAM_NAME}}</td>
-                <td>{{formatDate FAM_DOB}}</td>
-                <td>{{FAM_RELATION}}</td>
-                <td>{{FAM_MARITALSTATUS}}</td>
-                <td>{{FAM_OCCUPATION}}</td>
-                <td class="right">{{FAM_MONTHLYINCOME}}</td>
-              </tr>
+                <tr>
+                  <td class="center">{{increment @index}}</td>
+                  <td>{{FAMILY_NAME}}</td>
+                  <td>{{formatDate DOB}}</td>
+                  <td>{{RELATION}}</td>
+                  <td>{{MARITAL_STATUS}}</td>
+                  <td>{{OCCUPATION}}</td>
+                  <td class="right">{{MONTHLY_INCOME}}</td>
+                </tr>
               {{/each}}
             </table>
           </td>
-        </tr>
-      </table>
-
-      <div class="part" style="margin-top: 8px">PART-4</div>
-      <div class="section-head">NOMINATION</div>
-      <table>
-        <tr>
-          <th style="width: 8%">SL.No.</th>
-          <th style="width: 25%">SUBJECT</th>
-          <th>CERTIFICATE</th>
-        </tr>
-        <tr>
-          <td class="center">1.</td>
-          <td>Nomination Details</td>
-          <td></td>
         </tr>
       </table>
     </div>
@@ -750,12 +733,12 @@
         {{#each nominationDetails}}
         <tr>
           <td class="center">{{increment @index}}</td>
-          <td>{{NOMINEE_NAME}}</td>
-          <td>{{ADDRESS}}</td>
-          <td>{{RELATIONSHIP}}</td>
-          <td class="center">{{AGE}}</td>
-          <td>{{PLACE}}</td>
-          <td class="right">{{toFixed AMOUNT 2}}</td>
+          <td>{{VAR_NOMINEE_NAME}}</td>
+          <td>{{VAR_NOMINEE_ADDRESS}}</td>
+          <td>{{VAR_RELATION_NAME}}</td>
+          <td class="center">{{NUM_NOMINEE_AGE}}</td>
+          <td>{{VAR_NOMINEE_PLACE}}</td>
+          <td class="right">{{toFixed NUM_NOMINEE_PENSIONAMT 2}}</td>
         </tr>
         {{/each}}
       </table>
@@ -786,11 +769,11 @@
         </tr>
         {{#each postingRecords.previousService}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
-          <td>{{POST_HELD}}</td>
-          <td>{{PURPOSE}}</td>
-          <td>{{CERTIFYING_OFFICER}}</td>
+          <td>{{formatDate DAT_POSTINGRECORD_FROMDATE}}</td>
+          <td>{{formatDate DAT_POSTINGRECORD_TODATE}}</td>
+          <td>{{VAR_POSTINGRECORD_POSTHELD}}</td>
+          <td>{{VAR_POSTINGRECORD_PURPOSE}}</td>
+          <td>{{VAR_POSTINGRECORD_DESIGNATION}}</td>
         </tr>
         {{/each}}
       </table>
@@ -805,15 +788,18 @@
           <th>To,</th>
           <th>Post Held And Name Of Foreign Employer</th>
           <th>
-            Leave And Pension Contribution Payable By / Amount Of Leave And
-            Pension Contribution Actually Received
+            Leave And Pension Contribution Payable By
+          </th>
+          <th>
+            Amount Of Leave And Pension Contribution Actually Received
           </th>
         </tr>
         {{#each postingRecords.foreignService}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
-          <td>{{POST_HELD}}</td>
+          <td>{{formatDate DAT_POSTINGRECORD_FROMDATE}}</td>
+          <td>{{formatDate DAT_POSTINGRECORD_TODATE}}</td>
+          <td>{{VAR_POSTINGRECORD_POSTHELD}}</td>
+          <td>{{VAR_POSTINGRECORD_PURPOSE}}</td>
           <td>{{CONTRIBUTION}}</td>
         </tr>
         {{/each}}
@@ -835,12 +821,12 @@
         </tr>
         {{#each postingRecords.verifiedService}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
-          <td>{{POST_HELD}}</td>
-          <td>{{PURPOSE}}</td>
+          <td>{{formatDate DAT_POSTINGRECORD_FROMDATE}}</td>
+          <td>{{formatDate DAT_POSTINGRECORD_TODATE}}</td>
+          <td>{{VAR_POSTINGRECORD_POSTHELD}}</td>
+          <td>{{VAR_POSTINGRECORD_PURPOSE}}</td>
           <td>{{DOCUMENTS}}</td>
-          <td>{{CERTIFYING_OFFICER}}</td>
+          <td>{{VAR_POSTINGRECORD_DESIGNATION}}</td>
         </tr>
         {{/each}}
       </table>
@@ -879,17 +865,17 @@
         </tr>
         {{#each leaveRecords.earnedLeave}}
         <tr>
-          <td>{{FIN_YEAR}}</td>
-          <td>{{OPENING_BAL}}</td>
-          <td>{{CREDITED}}</td>
-          <td>{{DEBITED}}</td>
-          <td>{{CLOSING_BAL}}</td>
-          <td>{{CREDITED_JULY}}</td>
-          <td>{{PREVIOUS_JULY}}</td>
-          <td>{{DEBITED_JULY}}</td>
-          <td>{{CURRENT_JULY}}</td>
-          <td>{{ENCASHMENT}}</td>
-          <td>{{REASON}}</td>
+          <td>{{CBYEAR}}</td>
+          <td>{{PREVBAL_1}}</td>
+          <td>{{CR1STJAN}}</td>
+          <td>{{DEBITED_1}}</td>
+          <td>{{CURRBAL_1}}</td>
+          <td>{{CR1STJULY}}</td>
+          <td>{{PREVBAL_2}}</td>
+          <td>{{DEBITED_2}}</td>
+          <td>{{CURRBAL_2}}</td>
+          <td>{{LTC}}</td>
+          <td>{{REASONFORCREADETING}}</td>
         </tr>
         {{/each}}
       </table>
@@ -903,12 +889,12 @@
           <th>Total No.Of Days</th>
           <th>Balance</th>
         </tr>
-        {{#each leaveRecords.earnedLeaveAvailable}}
+        {{#each leaveRecords.leaveAvail}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
           <td>{{PURPOSE}}</td>
-          <td class="center">{{TOTAL_DAYS}}</td>
+          <td class="center">{{NOOFDAYS}}</td>
           <td class="center">{{BALANCE}}</td>
         </tr>
         {{/each}}
@@ -937,17 +923,17 @@
         </tr>
         {{#each leaveRecords.earnedLeaveHPL}}
         <tr>
-          <td>{{FIN_YEAR}}</td>
-          <td>{{OPENING_BAL}}</td>
-          <td>{{CREDITED}}</td>
-          <td>{{DEBITED}}</td>
-          <td>{{CLOSING_BAL}}</td>
-          <td>{{CREDITED_JULY}}</td>
-          <td>{{PREVIOUS_JULY}}</td>
-          <td>{{DEBITED_JULY}}</td>
-          <td>{{CURRENT_JULY}}</td>
-          <td>{{ENCASHMENT}}</td>
-          <td>{{REASON}}</td>
+          <td>{{CBYEAR}}</td>
+          <td>{{prevbal_1}}{{PREVBAL_1}}</td>
+          <td>{{CR1STJAN}}</td>
+          <td>{{DEBITED_1}}</td>
+          <td>{{CURRBAL_1}}</td>
+          <td>{{CR1STJULY}}</td>
+          <td>{{PREVBAL_2}}</td>
+          <td>{{DEBITED_2}}</td>
+          <td>{{currbal_2}}</td>
+          <td>{{LTC}}</td>
+          <td>{{REASONFORCREADETING}}</td>
         </tr>
         {{/each}}
       </table>
@@ -961,12 +947,12 @@
           <th>Total No.Of Days</th>
           <th>Balance</th>
         </tr>
-        {{#each leaveRecords.leaveAvailableHPL}}
+        {{#each leaveRecords.leaveAvailHPL}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
           <td>{{PURPOSE}}</td>
-          <td class="center">{{TOTAL_DAYS}}</td>
+          <td class="center">{{NOOFDAYS}}</td>
           <td class="center">{{BALANCE}}</td>
         </tr>
         {{/each}}
@@ -983,10 +969,10 @@
         </tr>
         {{#each leaveRecords.casualLeave}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
           <td>{{PURPOSE}}</td>
-          <td class="center">{{TOTAL_DAYS}}</td>
+          <td class="center">{{NOOFDAYS}}</td>
           <td class="center">{{BALANCE}}</td>
         </tr>
         {{/each}}
@@ -1001,8 +987,8 @@
         </tr>
         {{#each leaveRecords.extraOrdinaryLeave}}
         <tr>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
           <td>{{PURPOSE}}</td>
         </tr>
         {{/each}}
@@ -1021,9 +1007,9 @@
           <td>From</td>
           <td></td>
         </tr>
-        {{#each leaveRecords.childCareLeave}}
+        {{#each leaveRecords.commutedLeave}}
         <tr>
-          <td>{{TOTAL_DAYS}}</td>
+          <td>{{TOTALDAYS}}</td>
           <td>{{formatDate FROM_DATE}}</td>
           <td>{{formatDate TO_DATE}}</td>
           <td>{{BALANCE}}</td>
@@ -1057,10 +1043,10 @@
         {{#each leaveRecords.maternityLeave}}
         <tr>
           <td></td>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
-          <td class="center">{{NO_OF_DAYS}}</td>
-          <td>{{REMARKS}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
+          <td class="center">{{TOTAL}}</td>
+          <td>{{LREMARK}}</td>
         </tr>
         {{/each}}
       </table>
@@ -1082,10 +1068,10 @@
         {{#each leaveRecords.paternityLeave}}
         <tr>
           <td></td>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
-          <td class="center">{{NO_OF_DAYS}}</td>
-          <td>{{REMARKS}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
+          <td class="center">{{TOTAL}}</td>
+          <td>{{LREMARK}}</td>
         </tr>
         {{/each}}
       </table>
@@ -1105,10 +1091,10 @@
         </tr>
         {{#each leaveRecords.otherLeave}}
         <tr>
-          <td>{{LEAVE_TYPE}}</td>
-          <td>{{formatDate FROM_DATE}}</td>
-          <td>{{formatDate TO_DATE}}</td>
-          <td class="center">{{TOTAL_DAYS}}</td>
+          <td>{{LEAVETYPE}}</td>
+          <td>{{formatDate FROMDATE}}</td>
+          <td>{{formatDate TODATE}}</td>
+          <td class="center">{{LREMARK}}</td>
         </tr>
         {{/each}}
       </table>
@@ -1129,18 +1115,20 @@
           <th>Relationship</th>
           <th>Age(yrs)</th>
           <th>Place Of Visit</th>
-          <th>Whether Availed Leave Encashment / Balance</th>
+          <th>Whether Availed Leave Encashment</th>
+          <th>If Answer To Col. 6 Is Yes, Balance Out Of a Maximum Of 60 Days</th>
         </tr>
-        {{#each leaveRecords.ltcDetails}}
+        {{#each leaveRecords.ltaLeave}}
         <tr>
           <td class="center">{{increment @index}}</td>
-          <td>{{BLOCKYEAR}}</td>
-          <td>{{AVAILEDYEAR}}</td>
-          <td>{{NAME}}</td>
-          <td>{{RELATIONSHIP}}</td>
-          <td class="center">{{AGE}}</td>
-          <td>{{PLACEOFVISIT}}</td>
-          <td>{{LEAVEENCASHMENT}}</td>
+          <td>{{VAR_LEAVEDETSLTA_BLOCKYEAR}}</td>
+          <td>{{VAR_LEAVEDETSLTA_AVAILYEAR}}</td>
+          <td>{{VAR_LEAVEDETSLTA_NAME}}</td>
+          <td>{{VAR_LEAVEDETSLTA_RELNAME}}</td>
+          <td class="center">{{NUM_LEAVEDETSLTA_AGE}}</td>
+          <td>{{VAR_LEAVEDETSLTA_PLACE}}</td>
+          <td>{{VAR_LEAVEDETSLTA_LEAVEENC}}</td>
+          <td>{{NUM_LEAVEDETSLTA_OUTOFMAX}}</td>
         </tr>
         {{/each}}
       </table>
@@ -1174,10 +1162,10 @@
           <td>{{PURPOSE}}</td>
           <td class="center">{{NUMOFINSTALL}}</td>
           <td class="center">{{ROI}}</td>
-          <td>{{SANCTIONORDERNO}}</td>
-          <td>{{formatDate SANCTIONDATE}}</td>
-          <td>{{formatDate FIRSTRECOVERDATE}}</td>
-          <td class="right">{{toFixed MONTHLYINSTALLMENT 2}}</td>
+          <td>{{SANCTORDERNO}}</td>
+          <td>{{formatDate SANCTDATE}}</td>
+          <td>{{formatDate FINSTALLDAT}}</td>
+          <td class="right">{{toFixed MONTHINSTALL 2}}</td>
         </tr>
         {{/each}}
       </table>
@@ -1200,7 +1188,17 @@
           <td>{{OUTSTANDING}}</td>
           <td>{{RECOVERED}}</td>
           <td>{{INTEREST}}</td>
-          <td>{{SIGNATURE}}</td>
+          <td class="center">
+            {{#if SIGNATURE}}
+              <img
+                src="{{SIGNATURE}}"
+                alt="Signature"
+                style="max-height: 45px; max-width: 120px; object-fit: contain;"
+              />
+            {{else}}
+              <span class="tiny"></span>
+            {{/if}}
+          </td>
           <td>{{REMARKS}}</td>
         </tr>
         {{/each}}
@@ -1219,15 +1217,6 @@
           <th>To,</th>
           <th>Events with exact Date Affecting Cols.3 and 4</th>
           <th>Remarks</th>
-        </tr>
-        <tr>
-          <td>{{formatDate personalInfo.JOINDATE}}</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
         </tr>
         <tr>
           <th>(1)</th>
@@ -1252,13 +1241,6 @@
             Details of Compliance of Observations of Audit By Head of Office
           </th>
         </tr>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
       </table>
 
       <div class="part" style="margin-top: 12px">PART-12</div>
@@ -1268,11 +1250,6 @@
           <th>Vigilance Status as on Date</th>
           <th>Vigilance Status</th>
           <th>Remarks</th>
-        </tr>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
         </tr>
       </table>
 

@@ -6,6 +6,7 @@ const {
   EsevaReportPDFHelper,
 } = require("../../../utils/pdfHelper/FrmEsevaReport");
 const path = require("path");
+const { getCorporationService } = require("../../MenuAccess/MenuAccess.service");
 require("dotenv").config({
   path: path.join(__dirname, ".env")
 });
@@ -62,9 +63,14 @@ exports.generateEsevaReport = asyncHandler(async (req, res) => {
     throw new AppError("Employee record not found", 404);
   }
 
+  const corpInfo = await getCorporationService({ ulbId: ulbId });
+
+  console.log("reportData: ", reportData);
+
   const pdf = await EsevaReportPDFHelper({
     reportData,
-    corporationName: corporationName || "Municipal Corporation",
+    corporationName: corpInfo?.ABC_MUNICIPAL_TEXT || "",
+    corporationLogo: corpInfo?.ULBLOGO || "",
     brNameMar: brNameMar || "",
     brAddMar: brAddMar || "",
     userId: userId || req.user?.userId || "",

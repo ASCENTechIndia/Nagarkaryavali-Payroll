@@ -1,3 +1,5 @@
+const oracledb = require("oracledb");
+const getConnection = require("../../../config/db");
 const { executeQuery } = require("../../../db/queryExecutor");
 
 async function searchEmployeeRepo({ ulbId, empCode }) {
@@ -413,7 +415,7 @@ async function getLeaveRecordsRepo({ ulbId, empCode }) {
     `,
     commutedLeave: `
       SELECT *
-      FROM VW_ESEVALEAVEAVAILCC
+      FROM VW_ESEVALeaveCC
       WHERE ULBID = :ulbId
         AND EMPCODE = :empCode
     `,
@@ -437,7 +439,7 @@ async function getLeaveRecordsRepo({ ulbId, empCode }) {
     `,
     ltaLeave: `
       SELECT *
-      FROM VW_LEAVEDETAILSLTA
+      FROM vw_leavedtlsLTA
       WHERE NUM_LEAVEDETSLTA_ULBID = :ulbId
         AND NUM_LEAVEDETSLTA_EMPCODE = :empCode
     `,
@@ -462,54 +464,101 @@ async function getLoanAdvanceRecordsRepo({ ulbId, empCode }) {
     interestBearingAdvanceInstallments: [],
   };
 
-  const loanSql = `
-    SELECT
-      NUM_LOANADV_ESEVAID AS ESEVAID,
-      NUM_LOANADV_EMPCODE AS EMP_CODE,
-      NUM_LOANADV_ULBID AS ULDID,
-      NUM_LOANADV_SANCTIONEDAMT AS SANCTIONEDAMT,
-      VAR_LOANADV_PURPOSE AS PURPOSE,
-      NUM_LOANADV_NUMOFINSTALL AS NUMOFINSTALL,
-      VAR_LOANADV_ROI AS ROI,
-      VAR_LOANADV_SANCTORDERNO AS SANCTORDERNO,
-      DAT_LOANADV_SANCTDATE AS SANCTDATE,
-      DAT_LOANADV_FINSTALLDAT AS FINSTALLDAT,
-      NUM_LOANADV_MONTHINSTALL AS MONTHINSTALL
-    FROM AOPR_LOANADV_DET
-    WHERE NUM_LOANADV_ULBID = :ulbId
-      AND NUM_LOANADV_EMPCODE = :empCode
-  `;
+  let connection;
+  try {
+    connection = await getConnection();
 
-  const loanResult = await executeQuery(loanSql, binds);
+    const loanSql = `
+      SELECT
+        NUM_LOANADV_ESEVAID       AS ESEVAID,
+        NUM_LOANADV_EMPCODE       AS EMP_CODE,
+        NUM_LOANADV_ULBID         AS ULDID,
+        NUM_LOANADV_SANCTIONEDAMT AS SANCTIONEDAMT,
+        VAR_LOANADV_PURPOSE       AS PURPOSE,
+        NUM_LOANADV_NUMOFINSTALL  AS NUMOFINSTALL,
+        VAR_LOANADV_ROI           AS ROI,
+        VAR_LOANADV_SANCTORDERNO  AS SANCTORDERNO,
+        DAT_LOANADV_SANCTDATE     AS SANCTDATE,
+        DAT_LOANADV_FINSTALLDAT   AS FINSTALLDAT,
+        NUM_LOANADV_MONTHINSTALL  AS MONTHINSTALL
+      FROM AOPR_LOANADV_DET
+      WHERE NUM_LOANADV_ULBID   = :ulbId
+        AND NUM_LOANADV_EMPCODE = :empCode
+    `;
 
-  if (loanResult.success) {
-    loanData.interestBearingAdvances = loanResult.rows;
+    const loanResult = await connection.execute(loanSql, binds, {
+      outFormat: oracledb.OUT_FORMAT_OBJECT,
+    });
+
+    loanData.interestBearingAdvances = loanResult.rows || [];
+
+    const installSql = `
+      SELECT
+        NUM_LOANADV_ESEVAID       AS ESEVAID,
+        NUM_LOANADV_EMPCODE       AS EMP_CODE,
+        NUM_LOANADV_ULBID         AS ULDID,
+        VAR_LOANADV_FINANCYEAR    AS FINANCYEAR,
+        VAR_LOANADV_INTBERADV     AS INTBERADV,
+        NUM_LOANADV_AMTOS         AS AMTOS,
+        NUM_LOANADV_AMTRECOVER    AS AMTRECOVER,
+        VAR_LOANADV_INTACC        AS INTACC,
+        BLOB_LOANADV_SIGNDET      AS SIGNDET,
+        VAR_LOANADV_REMARK        AS REMARK
+      FROM AOPR_LOANADV_DET
+      WHERE NUM_LOANADV_ULBID   = :ulbId
+        AND NUM_LOANADV_EMPCODE = :empCode
+    `;
+
+    const installResult = await connection.execute(installSql, binds, {
+      outFormat: oracledb.OUT_FORMAT_OBJECT,
+    });
+
+    const readLob = async (lob) => {
+      if (!lob) return null;
+      if (Buffer.isBuffer(lob)) return lob;
+      if (lob && typeof lob === "object" && typeof lob.on === "function") {
+        return new Promise((resolve, reject) => {
+          const chunks = [];
+          lob.on("data", (chunk) => chunks.push(chunk));
+          lob.on("error", reject);
+          lob.on("end", () => resolve(Buffer.concat(chunks)));
+        });
+      }
+      return null;
+    };
+
+    const rows = await Promise.all(
+      (installResult.rows || []).map(async (row) => {
+        const signBuffer = await readLob(row.SIGNDET);
+        return {
+          ESEVAID:    row.ESEVAID,
+          EMP_CODE:   row.EMP_CODE,
+          ULDID:      row.ULDID,
+          FINANCYEAR: row.FINANCYEAR,
+          INTBERADV:  row.INTBERADV,
+          AMTOS:      row.AMTOS,
+          AMTRECOVER: row.AMTRECOVER,
+          INTACC:     row.INTACC,
+          REMARK:     row.REMARK,
+          SIGNDET: signBuffer ? signBuffer.toString("base64") : null,
+        };
+      })
+    );
+
+    loanData.interestBearingAdvanceInstallments = rows;
+
+    console.log("loanData.interestBearingAdvanceInstallments: ", loanData.interestBearingAdvanceInstallments);
+
+    return loanData;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("[REPO] Error closing connection:", err);
+      }
+    }
   }
-
-  const installSql = `
-    SELECT
-      NUM_LOANADV_ESEVAID AS ESEVAID,
-      NUM_LOANADV_EMPCODE AS EMP_CODE,
-      NUM_LOANADV_ULBID AS ULDID,
-      VAR_LOANADV_FINANCYEAR AS FINANCYEAR,
-      VAR_LOANADV_INTBERADV AS INTBERADV,
-      NUM_LOANADV_AMTOS AS AMTOS,
-      NUM_LOANADV_AMTRECOVER AS AMTRECOVER,
-      VAR_LOANADV_INTACC AS INTACC,
-      BLOB_LOANADV_SIGNDET AS SIGNDET,
-      VAR_LOANADV_REMARK AS REMARK
-    FROM AOPR_LOANADV_DET
-    WHERE NUM_LOANADV_ULBID = :ulbId
-      AND NUM_LOANADV_EMPCODE = :empCode
-  `;
-
-  const installResult = await executeQuery(installSql, binds);
-
-  if (installResult.success) {
-    loanData.interestBearingAdvanceInstallments = installResult.rows;
-  }
-
-  return loanData;
 }
 
 async function getAppendixRepo({ ulbId, empCode }) {
