@@ -54,6 +54,23 @@ const FrmESevaEmpMaster = () => {
 
   const { empId, esevaEmployeeID } = useOutletContext();
 
+  const resolveEsevaEmpId = () => {
+  if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+  const fromState = location?.state?.esevaEmpId;
+  if (fromState) return Number(fromState);
+
+  const fromUrl = searchParams.get("esevaEmpId");
+  if (fromUrl) return Number(fromUrl);
+
+  const fromSession =
+    sessionStorage.getItem("empIdEseva") ||
+    sessionStorage.getItem("esevaempid");
+  if (fromSession) return Number(fromSession);
+
+  return 0;
+};
+
   const [form, setForm] = useState({
     name: "",
     fatherName: "",
@@ -269,6 +286,11 @@ const FrmESevaEmpMaster = () => {
 useEffect(() => {
   if (!token || !empId) return;
 
+  const resolved = resolveEsevaEmpId();
+  if (mode === 2 && resolved) {
+    sessionStorage.setItem("empIdEseva", String(resolved));
+  }
+
   setDetailsLoaded(false);
 
   Swal.fire({
@@ -331,12 +353,22 @@ useEffect(() => {
 
   const bindDetails = async () => {
     try {
+
+      const resolvedEsevaEmpId = resolveEsevaEmpId();
+
+      if (mode === 2 && !resolvedEsevaEmpId) {
+        showAlert("Eseva Employee ID not found. Please re-open from the list.",
+          "/Transactions/FrmEsevaEmpList");
+        setDetailsLoaded(true);
+        return;
+      }
+
       const res = await axios.post(
         `${API(BASE_URL)}/eseva-emp-details`,
         {
           ulbid: Number(ulbId),                    
           empId: Number(empId),                     
-          esevaEmpId: Number(esevaEmployeeID),     
+          esevaEmpId: resolvedEsevaEmpId,     
           mode,                                     
         },
         { headers: authHeaders }
@@ -352,23 +384,23 @@ useEffect(() => {
       }
 
       setForm({
-        name: row.VAR_EMPLOYEE_ENGNAME || "",
+        name: row.VAR_ESEVAEMP_NAME || "",
         fatherName: row.VAR_ESEVAEMP_FATNAME || "",
         motherName: row.VAR_ESEVAEMP_MOTNAME || "",
-        dob: row.DATE_EMPLOYEE_DOB ? new Date(row.DATE_EMPLOYEE_DOB) : null,
+        dob: row.DAT_ESEVAEMP_DOB ? new Date(row.DAT_ESEVAEMP_DOB) : null,
         nationality: row.NUM_ESEVAEMP_NATIONALITY?.toString() || "",
-        religion: row.NUM_EMPLOYEE_RELIGION?.toString() || "",
-        cast: row.VAR_EMPLOYEE_CAST?.toString() || "",
-        subCast: row.VAR_EMPLOYEE_SUBCAST?.toString() || "",
-        category: row.NUM_EMPLOYEE_CASTCAT?.toString() || "",
-        mobileNo: row.NUM_EMPLOYEE_MOBILENO?.toString() || "",
-        emailId: row.VAR_EMPLOYEE_EMAILID || "",
+        religion: row.NUM_ESEVAEMP_RELOGION?.toString() || "",
+        cast: row.NUM_ESEVAEMP_CAST?.toString() || "",
+        subCast: row.NUM_ESEVAEMP_SUBCAST?.toString() || "",
+        category: row.NUM_ESEVAEMP_CATEGORY?.toString() || "",
+        mobileNo: row.NUM_ESEVAEMP_MOBNO?.toString() || "",
+        emailId: row.VAR_ESEVAEMP_EMAIL || "",
         bloodGroup: row.NUM_ESEVAEMP_BLOODGRP?.toString() || "",
         isPhysicallyHandicapped: row.VAR_ESEVAEMP_PHYHANDICAPPED || "N",
         handicappedDetails: row.VAR_ESEVAEMP_PHYHANDICAP_IFY || "",
-        isMarried: row.VAR_EMPLOYEE_MARSTATUS || "N",
+        isMarried: row.VAR_ESEVAEMP_MARRGSTATUS || "N",
         spouseName: row.VAR_ESEVAEMP_MARRGSTATUS_IFY || "",
-        permanentAddress: row.VAR_EMPLOYEE_PMNTADDRESS || "",
+        permanentAddress: row.VAR_ESEVAEMP_PARMADDRES || "",
         permanentDistrict: row.VAR_ESEVAEMP_DISTRICT || "",
         permanentState: row.VAR_ESEVAEMP_STATE || "",
         permanentCountry: row.VAR_ESEVAEMP_COUNTRY || "",
@@ -607,7 +639,7 @@ useEffect(() => {
         userid: userId,
         ulbid: Number(ulbId),
         empid: Number(empId),
-        esevaempid: mode === 1 ? 0 : Number(esevaEmployeeID),
+        esevaempid: mode === 1 ? 0 : resolveEsevaEmpId(),
 
         esevaempdetid: 0,
 

@@ -34,7 +34,25 @@ const FrmESevaEmpNomin = () => {
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const { empId, esevaEmployeeID } = useOutletContext();
-  const esevaEmpId = esevaEmployeeID;
+
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
 
   const mode = searchParams.get("@") === "1" ? 2 : 1;
 
@@ -51,6 +69,10 @@ const FrmESevaEmpNomin = () => {
     if (mode === 2 && !esevaEmpId) {
       navigate("/Transactions/FrmEsevaEmpList");
       return;
+    }
+
+    if (esevaEmpId) {
+      sessionStorage.setItem("empIdEseva", String(esevaEmpId));
     }
 
     fetchAccHeadOptions();
@@ -219,6 +241,12 @@ const FrmESevaEmpNomin = () => {
         return;
       }
 
+      if (mode === 2 && !esevaEmpId) {
+        return Swal.fire({
+          text: "Eseva Employee ID not found. Please re-open from the list.",
+        });
+      }
+
       const str = tableData
         .map((row) => {
           const cleanNominee = (row.Nominee || "").replace(/[$#]/g, "");
@@ -235,7 +263,7 @@ const FrmESevaEmpNomin = () => {
 
       const payload = {
         userid: userId,
-        esevaempid: Number(esevaEmpId),
+        esevaempid: esevaEmpId || 0,
         ulbid: Number(ulbId),
         empid: Number(empId),
         STR: str,
@@ -258,10 +286,18 @@ const FrmESevaEmpNomin = () => {
         "Saved successfully";
 
       if (outerSuccess) {
+
+        const resolvedId = apiData?.esevaEmpId ?? esevaEmpId;
+
+        if (resolvedId) {
+          sessionStorage.setItem("empIdEseva", String(resolvedId));
+        }
+
         await Swal.fire({ text: errorMsg });
-        navigate("/Transactions/FrmESevaEmpPostingRecord?@=1", {
-          state: { empId, esevaEmpId: apiData?.esevaEmpId ?? esevaEmpId, mode },
-        });
+
+        navigate("/Transactions/FrmESevaEmpPostingRecord?@=1",{
+            state: { empId, esevaEmpId: apiData?.esevaEmpId, mode },
+          });
       } else {
         await Swal.fire({ text: errorMsg});
       }

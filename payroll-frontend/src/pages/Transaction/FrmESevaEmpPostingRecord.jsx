@@ -60,11 +60,37 @@ const FrmESevaEmpPostingRecord = () => {
   const queryMode = searchParams.get("@");
   const mode = queryMode === "1" ? 2 : 1;
 
-  const { empId, esevaEmployeeID } = useOutletContext();  
+  const { empId, esevaEmployeeID } = useOutletContext();
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const empIdEseva = empId || storedUser?.empId || storedUser?.employeeId;
-  const esevaEmpId = esevaEmployeeID || storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+  const empIdEseva =
+    empId ||
+    location?.state?.empId ||
+    storedUser?.empId ||
+    storedUser?.employeeId;
+
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    const fromLocal =
+      storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+    if (fromLocal) return Number(fromLocal);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -119,6 +145,10 @@ const FrmESevaEmpPostingRecord = () => {
 
     const today = new Date();
     setForm((prev) => ({ ...prev, fromDate: today, toDate: today }));
+
+    if (esevaEmpId) {
+      sessionStorage.setItem("empIdEseva", String(esevaEmpId));
+    }
 
     fetchServices();
 
@@ -284,6 +314,12 @@ const FrmESevaEmpPostingRecord = () => {
         return;
       }
 
+      if (mode === 2 && !esevaEmpId) {
+        return Swal.fire({
+          text: "Eseva Employee ID not found. Please re-open from the list.",
+        });
+      }
+
       const str = tableData
         .map(
           (row) =>
@@ -309,9 +345,9 @@ const FrmESevaEmpPostingRecord = () => {
 
       formData.append("userid", userId || "");
       formData.append("mode", mode);
-      formData.append("empid", Number(empIdEseva));     
+      formData.append("empid", empIdEseva || 0);     
       formData.append("ulbid", Number(ulbId));
-      formData.append("esevaempid", Number(esevaEmpId)); 
+      formData.append("esevaempid", esevaEmpId || 0); 
       formData.append("STR", str);
       formData.append("signatures", JSON.stringify(sigMeta));
 
@@ -339,10 +375,18 @@ const FrmESevaEmpPostingRecord = () => {
       const errorMsg = data.message || "Saved successfully";
 
       if (errorCode === 9999 || data.success) {
+        const resolvedId = data?.esevaEmpId ?? esevaEmpId;
+
+        if (resolvedId) {
+          sessionStorage.setItem("empIdEseva", String(resolvedId));
+        }
+
         await Swal.fire({ text: errorMsg});
-        navigate("/Transactions/FrmESevaEmpLeaveRecord?@=1", {
-          state: { empId, esevaEmpId: data?.esevaEmpId, mode },
-        });
+
+        navigate("/Transactions/FrmESevaEmpLeaveRecord?@=1",{
+            state: { empId, esevaEmpId: data?.esevaEmpId, mode },
+          });
+
       } else {
         await Swal.fire({ text: errorMsg });
       }

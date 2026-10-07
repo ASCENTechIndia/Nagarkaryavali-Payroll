@@ -78,8 +78,36 @@ const FrmESevaLoanNAdvance = () => {
   const mode = queryMode === "1" ? 2 : 1;
 
   const { empId, esevaEmployeeID } = useOutletContext();
-  const empIdEseva = empId;
-  const esevaEmpId = esevaEmployeeID;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const empIdEseva =
+    empId ||
+    location?.state?.empId ||
+    storedUser?.empId ||
+    storedUser?.employeeId;
+
+  const resolveEsevaEmpId = () => {
+    if (esevaEmployeeID) return Number(esevaEmployeeID);
+
+    const fromState = location?.state?.esevaEmpId;
+    if (fromState) return Number(fromState);
+
+    const fromUrl = searchParams.get("esevaEmpId");
+    if (fromUrl) return Number(fromUrl);
+
+    const fromSession =
+      sessionStorage.getItem("empIdEseva") ||
+      sessionStorage.getItem("esevaempid");
+    if (fromSession) return Number(fromSession);
+
+    const fromLocal =
+      storedUser?.esevaEmployeeID || storedUser?.esevaEmpId;
+    if (fromLocal) return Number(fromLocal);
+
+    return 0;
+  };
+
+  const esevaEmpId = resolveEsevaEmpId();
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -122,6 +150,10 @@ const FrmESevaLoanNAdvance = () => {
     const today = new Date();
     setForm((prev) => ({ ...prev, sancDate: today, firstInstDate: today }));
 
+    if (esevaEmpId) {
+      sessionStorage.setItem("empIdEseva", String(esevaEmpId));
+    }
+
     const load = async () => {
       Swal.fire({
         text: "Please wait",
@@ -144,8 +176,8 @@ const FrmESevaLoanNAdvance = () => {
     try {
       const payload = {
         ulbId: Number(ulbId),
-        empId: Number(empIdEseva),
-        esevaEmpId: Number(esevaEmpId),
+        empId: empIdEseva || 0,
+        esevaEmpId: esevaEmpId || 0,
       };
 
       const res = await axios.post(
@@ -306,6 +338,13 @@ const FrmESevaLoanNAdvance = () => {
 
     const handleProcess = async () => {
     try {
+
+      if (mode === 2 && !esevaEmpId) {
+        return Swal.fire({
+          text: "Eseva Employee ID not found. Please re-open from the list.",
+        });
+      }
+
       if (tableData.length === 0) {
         return Swal.fire({
           text: "Please Add At least One Loan and Advance record",
@@ -330,9 +369,9 @@ const FrmESevaLoanNAdvance = () => {
         {
           userId,
           mode,
-          empId: Number(empIdEseva),
+          empId: empIdEseva || 0,
           ulbId: Number(ulbId),
-          esevaEmpId: mode === 1 ? 0 : Number(esevaEmpId),
+          esevaEmpId: mode === 1 ? 0 : (esevaEmpId || 0),
           loanAdvStr,
         },
         { headers: authHeaders }
@@ -362,9 +401,9 @@ const FrmESevaLoanNAdvance = () => {
 
         const fd = new FormData();
         fd.append("signature", file);
-        fd.append("empId", Number(empIdEseva));
+        fd.append("empId", empIdEseva || 0);
         fd.append("ulbId", Number(ulbId));
-        fd.append("esevaEmpId", mode === 1 ? 0 : Number(esevaEmpId));
+        fd.append("esevaEmpId", mode === 1 ? 0 : (esevaEmpId || 0));
 
         try {
           const sigRes = await axios.post(
@@ -403,15 +442,24 @@ const FrmESevaLoanNAdvance = () => {
       }
 
       Swal.close();
+
+      const resolvedId = insertData?.esevaEmpId ?? esevaEmpId;
+
+      if (resolvedId) {
+        sessionStorage.setItem("empIdEseva", String(resolvedId));
+      }
+
       await Swal.fire({ text: errorMsg });
 
-      navigate("/Transactions/FrmEsevaEmpPenalAction?@=1", {
-        state: {
-          empId,
-          esevaEmpId: insertData?.esevaEmpId ?? esevaEmpId,
-          mode,
-        },
-      });
+      navigate("/Transactions/FrmEsevaEmpPenalAction?@=1",
+        {
+          state: {
+            empId: empIdEseva,
+            esevaEmpId: resolvedId,
+            mode,
+          },
+        }
+      );
     } catch (error) {
       Swal.close();
       console.error("Process error:", error);
