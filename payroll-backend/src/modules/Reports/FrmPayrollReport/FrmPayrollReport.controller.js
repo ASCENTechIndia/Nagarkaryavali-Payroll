@@ -42,6 +42,14 @@ exports.generatePayrollPDF = asyncHandler(async (req, res) => {
 
   const reportResult = await service.getPayrollReportService(filters);
 
+   if (!reportResult.data || reportResult.data.length === 0) {
+        return res.status(404).json({
+            success: false,
+            message: "Record not Found",
+            data: [],
+        });
+    }
+
   const ulbInfo = await getCorporationService({
     ulbId: filters.ulbid,
   });

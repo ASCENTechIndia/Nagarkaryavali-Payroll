@@ -102,6 +102,8 @@ async function getAttendanceDetail({
       )
 
       AND num_employee_ulbid = :ulbId
+
+      ORDER BY num_attendentry_empid ASC
   `;
 
   const binds = {

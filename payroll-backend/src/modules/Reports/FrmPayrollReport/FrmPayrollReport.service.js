@@ -81,9 +81,11 @@ async function getPayrollReportService({
         reportType
     });
     
-    if (!data || data.length === 0) {
-        throw new Error("Record not Found");
-    }
+    // if (!data || data.length === 0) {
+    //     throw new Error("Record not Found");
+    // }
+
+    const rows = data || [];
     
     let reportName = "";
     switch (reportType) {
@@ -104,7 +106,7 @@ async function getPayrollReportService({
     return {
         success: true,
         count: data.length,
-        data,
+        data: rows,
         reportName,
         filters: {
             startDate,

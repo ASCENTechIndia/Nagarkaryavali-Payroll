@@ -271,6 +271,7 @@ const FrmPayrollReport = () => {
           },
         );
 
+        Swal.close();
         if (res.data.success) {
           window.open(res.data.pdfUrl, "_blank");
         }
@@ -285,18 +286,32 @@ const FrmPayrollReport = () => {
           },
         );
 
+        const report = res.data?.data;
+
+        if (!report?.data || report.data.length === 0) {
+            await Swal.fire({
+                text: "No Records Found",
+            });
+            return;
+        }
+
         exportExcel(res.data.data);
       }
     } catch (err) {
-      console.log(err);
-
-      Swal.fire({
-        icon: "error",
-        text: "Something went wrong.",
-      });
-    } finally {
-      Swal.close();
-    }
+        console.error(
+            "Payroll Report Error:",
+            err.response?.data || err.message
+        );
+        Swal.close();
+        Swal.fire({
+            text:
+                err.response?.data?.message ||
+                "Unable to generate payroll report.",
+        });
+    } 
+    // finally {
+    //     Swal.close();
+    // }
   };
 
   return (

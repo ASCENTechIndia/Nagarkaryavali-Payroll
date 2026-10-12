@@ -600,8 +600,9 @@ const FrmAttendenceEntryAuth = () => {
                       headers={tableHeaders}
                       data={tableData}
                       keyMapping={keyMapping}
-                      pagination={true}
-                      rowsPerPage={10}
+                      // pagination={true}
+                      pagination={false}
+                      // rowsPerPage={10}
                       className="min-w-[1200px]"
                     />
                   </div>
