@@ -19,7 +19,7 @@ export const personalInformationValidationSchema = (isMarathi = false) => z.obje
   }, isMarathi ? "कर्मचाऱ्याचे वय 18 पेक्षा कमी असू शकत नाही" : "Employee age cannot be less than 18"),
   gender: z.string().min(1, "Gender is required"),
   emailId: z.string().email(isMarathi ? "वैध ईमेल आयडी प्रविष्ट करा" : "Enter valid email id").optional().or(z.literal("")),
-  mobileNo: z.string().regex(mobileRegex, isMarathi ? "10 अंकांचा वैध मोबाईल क्रमांक प्रविष्ट करा" : "Enter valid 10 digit mobile number"),
+  // mobileNo: z.string().regex(mobileRegex, isMarathi ? "10 अंकांचा वैध मोबाईल क्रमांक प्रविष्ट करा" : "Enter valid 10 digit mobile number"),
   panNo: z.string().regex(panCardRegex, isMarathi ? "अवैध पॅन कार्ड क्रमांक" : "Invalid PAN Card Number").optional().or(z.literal("")),
   aadharNo: z.string().regex(aadharRegex, isMarathi ? "12 अंकांचा वैध आधार क्रमांक प्रविष्ट करा" : "Enter valid 12 digit Aadhar number").optional().or(z.literal("")),
   presentAddress: z.string().min(1, isMarathi ? "सध्याचा पत्ता आवश्यक आहे" : "Current address is required"),
