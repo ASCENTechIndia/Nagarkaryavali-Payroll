@@ -213,10 +213,10 @@ exports.getCasteList = asyncHandler(async (req, res) => {
   if (!ulbid) {
     throw new AppError("ulbid is required", 400);
   }
-  if (!religionid) {
-    throw new AppError("religionid is required", 400);
-  }
-  const payload = {ulbid,religionid};
+//   if (!religionid) {
+//     throw new AppError("religionid is required", 400);
+//   }
+  const payload = { ulbid, religionid: religionid || null };
 
   const data = await service.getCasteListService(payload);
   return ok(

@@ -430,6 +430,9 @@ const FrmEmployeeMstNewTest = () => {
         { ulbid: ulbId, religionid: religionId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log("Caste res: ", res);
+
       if (res.data?.data?.data) {
         const formattedCastes = res.data.data.data.map(item => ({
           value: item.CASTEID?.toString(),
@@ -451,6 +454,7 @@ const FrmEmployeeMstNewTest = () => {
         { ulbid: ulbId, casteid: casteId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("Sub Caste res: ", res);
       if (res.data?.data?.data) {
         const formattedSubCastes = res.data.data.data.map(item => ({
           value: item.SUBCASTEID?.toString(),
@@ -1115,7 +1119,7 @@ const FrmEmployeeMstNewTest = () => {
                 >
                   {({ values: officeValues, setFieldValue: setOfficeFieldValue }) => (
                     <>
-                      <TabsContent value="tab-1">
+                      <TabsContent value="tab-1" forceMount className={activeTab !== "tab-1" ? "hidden" : ""}>
                         <PersonalInformationTab
                           values={personalValues}
                           setFieldValue={setPersonalFieldValue}
@@ -1125,7 +1129,7 @@ const FrmEmployeeMstNewTest = () => {
                         />
                       </TabsContent>
 
-                      <TabsContent value="tab-2">
+                      <TabsContent value="tab-2" forceMount className={activeTab !== "tab-2" ? "hidden" : ""}>
                         <OfficeDetailsTab
                           values={officeValues}
                           setFieldValue={setOfficeFieldValue}
@@ -1160,8 +1164,8 @@ const FrmEmployeeMstNewTest = () => {
                         />
                       </TabsContent>
 
-                      <TabsContent value="tab-3">
-                        <SignaturePhotoTab
+                      <TabsContent value="tab-3" forceMount className={activeTab !== "tab-3" ? "hidden" : ""}>
+                        {/* <SignaturePhotoTab
                           signatureImage={signatureImage}
                           photoImage={photoImage}
                           thumbImage={thumbImage}
@@ -1170,10 +1174,23 @@ const FrmEmployeeMstNewTest = () => {
                           setThumbFile={setThumbFile}
                           ulbId={ulbId}
                           mode={mode}
+                        /> */}
+                        <SignaturePhotoTab
+                          signatureImage={signatureImage}
+                          photoImage={photoImage}
+                          thumbImage={thumbImage}
+                          setSignatureImage={setSignatureImage}
+                          setPhotoImage={setPhotoImage}
+                          setThumbImage={setThumbImage}
+                          setSignatureFile={setSignatureFile}
+                          setPhotoFile={setPhotoFile}
+                          setThumbFile={setThumbFile}
+                          ulbId={ulbId}
+                          mode={mode}
                         />
                       </TabsContent>
 
-                      <TabsContent value="tab-4">
+                      <TabsContent value="tab-4" forceMount className={activeTab !== "tab-4" ? "hidden" : ""}>
                         <EarningDeductionTab
                           earningList={earningList}
                           deductionList={deductionList}

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 
 const SignaturePhotoTab = ({ 
   signatureImage, photoImage, thumbImage, 
+  setSignatureImage, setPhotoImage, setThumbImage,  
   setSignatureFile, setPhotoFile, setThumbFile,
   ulbId, mode 
 }) => {
@@ -53,8 +54,9 @@ const SignaturePhotoTab = ({
             <Input
               type="file"
               accept="image/jpg,image/jpeg"
-              onChange={(e) => handleFileChange(e, setSignatureFile, (preview) => {
-              })}
+              // onChange={(e) => handleFileChange(e, setSignatureFile, (preview) => {
+              // })}
+              onChange={(e) => handleFileChange(e, setSignatureFile, setSignatureImage)}
               className="h-9"
             />
             <p className="text-xs text-gray-500">
@@ -86,9 +88,10 @@ const SignaturePhotoTab = ({
             <Input
               type="file"
               accept="image/jpg,image/jpeg"
-              onChange={(e) => handleFileChange(e, setPhotoFile, (preview) => {
-                // setPhotoImage would be handled by parent
-              })}
+              // onChange={(e) => handleFileChange(e, setPhotoFile, (preview) => {
+              //   // setPhotoImage would be handled by parent
+              // })}
+              onChange={(e) => handleFileChange(e, setPhotoFile, setPhotoImage)}
               className="h-9"
             />
             <p className="text-xs text-gray-500">
@@ -120,9 +123,10 @@ const SignaturePhotoTab = ({
             <Input
               type="file"
               accept="image/jpg,image/jpeg"
-              onChange={(e) => handleFileChange(e, setThumbFile, (preview) => {
-                // setThumbImage would be handled by parent
-              })}
+              // onChange={(e) => handleFileChange(e, setThumbFile, (preview) => {
+              //   // setThumbImage would be handled by parent
+              // })}
+              onChange={(e) => handleFileChange(e, setThumbFile, setThumbImage)}
               className="h-9"
             />
             <p className="text-xs text-gray-500">

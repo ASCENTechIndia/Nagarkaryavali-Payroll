@@ -375,8 +375,8 @@ async function getCasteListRepo({ ulbid, religionid }) {
       religionid
     FROM vw_caste
     WHERE ulbid = :ulbid
-      AND religionid = :religionid
-    ORDER BY castenamem
+      AND (:religionid IS NULL OR religionid = :religionid)
+    ORDER BY casteid
   `;
 
   const binds = { ulbid, religionid};
@@ -482,6 +482,7 @@ async function saveEmployeeRepo(payload) {
             :in_Cast,
             :in_subcast,
             :in_FestivalAdvanceID,
+            :in_FestivalAdvanceIDs,
             :in_str,
             :in_subdeptId,
             :in_deductionType,
@@ -509,6 +510,8 @@ async function saveEmployeeRepo(payload) {
             :in_castcat,
             :in_karyazone,
             :in_bankstramc,
+            :in_da,
+            :in_schememetr,
 
             :out_EmpId,
             :out_ErrorCode,
@@ -574,6 +577,7 @@ async function saveEmployeeRepo(payload) {
             in_Cast: payload.cast,
             in_subcast: payload.subcast,
             in_FestivalAdvanceID: payload.festivalAdvanceId,
+            in_FestivalAdvanceIDs: payload.festivalAdvanceIds || null,
             in_str: payload.str,
             in_subdeptId: payload.subdeptId,
             in_deductionType: payload.deductionType,
@@ -601,6 +605,8 @@ async function saveEmployeeRepo(payload) {
             in_castcat: payload.castcat,
             in_karyazone: payload.karyazone,
             in_bankstramc: payload.bankstramc,
+            in_da: payload.da || null,
+            in_schememetr: payload.schememetr || null,
             out_EmpId: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
             out_ErrorCode: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
             out_ErrorMsg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },

@@ -139,6 +139,12 @@ const OfficeDetailsTab = ({
     loadEmployeeData();
   }, [employeeData, mode, setFieldValue, fetchBranches, fetchCastes, fetchSubCastes, fetchSubDepartments]);
 
+  useEffect(() => {
+    if (Number(ulbId) === 4 && casteList.length === 0) {
+      fetchCastes("");
+    }
+  }, [ulbId, casteList.length, fetchCastes]);
+
   const handleAddLicRecord = () => {
     const today = new Date();
     const futureDate = new Date(today);
@@ -265,7 +271,7 @@ const OfficeDetailsTab = ({
   const transformedBankData = bankRecords.map(record => ({
     bankId: (
       <Select value={record.bankId} onValueChange={(val) => handleLicRecordChange(record.id, "bankId", val)}>
-        <SelectTrigger className="h-8">
+        <SelectTrigger className="h-8 w-full! overflow-hidden">
           <SelectValue placeholder="Select Bank" />
         </SelectTrigger>
         <SelectContent>
@@ -686,6 +692,7 @@ const OfficeDetailsTab = ({
             value={values.accountNo}
             onChange={(e) => setFieldValue("accountNo", e.target.value.replace(/[^0-9]/g, ""))}
             className="w-full h-9"
+            maxLength={18}
           />
         </div>
         
@@ -866,6 +873,7 @@ const OfficeDetailsTab = ({
             value={values.pfNo}
             onChange={(e) => setFieldValue("pfNo", e.target.value)}
             className="w-full h-9"
+            maxLength={10}
           />
         </div>
         
@@ -902,6 +910,7 @@ const OfficeDetailsTab = ({
             value={values.pranNo}
             onChange={(e) => setFieldValue("pranNo", e.target.value)}
             className="w-full h-9"
+            maxLength={20}
           />
         </div>
       </div>
