@@ -68,7 +68,6 @@ const FrmAttendenceEntryAuth = () => {
     category: stateData.category ? String(stateData.category) : "",
   };
 
-
   const fetchZones = async () => {
     if (!ulbId) return;
     try {
@@ -241,6 +240,8 @@ const FrmAttendenceEntryAuth = () => {
       const apiData = res.data?.data?.rows || [];
 
       setAttendanceData(apiData);
+
+      return apiData;
     } catch (error) {
       console.error("Attendance Detail Error:", error);
       setAttendanceData([]);
@@ -324,145 +325,153 @@ const FrmAttendenceEntryAuth = () => {
     }
   }, [ulbId]);
 
-
   useEffect(() => {
-  const shouldFetch =
-    yearOptions.length > 0 &&
-    stateData?.category &&
-    stateData?.zone &&
-    stateData?.department &&
-    stateData?.month &&
-    stateData?.year;
+    const shouldFetch =
+      yearOptions.length > 0 &&
+      stateData?.category &&
+      stateData?.zone &&
+      stateData?.department &&
+      stateData?.month &&
+      stateData?.year;
 
-  if (!shouldFetch) return;
+    if (!shouldFetch) return;
 
-  let isMounted = true;
+    let isMounted = true;
 
-  const load = async () => {
-    Swal.fire({
-      title: "Loading Data...",
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    try {
-      await fetchAttendanceDetails({
-        category: stateData.category,
-        zone: stateData.zone,
-        department: stateData.department,
-        month: stateData.month,
-        year: stateData.year,
+    const load = async () => {
+      Swal.fire({
+        title: "Loading Data...",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
       });
-    } finally {
-      if (isMounted) Swal.close();
-    }
-  };
 
-  load();
-  
-  return () => {
-    isMounted = false;
-    Swal.close();
-  };
-}, [yearOptions]);
+      let rows = [];
+
+      try {
+        rows = await fetchAttendanceDetails({
+          category: stateData.category,
+          zone: stateData.zone,
+          department: stateData.department,
+          month: stateData.month,
+          year: stateData.year,
+        });
+      } finally {
+        Swal.close();
+
+        if (isMounted && rows.length === 0) {
+          Swal.fire({
+            text: "|| No record found ||",
+            confirmButtonColor: "#1e3a8a",
+          });
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+      Swal.close();
+    };
+  }, [yearOptions]);
 
   const handleDepartmentChange = (value, setFieldValue) => {
     setFieldValue("department", value);
   };
 
   const handleAttendanceAction = async (mode, values) => {
-  if (!attendanceData || attendanceData.length === 0) {
-    Swal.fire({
-      text: "No attendance records available for action.",
-    });
-    return;
-  }
-
-  const actionName = mode === 2 ? "Approve" : "Reject";
-
-  try {
-    setLoading(true);
-
-    const yearOption = yearOptions.find(
-      (item) => item.value === String(values.year),
-    );
-    const selectedYear = Number(yearOption?.label || values.year);
-    const selectedMonth = Number(values.month);
-      const actionDate = getAttendanceDate(selectedYear, selectedMonth);
-    const str = attendanceData
-      .map((item) =>
-        [
-          item.NUM_EMPLOYEE_EMPID,
-          item.VAR_EMPLOYEE_ENGNAME,
-          item.NUM_ATTENDENTRY_BIOMETRIC,
-          item.NUM_ATTENDENTRY_ATTANDENSE,
-          item.NUM_ATTENDENTRY_MLDAYS,
-          item.NUM_ATTENDENTRY_ELDAYS,
-          item.NUM_ATTENDENTRY_HPDAYS,
-          item.NUM_ATTENDENTRY_LWPDAYS,
-          item.NUM_ATTENDENTRY_PRESENT,
-          item.VAR_ATTENDENTRY_MLREMRK || "-",
-          actionDate,
-        ].join("$"),
-      )
-      .join("#"); 
-
-    const payload = {
-      userId: String(user?.userId || user?.USERID || ""),
-      id: 0,
-      category: Number(values.category),
-      zone: Number(values.zone),
-      department: Number(values.department),
-      month: selectedMonth,
-      year: selectedYear,
-      str: str,       
-      mode: mode,  
-    };
-
-    const response = await axios.post(
-      `${BASE_URL}/api/FrmAttendenceExcellAuthListMst/attendance-action`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const result = response.data?.data;
-
-    const isSuccess = result?.errorCode === 9999;
-
-    if (isSuccess) {
-      await Swal.fire({
-        text: result?.message,
-        confirmButtonColor: "#1e3a8a",
+    if (!attendanceData || attendanceData.length === 0) {
+      Swal.fire({
+        text: "No attendance records available for action.",
       });
-
-      setAttendanceData([]);
-      navigate("/Transactions/FrmAttendenceExcellAuthList");
-    } else {
-      await Swal.fire({
-        text: result?.message || `${actionName} operation failed.`,
-        confirmButtonColor: "#1e3a8a",
-      });
+      return;
     }
-  } catch (error) {
-    console.error(`${actionName} Attendance Error:`, error);
 
-    Swal.fire({
-      text:
-        error?.response?.data?.message ||
-        `Failed to ${actionName.toLowerCase()} attendance.`,
-      confirmButtonColor: "#1e3a8a",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+    const actionName = mode === 2 ? "Approve" : "Reject";
+
+    try {
+      setLoading(true);
+
+      const yearOption = yearOptions.find(
+        (item) => item.value === String(values.year),
+      );
+      const selectedYear = Number(yearOption?.label || values.year);
+      const selectedMonth = Number(values.month);
+      const actionDate = getAttendanceDate(selectedYear, selectedMonth);
+      const str = attendanceData
+        .map((item) =>
+          [
+            item.NUM_EMPLOYEE_EMPID,
+            item.VAR_EMPLOYEE_ENGNAME,
+            item.NUM_ATTENDENTRY_BIOMETRIC,
+            item.NUM_ATTENDENTRY_ATTANDENSE,
+            item.NUM_ATTENDENTRY_MLDAYS,
+            item.NUM_ATTENDENTRY_ELDAYS,
+            item.NUM_ATTENDENTRY_HPDAYS,
+            item.NUM_ATTENDENTRY_LWPDAYS,
+            item.NUM_ATTENDENTRY_PRESENT,
+            item.VAR_ATTENDENTRY_MLREMRK || "-",
+            actionDate,
+          ].join("$"),
+        )
+        .join("#");
+
+      const payload = {
+        userId: String(user?.userId || user?.USERID || ""),
+        id: 0,
+        category: Number(values.category),
+        zone: Number(values.zone),
+        department: Number(values.department),
+        month: selectedMonth,
+        year: selectedYear,
+        str: str,
+        mode: mode,
+      };
+
+      const response = await axios.post(
+        `${BASE_URL}/api/FrmAttendenceExcellAuthListMst/attendance-action`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const result = response.data?.data;
+
+      const isSuccess = result?.errorCode === 9999;
+
+      if (isSuccess) {
+        await Swal.fire({
+          text: result?.message,
+          confirmButtonColor: "#1e3a8a",
+        });
+
+        setAttendanceData([]);
+        navigate("/Transactions/FrmAttendenceExcellAuthList");
+      } else {
+        await Swal.fire({
+          text: result?.message || `${actionName} operation failed.`,
+          confirmButtonColor: "#1e3a8a",
+        });
+      }
+    } catch (error) {
+      console.error(`${actionName} Attendance Error:`, error);
+
+      Swal.fire({
+        text:
+          error?.response?.data?.message ||
+          `Failed to ${actionName.toLowerCase()} attendance.`,
+        confirmButtonColor: "#1e3a8a",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Formik initialValues={initialFormValues} enableReinitialize={true}>
@@ -594,17 +603,23 @@ const FrmAttendenceEntryAuth = () => {
                   </div>
                 </div>
 
-                {attendanceData.length > 0 && (
+                {tableLoading ? (
+                  <div className="mt-6 py-6 text-center text-gray-500"></div>
+                ) : attendanceData.length > 0 ? (
                   <div className="mt-6 rounded-xl border overflow-hidden">
                     <ShadCNTable
                       headers={tableHeaders}
                       data={tableData}
                       keyMapping={keyMapping}
-                      // pagination={true}
                       pagination={false}
-                      // rowsPerPage={10}
                       className="min-w-[1200px]"
                     />
+                  </div>
+                ) : (
+                  <div className="mt-6 py-8 text-center">
+                    <p className="text-base font-medium text-gray-600">
+                      No recordS found 
+                    </p>
                   </div>
                 )}
 
