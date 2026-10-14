@@ -408,12 +408,12 @@ const FrmAttendenceEntryAuth = () => {
             item.VAR_EMPLOYEE_ENGNAME,
             item.NUM_ATTENDENTRY_BIOMETRIC,
             item.NUM_ATTENDENTRY_ATTANDENSE,
+            item.NUM_ATTENDENTRY_PRESENT, 
             item.NUM_ATTENDENTRY_MLDAYS,
             item.NUM_ATTENDENTRY_ELDAYS,
             item.NUM_ATTENDENTRY_HPDAYS,
             item.NUM_ATTENDENTRY_LWPDAYS,
-            item.NUM_ATTENDENTRY_PRESENT,
-            item.VAR_ATTENDENTRY_MLREMRK || "-",
+            item.VAR_ATTENDENTRY_MLREMRK,
             actionDate,
           ].join("$"),
         )
@@ -426,7 +426,7 @@ const FrmAttendenceEntryAuth = () => {
         zone: Number(values.zone),
         department: Number(values.department),
         month: selectedMonth,
-        year: selectedYear,
+        year: Number(values.year),
         str: str,
         mode: mode,
       };
