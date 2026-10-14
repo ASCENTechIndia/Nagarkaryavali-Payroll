@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/context/AuthContext";
+import { Month } from "react-day-picker";
 
 const months = [
   { value: "1", label: "January" },
@@ -182,7 +183,7 @@ export default function FrmAttendenceEntryDMC({
         const formatted = apiData
           .map((item) => ({
             label: String(item.VAR_YEAR ?? item.var_year ?? ""),
-            value: String(item.VAR_YEAR ?? item.var_year ?? ""),
+            value: String(item.NUM_YEAR_ID ?? item.num_year_id ?? ""),
             yearId: item.NUM_YEAR_ID ?? item.num_year_id ?? "",
           }))
           .filter((item) => item.value);
@@ -551,284 +552,545 @@ export default function FrmAttendenceEntryDMC({
     );
   };
 
-  const toggleRow = (index, checked) => {
-    setTableData((previous) =>
-      previous.map((row, rowIndex) =>
-        rowIndex === index
-          ? {
-              ...row,
-              selected: Boolean(checked),
-            }
-          : row,
-      ),
-    );
+  // const toggleRow = (index, checked) => {
+  //   setTableData((previous) =>
+  //     previous.map((row, rowIndex) =>
+  //       rowIndex === index
+  //         ? {
+  //             ...row,
+  //             selected: Boolean(checked),
+  //           }
+  //         : row,
+  //     ),
+  //   );
+  // };
+
+  // const allSelected =
+  //   tableData.length > 0 &&
+  //   tableData.every((row) => row.selected || row.attendentry_id);
+
+  // const toggleAll = (checked) => {
+  //   setTableData((previous) =>
+  //     previous.map((row) =>
+  //       row.attendentry_id
+  //         ? row
+  //         : {
+  //             ...row,
+  //             selected: Boolean(checked),
+  //           },
+  //     ),
+  //   );
+  // };
+
+  // const handleSave = async () => {
+  //   debugger;
+  //   if (!tableData.length) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "No Data",
+  //       text: "Please upload Excel first.",
+  //     });
+  //     return;
+  //   }
+
+  //   const selectedRows = tableData.filter(
+  //     (row) => row.selected && !row.attendentry_id,
+  //   );
+
+  //   if (!selectedRows.length) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "Select Record",
+  //       text: "Please select atleast one record to proceed.",
+  //     });
+  //     return;
+  //   }
+
+  //   if (!validateFilters()) return;
+
+  //   const invalidRow = selectedRows.find(
+  //     (row) =>
+  //       row.Emp_ID === "" || row.Emp_ID === null || row.Emp_ID === undefined,
+  //   );
+
+  //   if (invalidRow) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "Invalid Employee",
+  //       text: "Employee ID is required.",
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     setSaving(true);
+
+  //     Swal.fire({
+  //       title: "Saving...",
+  //       text: "Please wait while attendance is being saved.",
+  //       allowOutsideClick: false,
+  //       allowEscapeKey: false,
+  //       showConfirmButton: false,
+  //       didOpen: () => Swal.showLoading(),
+  //     });
+
+  //     const payload = {
+  //       userId: user?.userId || user?.userid || user?.id,
+  //       categoryId: Number(category),
+  //       zoneId: Number(zone),
+  //       departmentId: Number(department),
+  //       month: Number(month),
+  //       // year: Number(year),
+  //       year: Number(year),
+  //       rows: selectedRows.map((row) => ({
+  //         Emp_Id: Number(row.Emp_ID),
+  //         Name: row.Name ?? "",
+  //         "Bio-Metric": Number(row["Bio-Metric"]) || 0,
+  //         Attendance: Number(row.Attendance) || 0,
+  //         Medical_Leave: Number(row.Medical_Leave) || 0,
+  //         Earned_Leave: Number(row.Earned_Leave) || 0,
+  //         HP: Number(row.HP) || 0,
+  //         LWP: Number(row.LWP) || 0,
+  //         Present: Number(row.Present) || 0,
+  //         Remark: row.Remark ?? "",
+  //       })),
+  //     };
+
+  //     const res = await axios.post(
+  //       `${BASE_URL}/api/FrmAttendenceEntryDMC/save-attendance`,
+  //       payload,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       },
+  //     );
+
+  //     const responseData = res.data;
+
+  //     if (!responseData?.ok || !responseData?.data?.success) {
+  //       throw new Error(
+  //         responseData?.data?.message ||
+  //           responseData?.message ||
+  //           "Attendance save failed.",
+  //       );
+  //     }
+
+  //     Swal.close();
+
+  //     await Swal.fire({
+  //       icon: "success",
+  //       title: "Success",
+  //       text:
+  //         responseData?.data?.message ||
+  //         responseData?.message ||
+  //         "Attendance saved successfully.",
+  //       confirmButtonColor: "#1e3a8a",
+  //     });
+
+  //     handleReset();
+  //   } catch (error) {
+  //     console.error("Save Attendance Error:", error);
+
+  //     Swal.close();
+
+  //     await Swal.fire({
+  //       icon: "error",
+  //       title: "Save Failed",
+  //       text:
+  //         error?.response?.data?.data?.message ||
+  //         error?.response?.data?.message ||
+  //         error?.response?.data?.error ||
+  //         error?.message ||
+  //         "Failed to save attendance.",
+  //       confirmButtonColor: "#1e3a8a",
+  //     });
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
+
+  const getAttendanceDate = (year, month) => {
+    const y = Number(year);
+    const m = Number(month);
+
+    const lastDay = new Date(y, m, 0).getDate();
+
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const day = String(lastDay).padStart(2, "0");
+    const monthAbbr = monthNames[m - 1];
+
+    return `${day}-${monthAbbr}-${y}`;
   };
 
-  const allSelected =
-    tableData.length > 0 &&
-    tableData.every((row) => row.selected || row.attendentry_id);
+const handleSave = async () => {
+  if (!tableData.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "No Data",
+      text: "Please upload Excel first.",
+    });
+    return;
+  }
 
-  const toggleAll = (checked) => {
-    setTableData((previous) =>
-      previous.map((row) =>
-        row.attendentry_id
-          ? row
-          : {
-              ...row,
-              selected: Boolean(checked),
-            },
-      ),
-    );
-  };
+  if (!validateFilters()) return;
 
-  const handleSave = async () => {
-    if (!tableData.length) {
-      Swal.fire({
-        icon: "warning",
-        title: "No Data",
-        text: "Please upload Excel first.",
-      });
-      return;
-    }
+  const invalidRow = tableData.find(
+    (row) =>
+      row.Emp_ID === "" ||
+      row.Emp_ID === null ||
+      row.Emp_ID === undefined,
+  );
 
-    const selectedRows = tableData.filter(
-      (row) => row.selected && !row.attendentry_id,
-    );
+  if (invalidRow) {
+    Swal.fire({
+      icon: "warning",
+      title: "Invalid Employee",
+      text: "Employee ID is required.",
+    });
+    return;
+  }
 
-    if (!selectedRows.length) {
-      Swal.fire({
-        icon: "warning",
-        title: "Select Record",
-        text: "Please select atleast one record to proceed.",
-      });
-      return;
-    }
+  try {
+    setSaving(true);
 
-    if (!validateFilters()) return;
+    Swal.fire({
+      title: "Saving...",
+      text: "Please wait while attendance is being saved.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading(),
+    });
 
-    const invalidRow = selectedRows.find(
-      (row) =>
-        row.Emp_ID === "" || row.Emp_ID === null || row.Emp_ID === undefined,
-    );
+    const selectedYear = yearOptions.find(
+        (option) => String(option.value) === String(year)
+      );
 
-    if (invalidRow) {
-      Swal.fire({
-        icon: "warning",
-        title: "Invalid Employee",
-        text: "Employee ID is required.",
-      });
-      return;
-    }
 
-    try {
-      setSaving(true);
+      const actualYear = selectedYear?.label;
 
-      Swal.fire({
-        title: "Saving...",
-        text: "Please wait while attendance is being saved.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: () => Swal.showLoading(),
-      });
+      if (!actualYear) {
+        throw new Error("Unable to find the selected calendar year.");
+      }
 
-      const payload = {
-        userId: user?.userId || user?.userid || user?.id,
-        categoryId: Number(category),
-        zoneId: Number(zone),
-        departmentId: Number(department),
+
+      const actionDate = getAttendanceDate(actualYear, month);
+
+
+    const str = tableData
+        .map((item) =>
+          [
+           item.Emp_ID,
+            item.Name, 
+            item["Bio-Metric"],
+            item.Attendance,
+            item.Present,
+            item.Medical_Leave,
+            item.Earned_Leave,
+            item.HP,
+            item.LWP,
+            item.Remark,
+            actionDate,
+          ].join("$"),
+        )
+        .join("#");
+
+    // const payload = {
+    //   userId: user?.userId || user?.userid || user?.id,
+    //   categoryId: Number(category),
+    //   zoneId: Number(zone),
+    //   departmentId: Number(department),
+    //   month: Number(month),
+    //   year: Number(year),
+    //   rows: str,
+    // };
+
+    const payload = {
+        userId: String(user?.userId || user?.USERID || ""),
+        id: 0,
+        category: Number(category),
+        zone: Number(zone),
+        department: Number(department),
         month: Number(month),
         year: Number(year),
-        rows: selectedRows.map((row) => ({
-          Emp_Id: Number(row.Emp_ID),
-          Name: row.Name ?? "",
-          "Bio-Metric": Number(row["Bio-Metric"]) || 0,
-          Attendance: Number(row.Attendance) || 0,
-          Medical_Leave: Number(row.Medical_Leave) || 0,
-          Earned_Leave: Number(row.Earned_Leave) || 0,
-          HP: Number(row.HP) || 0,
-          LWP: Number(row.LWP) || 0,
-          Present: Number(row.Present) || 0,
-          Remark: row.Remark ?? "",
-        })),
+        str: str,
+        mode: 1,
       };
 
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmAttendenceEntryDMC/save-attendance`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+    console.log("Attendance Payload:", payload);
+
+    const res = await axios.post(
+      `${BASE_URL}/api/FrmAttendenceExcellAuthListMst/attendance-action`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      },
+    );
 
-      const responseData = res.data;
+    const responseData = res.data;
 
-      if (!responseData?.ok || !responseData?.data?.success) {
-        throw new Error(
-          responseData?.data?.message ||
-            responseData?.message ||
-            "Attendance save failed.",
-        );
-      }
-
-      Swal.close();
-
-      await Swal.fire({
-        icon: "success",
-        title: "Success",
-        text:
-          responseData?.data?.message ||
+    if (!responseData?.ok || !responseData?.data?.success) {
+      throw new Error(
+        responseData?.data?.message ||
           responseData?.message ||
-          "Attendance saved successfully.",
-        confirmButtonColor: "#1e3a8a",
-      });
-
-      handleReset();
-    } catch (error) {
-      console.error("Save Attendance Error:", error);
-
-      Swal.close();
-
-      await Swal.fire({
-        icon: "error",
-        title: "Save Failed",
-        text:
-          error?.response?.data?.data?.message ||
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          "Failed to save attendance.",
-        confirmButtonColor: "#1e3a8a",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDownloadExcel = async () => {
-    if (!validateFilters()) return;
-
-    try {
-      Swal.fire({
-        title: "Downloading...",
-        text: "Please wait while the attendance Excel file is being prepared.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      const res = await axios.post(
-        `${BASE_URL}/api/FrmAttendenceEntryDMC/attendance-list`,
-        {
-          ulbid: Number(ulbId),
-          categoryId: Number(category),
-          zoneId: Number(zone),
-          deptId: Number(department),
-          month: Number(month),
-          year: Number(year),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+          "Attendance save failed.",
       );
-
-      const apiData = res.data?.data?.data || res.data?.data || [];
-
-      if (!Array.isArray(apiData) || apiData.length === 0) {
-        Swal.close();
-
-        await Swal.fire({
-          icon: "info",
-          title: "No Record Found",
-          text: "No attendance record found for the selected filters.",
-          confirmButtonColor: "#1e3a8a",
-        });
-
-        return;
-      }
-
-      const daysInMonth = getDaysInMonth(year, month);
-
-      const excelData = apiData.map((item, index) => ({
-        "Sr No.": index + 1,
-        "Emp ID": item.NUM_EMPLOYEE_EMPID ?? "",
-        Name: item.EMPNAME ?? "",
-        "Bio-Metric": "0",
-        Attendance: daysInMonth,
-        "Medical Leave": item.MONTHATTEND_MEDICALLEAVE ?? 0,
-        "Earned Leave": item.MONTHATTEND_EARNEDLEAVE ?? 0,
-        HP: item.MONTHATTEND_HALFDAY ?? 0,
-        LWP: item.MONTHATTEND_WITHOUTPAY ?? 0,
-        Present: calculatePresent(
-          daysInMonth,
-          item.MONTHATTEND_MEDICALLEAVE ?? 0,
-          item.MONTHATTEND_EARNEDLEAVE ?? 0,
-          item.MONTHATTEND_HALFDAY ?? 0,
-          item.MONTHATTEND_WITHOUTPAY ?? 0,
-        ),
-        Remark: item.MONTHATTEND_REMARK ?? "",
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-      worksheet["!cols"] = [
-        { wch: 8 },
-        { wch: 15 },
-        { wch: 30 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 18 },
-        { wch: 18 },
-        { wch: 10 },
-        { wch: 10 },
-        { wch: 12 },
-        { wch: 30 },
-      ];
-
-      const workbook = XLSX.utils.book_new();
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
-
-      const monthName =
-        months.find((item) => item.value === String(month))?.label || "Month";
-
-      const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
-
-      XLSX.writeFile(workbook, fileName);
-
-      Swal.close();
-
-      await Swal.fire({
-        icon: "success",
-        title: "Download Completed",
-        text: "Attendance Excel file downloaded successfully.",
-        confirmButtonColor: "#1e3a8a",
-      });
-    } catch (error) {
-      console.error("Download Attendance Excel Error:", error);
-
-      Swal.close();
-
-      await Swal.fire({
-        icon: "error",
-        title: "Download Failed",
-        text:
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          "Failed to download attendance Excel.",
-        confirmButtonColor: "#1e3a8a",
-      });
     }
-  };
+
+    Swal.close();
+
+    await Swal.fire({
+      icon: "success",
+      title: "Success",
+      text:
+        responseData?.data?.message ||
+        responseData?.message ||
+        "Attendance saved successfully.",
+      confirmButtonColor: "#1e3a8a",
+    });
+
+    handleReset();
+  } catch (error) {
+    console.error("Save Attendance Error:", error);
+
+    Swal.close();
+
+    await Swal.fire({
+      icon: "error",
+      title: "Save Failed",
+      text:
+        error?.response?.data?.data?.message ||
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to save attendance.",
+      confirmButtonColor: "#1e3a8a",
+    });
+  } finally {
+    setSaving(false);
+  }
+};
+
+
+  // const handleDownloadExcel = async () => {
+  //   if (!validateFilters()) return;
+
+  //   try {
+  //     Swal.fire({
+  //       title: "Downloading...",
+  //       text: "Please wait while the attendance Excel file is being prepared.",
+  //       allowOutsideClick: false,
+  //       allowEscapeKey: false,
+  //       showConfirmButton: false,
+  //       didOpen: () => {
+  //         Swal.showLoading();
+  //       },
+  //     });
+
+  //     const res = await axios.post(
+  //       `${BASE_URL}/api/FrmAttendenceEntryDMC/attendance-list`,
+  //       {
+  //         ulbid: Number(ulbId),
+  //         categoryId: Number(category),
+  //         zoneId: Number(zone),
+  //         deptId: Number(department),
+  //         month: Number(month),
+  //         year: Number(year),
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+
+  //     const apiData = res.data?.data?.data || res.data?.data || [];
+
+  //     if (!Array.isArray(apiData) || apiData.length === 0) {
+  //       Swal.close();
+
+  //       await Swal.fire({
+  //         icon: "info",
+  //         title: "No Record Found",
+  //         text: "No attendance record found for the selected filters.",
+  //         confirmButtonColor: "#1e3a8a",
+  //       });
+
+  //       return;
+  //     }
+
+  //     const daysInMonth = getDaysInMonth(year, month);
+
+  //     const excelData = apiData.map((item, index) => ({
+  //       "Emp ID": item.NUM_EMPLOYEE_EMPID ?? "",
+  //       Name: item.EMPNAME ?? "",
+  //       "Bio-Metric": "0",
+  //       Attendance: daysInMonth,
+  //       "Medical Leave": item.MONTHATTEND_MEDICALLEAVE ?? 0,
+  //       "Earned Leave": item.MONTHATTEND_EARNEDLEAVE ?? 0,
+  //       HP: item.MONTHATTEND_HALFDAY ?? 0,
+  //       LWP: item.MONTHATTEND_WITHOUTPAY ?? 0,
+  //       Present: calculatePresent(
+  //         daysInMonth,
+  //         item.MONTHATTEND_MEDICALLEAVE ?? 0,
+  //         item.MONTHATTEND_EARNEDLEAVE ?? 0,
+  //         item.MONTHATTEND_HALFDAY ?? 0,
+  //         item.MONTHATTEND_WITHOUTPAY ?? 0,
+  //       ),
+  //       Remark: item.MONTHATTEND_REMARK ?? "",
+  //     }));
+
+  //     const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+  //     worksheet["!cols"] = [
+  //       { wch: 8 },
+  //       { wch: 15 },
+  //       { wch: 30 },
+  //       { wch: 15 },
+  //       { wch: 15 },
+  //       { wch: 18 },
+  //       { wch: 18 },
+  //       { wch: 10 },
+  //       { wch: 10 },
+  //       { wch: 12 },
+  //       { wch: 30 },
+  //     ];
+
+  //     const workbook = XLSX.utils.book_new();
+
+  //     XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+
+  //     const monthName =
+  //       months.find((item) => item.value === String(month))?.label || "Month";
+
+  //     const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
+
+  //     XLSX.writeFile(workbook, fileName);
+
+  //     Swal.close();
+
+  //     await Swal.fire({
+  //       icon: "success",
+  //       title: "Download Completed",
+  //       text: "Attendance Excel file downloaded successfully.",
+  //       confirmButtonColor: "#1e3a8a",
+  //     });
+  //   } catch (error) {
+  //     console.error("Download Attendance Excel Error:", error);
+
+  //     Swal.close();
+
+  //     await Swal.fire({
+  //       icon: "error",
+  //       title: "Download Failed",
+  //       text:
+  //         error?.response?.data?.message ||
+  //         error?.response?.data?.error ||
+  //         error?.message ||
+  //         "Failed to download attendance Excel.",
+  //       confirmButtonColor: "#1e3a8a",
+  //     });
+  //   }
+  // };
+
+
+
+const handleDownloadExcel = async () => {
+  if (!validateFilters()) return;
+
+  try {
+    Swal.fire({
+      title: "Downloading...",
+      text: "Please wait while the attendance Excel template is being prepared.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    const headers = [
+      "Emp_ID",
+      "Name",
+      "Bio-Metric",
+      "Attendance",
+      "Medical_Leave",
+      "Earned_Leave",
+      "HP",
+      "LWP",
+      "Present",
+      "Remark",
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers]);
+
+    worksheet["!cols"] = [
+      { wch: 12 },
+      { wch: 25 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 30 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Attendance",
+    );
+
+    const monthName =
+      months.find((item) => item.value === String(month))?.label ||
+      "Month";
+
+    const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+
+  
+    Swal.close();
+  } catch (error) {
+    console.error("Download Attendance Excel Error:", error);
+
+    
+    await Swal.fire({
+      text:
+        error?.message ||
+        "Failed to download attendance Excel template.",
+      confirmButtonColor: "#1e3a8a",
+    });
+
+    Swal.close();
+
+  }
+};
+
 
   const handleReset = () => {
     setCategory("");
@@ -1033,7 +1295,7 @@ export default function FrmAttendenceEntryDMC({
                         Name
                       </TableHead>
 
-                      <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap w-16">
+                      {/* <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap w-16">
                         <div className="flex justify-center items-center">
                           <Checkbox
                             checked={allSelected}
@@ -1041,7 +1303,7 @@ export default function FrmAttendenceEntryDMC({
                             className="border-2 border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-900"
                           />
                         </div>
-                      </TableHead>
+                      </TableHead> */}
 
                       <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
                         Bio-Metric
@@ -1101,7 +1363,7 @@ export default function FrmAttendenceEntryDMC({
                             {row.Name}
                           </TableCell>
 
-                          <TableCell className="p-2 text-center whitespace-nowrap">
+                          {/* <TableCell className="p-2 text-center whitespace-nowrap">
                             <div className="flex justify-center items-center">
                               <Checkbox
                                 checked={row.selected}
@@ -1112,7 +1374,7 @@ export default function FrmAttendenceEntryDMC({
                                 className="border-2 border-gray-500"
                               />
                             </div>
-                          </TableCell>
+                          </TableCell> */}
 
                           <TableCell className="p-2 text-center whitespace-nowrap">
                             <Input
