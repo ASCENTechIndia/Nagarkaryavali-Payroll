@@ -891,205 +891,207 @@ const handleSave = async () => {
 };
 
 
-  // const handleDownloadExcel = async () => {
-  //   if (!validateFilters()) return;
+  const handleDownloadExcel = async () => {
+    if (!validateFilters()) return;
 
-  //   try {
-  //     Swal.fire({
-  //       title: "Downloading...",
-  //       text: "Please wait while the attendance Excel file is being prepared.",
-  //       allowOutsideClick: false,
-  //       allowEscapeKey: false,
-  //       showConfirmButton: false,
-  //       didOpen: () => {
-  //         Swal.showLoading();
-  //       },
-  //     });
+    try {
+      Swal.fire({
+        title: "Downloading...",
+        text: "Please wait while the attendance Excel file is being prepared.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
 
-  //     const res = await axios.post(
-  //       `${BASE_URL}/api/FrmAttendenceEntryDMC/attendance-list`,
-  //       {
-  //         ulbid: Number(ulbId),
-  //         categoryId: Number(category),
-  //         zoneId: Number(zone),
-  //         deptId: Number(department),
-  //         month: Number(month),
-  //         year: Number(year),
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
+      const res = await axios.post(
+        `${BASE_URL}/api/FrmAttendenceEntryDMC/attendance-list`,
+        {
+          ulbid: Number(ulbId),
+          categoryId: Number(category),
+          zoneId: Number(zone),
+          deptId: Number(department),
+          month: Number(month),
+          year: Number(year),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-  //     const apiData = res.data?.data?.data || res.data?.data || [];
+      const apiData = res.data?.data?.data || res.data?.data || [];
 
-  //     if (!Array.isArray(apiData) || apiData.length === 0) {
-  //       Swal.close();
+      if (!Array.isArray(apiData) || apiData.length === 0) {
+        Swal.close();
 
-  //       await Swal.fire({
-  //         icon: "info",
-  //         title: "No Record Found",
-  //         text: "No attendance record found for the selected filters.",
-  //         confirmButtonColor: "#1e3a8a",
-  //       });
+        await Swal.fire({
+          icon: "info",
+          title: "No Record Found",
+          text: "No attendance record found for the selected filters.",
+          confirmButtonColor: "#1e3a8a",
+        });
 
-  //       return;
-  //     }
+        return;
+      }
 
-  //     const daysInMonth = getDaysInMonth(year, month);
+      const daysInMonth = getDaysInMonth(year, month);
 
-  //     const excelData = apiData.map((item, index) => ({
-  //       "Emp ID": item.NUM_EMPLOYEE_EMPID ?? "",
-  //       Name: item.EMPNAME ?? "",
-  //       "Bio-Metric": "0",
-  //       Attendance: daysInMonth,
-  //       "Medical Leave": item.MONTHATTEND_MEDICALLEAVE ?? 0,
-  //       "Earned Leave": item.MONTHATTEND_EARNEDLEAVE ?? 0,
-  //       HP: item.MONTHATTEND_HALFDAY ?? 0,
-  //       LWP: item.MONTHATTEND_WITHOUTPAY ?? 0,
-  //       Present: calculatePresent(
-  //         daysInMonth,
-  //         item.MONTHATTEND_MEDICALLEAVE ?? 0,
-  //         item.MONTHATTEND_EARNEDLEAVE ?? 0,
-  //         item.MONTHATTEND_HALFDAY ?? 0,
-  //         item.MONTHATTEND_WITHOUTPAY ?? 0,
-  //       ),
-  //       Remark: item.MONTHATTEND_REMARK ?? "",
-  //     }));
+      const excelData = apiData.map((item, index) => ({
+        "Emp ID": item.NUM_EMPLOYEE_EMPID ?? "",
+        Name: item.EMPNAME ?? "",
+        "Bio-Metric": "0",
+        Attendance: daysInMonth,
+        "Medical Leave": item.MONTHATTEND_MEDICALLEAVE ?? 0,
+        "Earned Leave": item.MONTHATTEND_EARNEDLEAVE ?? 0,
+        HP: item.MONTHATTEND_HALFDAY ?? 0,
+        LWP: item.MONTHATTEND_WITHOUTPAY ?? 0,
+        Present: calculatePresent(
+          daysInMonth,
+          item.MONTHATTEND_MEDICALLEAVE ?? 0,
+          item.MONTHATTEND_EARNEDLEAVE ?? 0,
+          item.MONTHATTEND_HALFDAY ?? 0,
+          item.MONTHATTEND_WITHOUTPAY ?? 0,
+        ),
+        Remark: item.MONTHATTEND_REMARK ?? "",
+      }));
 
-  //     const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-  //     worksheet["!cols"] = [
-  //       { wch: 8 },
-  //       { wch: 15 },
-  //       { wch: 30 },
-  //       { wch: 15 },
-  //       { wch: 15 },
-  //       { wch: 18 },
-  //       { wch: 18 },
-  //       { wch: 10 },
-  //       { wch: 10 },
-  //       { wch: 12 },
-  //       { wch: 30 },
-  //     ];
+      worksheet["!cols"] = [
+        { wch: 8 },
+        { wch: 15 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 12 },
+        { wch: 30 },
+      ];
 
-  //     const workbook = XLSX.utils.book_new();
+      const workbook = XLSX.utils.book_new();
 
-  //     XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
 
-  //     const monthName =
-  //       months.find((item) => item.value === String(month))?.label || "Month";
+      const monthName =
+        months.find((item) => item.value === String(month))?.label || "Month";
 
-  //     const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
+      const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
 
-  //     XLSX.writeFile(workbook, fileName);
+      XLSX.writeFile(workbook, fileName);
 
-  //     Swal.close();
+      Swal.close();
 
-  //     await Swal.fire({
-  //       icon: "success",
-  //       title: "Download Completed",
-  //       text: "Attendance Excel file downloaded successfully.",
-  //       confirmButtonColor: "#1e3a8a",
-  //     });
-  //   } catch (error) {
-  //     console.error("Download Attendance Excel Error:", error);
+      await Swal.fire({
+        icon: "success",
+        title: "Download Completed",
+        text: "Attendance Excel file downloaded successfully.",
+        confirmButtonColor: "#1e3a8a",
+      });
+    } catch (error) {
+      console.error("Download Attendance Excel Error:", error);
 
-  //     Swal.close();
+      Swal.close();
 
-  //     await Swal.fire({
-  //       icon: "error",
-  //       title: "Download Failed",
-  //       text:
-  //         error?.response?.data?.message ||
-  //         error?.response?.data?.error ||
-  //         error?.message ||
-  //         "Failed to download attendance Excel.",
-  //       confirmButtonColor: "#1e3a8a",
-  //     });
-  //   }
-  // };
+      await Swal.fire({
+        icon: "error",
+        title: "Download Failed",
+        text:
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "Failed to download attendance Excel.",
+        confirmButtonColor: "#1e3a8a",
+      });
+    }
+  };
 
 
-
-const handleDownloadExcel = async () => {
-  if (!validateFilters()) return;
-
-  try {
-    Swal.fire({
-      title: "Downloading...",
-      text: "Please wait while the attendance Excel template is being prepared.",
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    const headers = [
-      "Emp_ID",
-      "Name",
-      "Bio-Metric",
-      "Attendance",
-      "Medical_Leave",
-      "Earned_Leave",
-      "HP",
-      "LWP",
-      "Present",
-      "Remark",
-    ];
-
-    const worksheet = XLSX.utils.aoa_to_sheet([headers]);
-
-    worksheet["!cols"] = [
-      { wch: 12 },
-      { wch: 25 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 18 },
-      { wch: 18 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 30 },
-    ];
-
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      "Attendance",
-    );
-
-    const monthName =
-      months.find((item) => item.value === String(month))?.label ||
-      "Month";
-
-    const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
-
-    XLSX.writeFile(workbook, fileName);
 
   
-    Swal.close();
-  } catch (error) {
-    console.error("Download Attendance Excel Error:", error);
+
+// const handleDownloadExcel = async () => {
+//   if (!validateFilters()) return;
+
+//   try {
+//     Swal.fire({
+//       title: "Downloading...",
+//       text: "Please wait while the attendance Excel template is being prepared.",
+//       allowOutsideClick: false,
+//       allowEscapeKey: false,
+//       showConfirmButton: false,
+//       didOpen: () => {
+//         Swal.showLoading();
+//       },
+//     });
+
+//     const headers = [
+//       "Emp_ID",
+//       "Name",
+//       "Bio-Metric",
+//       "Attendance",
+//       "Medical_Leave",
+//       "Earned_Leave",
+//       "HP",
+//       "LWP",
+//       "Present",
+//       "Remark",
+//     ];
+
+//     const worksheet = XLSX.utils.aoa_to_sheet([headers]);
+
+//     worksheet["!cols"] = [
+//       { wch: 12 },
+//       { wch: 25 },
+//       { wch: 15 },
+//       { wch: 15 },
+//       { wch: 18 },
+//       { wch: 18 },
+//       { wch: 10 },
+//       { wch: 10 },
+//       { wch: 12 },
+//       { wch: 30 },
+//     ];
+
+//     const workbook = XLSX.utils.book_new();
+
+//     XLSX.utils.book_append_sheet(
+//       workbook,
+//       worksheet,
+//       "Attendance",
+//     );
+
+//     const monthName =
+//       months.find((item) => item.value === String(month))?.label ||
+//       "Month";
+
+//     const fileName = `Attendence_Report_${monthName}_${year}.xlsx`;
+
+//     XLSX.writeFile(workbook, fileName);
+
+  
+//     Swal.close();
+//   } catch (error) {
+//     console.error("Download Attendance Excel Error:", error);
 
     
-    await Swal.fire({
-      text:
-        error?.message ||
-        "Failed to download attendance Excel template.",
-      confirmButtonColor: "#1e3a8a",
-    });
+//     await Swal.fire({
+//       text:
+//         error?.message ||
+//         "Failed to download attendance Excel template.",
+//       confirmButtonColor: "#1e3a8a",
+//     });
 
-    Swal.close();
+//     Swal.close();
 
-  }
-};
+//   }
+// };
 
 
   const handleReset = () => {
