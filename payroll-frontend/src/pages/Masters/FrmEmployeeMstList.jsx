@@ -272,7 +272,9 @@ const FrmEmployeeMstList = () => {
         Select
       </Button>
     ),
-    employeeId: row.NUM_EMPLOYEE_EMPID || "",
+    employeeId: (Number(ulbId) === 770 || Number(ulbId) === 1750 || Number(ulbId) === 930)
+      ? (row.VAR_DEPTSLIP_SEQUENCE || "")
+      : (row.NUM_EMPLOYEE_EMPID || ""),
     employeeName: row.EMPLOYEENAME || "",
     category: row.VAR_CATEGORY_NAME || "",
     designation: row.DESIGNATION || "",

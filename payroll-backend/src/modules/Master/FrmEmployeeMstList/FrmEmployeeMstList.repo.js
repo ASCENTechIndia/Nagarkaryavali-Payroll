@@ -143,7 +143,7 @@ async function searchEmployeeRepo(payload) {
   // ✅ EMPLOYEE CODE FILTER
   if (employeeCode) {
 
-    if (ulbid == 770 || ulbid == 1750) {
+    if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
       conditions.push(`var_deptslip_sequence = :employeeCode`);
     } else if (ulbid == 1630) {
       conditions.push(`var_employee_oldempno = :employeeCode`);

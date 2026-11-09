@@ -92,7 +92,7 @@ const FrmAttendanceEntry = () => {
     zone: "",
     department: "",
     subDepartment: "",
-    billNo: "0",
+    billNo: "",
     employeeCode: "",
   };
 
@@ -336,7 +336,7 @@ const FrmAttendanceEntry = () => {
           values.subDepartment && values.subDepartment !== ""
             ? values.subDepartment
             : null,
-        billNo: values.billNo !== "0" ? values.billNo : null,
+        billNo: values.billNo !== "" ? values.billNo : null,
         empId: values.employeeCode || null,
         month: values.month,
         year: values.year,
@@ -353,7 +353,10 @@ const FrmAttendanceEntry = () => {
       if (apiData.length > 0) {
         const mappedData = apiData.map((item, index) => ({
           srNo: index + 1,
-          empId: item.NUM_EMPLOYEE_EMPID,
+          empId: (Number(ulbId) === 770 || Number(ulbId) === 1750 || Number(ulbId) === 930) 
+            ? item.VAR_DEPTSLIP_SEQUENCE 
+            : item.NUM_EMPLOYEE_EMPID,
+          empPkId: item.NUM_EMPLOYEE_EMPID,
           empName: item.EMPNAME,
           biometric: "0",
           attendance: item.monthattend_workingdays ?? 0,
@@ -427,7 +430,7 @@ const FrmAttendanceEntry = () => {
       const attDate = `${lastDateObj.getDate()}-${monthNames[month - 1]}-${year}`;
 
       checkedRows.forEach((row) => {
-        attendanceStr += `${row.empId}$${row.empName}$${row.biometric}$${row.attendance}$${row.present}$${row.medicalLeave}$${row.earnedLeave}$${row.halfDay}$${row.lwp}$${row.remark || ""}$${attDate}#`;
+        attendanceStr += `${row.empPkId}$${row.empName}$${row.biometric}$${row.attendance}$${row.present}$${row.medicalLeave}$${row.earnedLeave}$${row.halfDay}$${row.lwp}$${row.remark || ""}$${attDate}#`;
       });
 
       // Remove trailing #
@@ -526,16 +529,16 @@ const FrmAttendanceEntry = () => {
 
   useEffect(() => {
     if (ulbId) {
-      if (ulbId === "590") {
+      if (ulbId == "590") {
         setShowSubDept(true);
         setShowBillNo(false);
-      } else if (ulbId === "770" || ulbId === "1750") {
+      } else if (ulbId == "770" || ulbId == "1750" || ulbId == "930") {
         setShowSubDept(true);
         setShowBillNo(true);
-      } else if (ulbId === "2") {
+      } else if (ulbId == "2") {
         setShowSubDept(false);
         setShowBillNo(false);
-      } else if (ulbId === "1630") {
+      } else if (ulbId == "1630") {
         setShowSubDept(true);
         setShowBillNo(false);
       } else {
@@ -687,7 +690,7 @@ const FrmAttendanceEntry = () => {
                           <SelectValue placeholder="-- Select Sub Department --" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">-- ALL --</SelectItem>
+                          {/* <SelectItem value="">-- ALL --</SelectItem> */}
                           {subDepartmentOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
@@ -712,9 +715,9 @@ const FrmAttendanceEntry = () => {
                           <SelectValue placeholder="-- Select Bill No --" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="0">
+                          {/* <SelectItem value="0">
                             -- Select Bill No --
-                          </SelectItem>
+                          </SelectItem> */}
                           {billNoOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}

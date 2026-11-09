@@ -293,7 +293,7 @@ async function getAttendanceListRepo({
     }
     
     if (empId && empId.trim() !== "") {
-        if (ulbid == 770 || ulbid == 1750) {
+        if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
             sql += " AND var_deptslip_sequence = :empId";
         } else if (ulbid == 1630) {
             sql += " AND ED.var_employee_oldempno = :empId";
@@ -303,18 +303,35 @@ async function getAttendanceListRepo({
         binds.empId = empId;
     }
     
-    sql += `
-        GROUP BY 
-            ED.num_employee_empid, 
-            ED.var_employee_engname, 
-            ED.num_employee_deptid, 
-            ED.num_employee_zone,
-            NVL(var_attendentry_mlremrk, NULL), 
-            am.num_attendentry_id, 
-            var_deptslip_sequence, 
-            var_deptslip_code,
-            ED.var_employee_oldempno
-    `;
+    // sql += `
+    //     GROUP BY 
+    //         ED.num_employee_empid, 
+    //         ED.var_employee_engname, 
+    //         ED.num_employee_deptid, 
+    //         ED.num_employee_zone,
+    //         NVL(var_attendentry_mlremrk, NULL), 
+    //         am.num_attendentry_id, 
+    //         var_deptslip_sequence, 
+    //         var_deptslip_code,
+    //         ED.var_employee_oldempno
+    // `;
+
+    let groupBySql = "";
+    if (ulbid == 4 || ulbid == 1670 || ulbid == 870) {
+        groupBySql = `
+            GROUP BY 
+                ED.num_employee_empid, 
+                ED.var_employee_engname, 
+                ED.num_employee_deptid, 
+                ED.num_employee_zone,
+                NVL(var_attendentry_mlremrk, NULL), 
+                am.num_attendentry_id, 
+                var_deptslip_sequence, 
+                var_deptslip_code,
+                ED.var_employee_oldempno
+        `;
+    }
+    sql += groupBySql;
     
     if (ulbid == 1630) {
         sql += `

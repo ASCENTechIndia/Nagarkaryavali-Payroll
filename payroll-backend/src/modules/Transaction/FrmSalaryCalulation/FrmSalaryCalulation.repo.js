@@ -5,7 +5,7 @@ const { executeProcedure } = require("../../../db/procedureExecutor");
 async function getCategoryRepo({ ulbid }) {
     
     let sql = "";
-    if (ulbid == 770 || ulbid == 1750) {
+    if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
         sql = `
             SELECT 
                 CASE 
@@ -146,7 +146,7 @@ async function getSubDepartmentRepo({ deptId, ulbid }) {
         AND num_deptsub_ulbid = :ulbid
     `;
 
-    if (ulbid == 770 || ulbid == 1750) {
+    if (ulbid == 770 || ulbid == 1750 || ulbid == 930) {
         sql += `
             ORDER BY TO_NUMBER(NVL(
                 REGEXP_SUBSTR(var_deptsub_sdeptnamee,'\\(([0-9]+(\\.[0-9]+)?)\\)',1,1,NULL,1),
@@ -276,6 +276,7 @@ async function getBillNoRepo({ ulbid, deptId, subdeptId }) {
     if (subdeptId && subdeptId !== "0" && subdeptId !== "-1" && subdeptId !== "") binds.subdeptId = subdeptId;
     
     const result = await executeQuery(sql, binds);
+    console.log("sql: ", sql);
     if (!result.success) throw new Error(result.error);
     return result.rows;
 }
