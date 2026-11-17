@@ -84,7 +84,8 @@ async function calculateSalaryRepo(payload) {
         `,
         binds: {
             in_UserId: payload.userId,
-            in_Date: payload.date,
+            //in_Date: payload.date,
+            in_Date: new Date(`${payload.date}T00:00:00`),
             in_CategoryId: payload.categoryId,
             in_zone: payload.zone,
             in_dept: payload.dept,
@@ -124,7 +125,8 @@ async function deleteSalaryRepo(payload) {
         `,
         binds: {
             in_UserId: payload.userId,
-            in_Date: new Date(payload.date),
+            //in_Date: new Date(payload.date),
+            in_Date: new Date(`${payload.date}T00:00:00`),
             in_CategoryId: payload.categoryId,
             in_zone: payload.zone,
             in_dept: payload.dept,
