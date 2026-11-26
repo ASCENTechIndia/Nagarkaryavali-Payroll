@@ -11,4 +11,12 @@ router.post("/bank-list-report",      auth(), controller.getBankListReport);
 
 router.post("/generate-bank-list-pdf", auth(), controller.generateBankListPdf);
 
+
+
+router.post(
+    "/get-bank-list-report-data",
+    auth(),
+    controller.getBankListReportData
+);
+
 module.exports = router;
