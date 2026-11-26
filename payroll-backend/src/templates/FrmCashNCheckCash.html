@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm 10mm 14mm 10mm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                font-family: Arial, sans-serif;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, "Mangal", "Nirmala UI", sans-serif;
+            font-size: 12px;
+            color: #000;
+            background: #fff;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .top-left { display: flex; gap: 28px; white-space: nowrap; }
+        .top-right { text-align: right; white-space: nowrap; }
+
+        .header-block {
+            position: relative;
+            min-height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            padding: 0 76px;
+        }
+        .logo-container { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+        .header-logo { height: 60px; max-width: 68px; object-fit: contain; display: block; }
+        .title-center { text-align: center; }
+        .corp-name { font-size: 20px; font-weight: bold; line-height: 1.25; }
+        .report-title {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        .sub-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            border: 1px solid #999;
+            border-bottom: 3px double #999;
+        }
+        .main-table thead th {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #999;
+            padding: 6px 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .main-table tbody td {
+            border: 1px solid #bbb;
+            padding: 5px 6px;
+            background-color: #fff;
+        }
+        .td-center { text-align: center; }
+        .td-left   { text-align: left; }
+        .td-right  { text-align: right; }
+        .footer-row td {
+            font-weight: bold;
+            background-color: #fff;
+            border: 1px solid #999;
+            padding: 6px 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-left">
+            <span>दिनांक :{{printDate}}</span>
+            <span>वेळ &nbsp;: {{printTime}}</span>
+        </div>
+        <div class="top-right">
+            <span>छपाई करणाऱ्याचे आई. डी. :{{userId}}</span>
+        </div>
+    </div>
+
+    <div class="header-block">
+        {{#if corporationLogo}}
+        <div class="logo-container">
+            <img class="header-logo" src="{{corporationLogo}}" alt="Logo" />
+        </div>
+        {{/if}}
+        <div class="title-center">
+            <div class="corp-name">{{corporationName}}</div>
+            <div class="report-title">Cash &amp; Cheque Report — Salary For : {{salaryMonth}}</div>
+        </div>
+    </div>
+
+    <div class="sub-header">
+        <div>Department : <strong>{{department}}</strong></div>
+        <div>Pay Mode : <strong>{{paymode}}</strong></div>
+    </div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th style="width: 6%;">Sr. No.</th>
+                <th style="width: 10%;">Bill No.</th>
+                <th style="width: 10%;">Slip No.</th>
+                <th style="width: 30%;">Employee Name</th>
+                <th style="width: 15%;">Axis Acc No.</th>
+                <th style="width: 15%;">Indian Acc No.</th>
+                <th style="width: 14%;">Payable Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each rows}}
+            <tr>
+                <td class="td-center">{{SRNO}}</td>
+                <td class="td-center">{{BILLNO}}</td>
+                <td class="td-center">{{SLIPNO}}</td>
+                <td class="td-left">{{EMPNAME}}</td>
+                <td class="td-center">{{AXISACCNO}}</td>
+                <td class="td-center">{{INDACCNO}}</td>
+                <td class="td-right">{{PAYABLEAMT}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+        <tfoot>
+            <tr class="footer-row">
+                <td colspan="6" class="td-right">Total :</td>
+                <td class="td-right">{{totalPayable}}</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 8mm 8mm 12mm 8mm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                font-family: Arial, sans-serif;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, "Mangal", "Nirmala UI", sans-serif;
+            font-size: 11px;
+            color: #000;
+            background: #fff;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        .top-left { display: flex; gap: 24px; white-space: nowrap; }
+        .top-right { text-align: right; white-space: nowrap; }
+
+        .header-block {
+            position: relative;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            padding: 0 70px;
+        }
+        .logo-container { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+        .header-logo { height: 54px; max-width: 62px; object-fit: contain; display: block; }
+        .title-center { text-align: center; }
+        .corp-name { font-size: 19px; font-weight: bold; line-height: 1.2; }
+        .report-title { font-size: 14px; font-weight: bold; margin-top: 2px; }
+        .sub-note { font-size: 11px; margin-bottom: 4px; font-weight: bold; }
+
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            border: 1px solid #999;
+            border-bottom: 3px double #999;
+        }
+        .main-table thead th {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #999;
+            padding: 4px 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .main-table tbody td {
+            border: 1px solid #bbb;
+            padding: 4px 4px;
+            background-color: #fff;
+        }
+        .td-center { text-align: center; }
+        .td-left   { text-align: left; }
+        .td-right  { text-align: right; }
+        .footer-row td {
+            font-weight: bold;
+            background-color: #fff;
+            border: 1px solid #999;
+            padding: 5px 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-left">
+            <span>दिनांक :{{printDate}}</span>
+            <span>वेळ &nbsp;: {{printTime}}</span>
+        </div>
+        <div class="top-right">
+            <span>छपाई करणाऱ्याचे आई. डी. :{{userId}}</span>
+        </div>
+    </div>
+
+    <div class="header-block">
+        {{#if corporationLogo}}
+        <div class="logo-container">
+            <img class="header-logo" src="{{corporationLogo}}" alt="Logo" />
+        </div>
+        {{/if}}
+        <div class="title-center">
+            <div class="corp-name">{{corporationName}}</div>
+            <div class="report-title">DCPS मासिक कपात अहवाल माहे {{salaryMonth}}</div>
+        </div>
+    </div>
+
+    <div class="sub-note">(7th Pay)</div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th colspan="4"></th>
+                <th colspan="6">Addition Side</th>
+                <th colspan="4">Deduction Side</th>
+                <th></th>
+            </tr>
+            <tr>
+                <th>Sr.<br>No.</th>
+                <th>बिल नं.</th>
+                <th>स्लिप नं.</th>
+                <th>कर्मचारी नाव</th>
+                <th>BASIC</th>
+                <th>GRADEPAY</th>
+                <th>DA</th>
+                <th>DA Diff</th>
+                <th>E_DCPS<br>14%</th>
+                <th>DCPS 14%<br>Diff</th>
+                <th>DCPS<br>10%</th>
+                <th>D_DCPS<br>14%</th>
+                <th>DCPS 10%<br>Diff</th>
+                <th>DCPS 14%<br>Diff</th>
+                <th>एकूण रक्कम</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each rows}}
+            <tr>
+                <td class="td-center">{{SRNO}}</td>
+                <td class="td-center">{{BILLNO}}</td>
+                <td class="td-center">{{SLIPNO}}</td>
+                <td class="td-left">{{EMPNAME}}</td>
+                <td class="td-right">{{E_BASIC}}</td>
+                <td class="td-right">{{E_GP}}</td>
+                <td class="td-right">{{E_DA}}</td>
+                <td class="td-right">{{E_DADIFF}}</td>
+                <td class="td-right">{{E_DCPS14}}</td>
+                <td class="td-right">{{E_DCPSDIFF14}}</td>
+                <td class="td-right">{{D_DCPS10}}</td>
+                <td class="td-right">{{D_DCPS14}}</td>
+                <td class="td-right">{{D_DCPSDIFF10}}</td>
+                <td class="td-right">{{D_DCPSDIFF14}}</td>
+                <td class="td-right">{{TOTAL}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+        <tfoot>
+            <tr class="footer-row">
+                <td colspan="4" class="td-right">Total :</td>
+                <td class="td-right">{{totals.basic}}</td>
+                <td class="td-right">{{totals.gp}}</td>
+                <td class="td-right">{{totals.da}}</td>
+                <td class="td-right">{{totals.daDiff}}</td>
+                <td class="td-right">{{totals.eDcps14}}</td>
+                <td class="td-right">{{totals.eDcps14Diff}}</td>
+                <td class="td-right">{{totals.dDcps10}}</td>
+                <td class="td-right">{{totals.dDcps14}}</td>
+                <td class="td-right">{{totals.dDcps10Diff}}</td>
+                <td class="td-right">{{totals.dDcps14Diff}}</td>
+                <td class="td-right">{{totals.total}}</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
