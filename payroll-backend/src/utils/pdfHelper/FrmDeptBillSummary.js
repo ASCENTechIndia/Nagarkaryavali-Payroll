@@ -164,10 +164,31 @@ const DeptBillSummaryPDFHelper = async ({
 
     const html = template(templateData);
 
+    const chromePath = path.resolve(
+        __dirname,
+        "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe"
+    );
+
+    //--------------------------------------------------
+    // Puppeteer Launch Options
+    //--------------------------------------------------
+
     const launchOptions = {
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        headless: true,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox"
+        ]
     };
+
+    if (fs.existsSync(chromePath)) {
+        launchOptions.executablePath = chromePath;
+        console.log("Using Chrome:", chromePath);
+    } else {
+        console.log(
+            "Chrome path not found, using Puppeteer's default executable."
+        );
+    }
 
     browser = await puppeteer.launch(launchOptions);
 
