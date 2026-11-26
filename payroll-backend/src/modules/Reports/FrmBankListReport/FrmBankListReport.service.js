@@ -33,54 +33,117 @@ async function getBankListService({ ulbid }) {
  * @param {string}        params.bankId - "-1" means ALL
  * @param {string}        [params.subdeptId] - optional, "-1" means ALL
  */
-async function getBankListReportService({ ulbid, month, year, deptId, bankId, subdeptId }) {
-   
-    if (!ulbid)  throw new AppError("ulbid is required", 400);
-    if (!month)  throw new AppError("Please select Month", 400);
-    if (!year)   throw new AppError("Please select Year", 400);
+
+async function getBankListReportService({
+    ulbid,
+    month,
+    year,
+    deptId,
+    bankId,
+    subdeptId
+}) {
+    if (!ulbid) throw new AppError("ulbid is required", 400);
+    if (!month) throw new AppError("Please select Month", 400);
+    if (!year) throw new AppError("Please select Year", 400);
 
     const m = Number(month);
     const y = Number(year);
 
-    if (isNaN(m) || m < 1 || m > 12) throw new AppError("Invalid month value", 400);
-    if (isNaN(y) || y < 2000)        throw new AppError("Invalid year value", 400);
+    if (isNaN(m) || m < 1 || m > 12) {
+        throw new AppError("Invalid month value", 400);
+    }
 
-    
-    const lastDay = new Date(y, m, 0).getDate(); 
-    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const lastDate = `${String(lastDay).padStart(2, "0")}-${monthNames[m - 1]}-${y}`;
+    if (isNaN(y) || y < 2000) {
+        throw new AppError("Invalid year value", 400);
+    }
 
+    const lastDay = new Date(y, m, 0).getDate();
+
+    const monthNames = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const lastDate =
+        `${String(lastDay).padStart(2, "0")}-${monthNames[m - 1]}-${y}`;
+
+    const normalizedDeptId = deptId ?? "-1";
+    const normalizedBankId = bankId ?? "-1";
+    const normalizedSubdeptId = subdeptId ?? "-1";
+
+    // Fetch report data (Repository unchanged)
     const data = await repo.getBankListReportRepo({
-        ulbid:    Number(ulbid),
+        ulbid: Number(ulbid),
         lastDate,
-        deptId:   deptId   || "-1",
-        bankId:   bankId   || "-1",
-        subdeptId: subdeptId || "-1",
+        deptId: normalizedDeptId,
+        bankId: normalizedBankId,
+        subdeptId: normalizedSubdeptId
     });
 
     if (!data || data.length === 0) {
         throw new AppError("No Record Found", 404);
     }
 
-    const totalPayable = data.reduce((sum, row) => sum + (Number(row.PAYABLEAMT) || 0), 0);
+    const getAmount = (row) =>
+        Number(row.PAYABLEAMT ?? row.payableamt) || 0;
+
+    const hasAccount = (value) =>
+        value != null &&
+        String(value).trim() !== "" &&
+        String(value).trim() !== "-";
+
+    let totalPayable = 0;
+    let cashCheque = 0;
+    let indianBankPayment = 0;
+    let axisBankPayment = 0;
+
+    data.forEach((row) => {
+        const amount = getAmount(row);
+
+        const indianAcc = row.INDACCNO ?? row.indaccno;
+        const axisAcc = row.AXISACCNO ?? row.axisaccno;
+        const account = row.ACCNO ?? row.accno;
+
+        totalPayable += amount;
+
+        if (hasAccount(axisAcc)) {
+            axisBankPayment += amount;
+        } else if (hasAccount(indianAcc)) {
+            indianBankPayment += amount;
+        } else if (hasAccount(account)) {
+            // Generic account category requires confirmation.
+            // Do not classify it as Indian Bank without verification.
+        } else {
+            cashCheque += amount;
+        }
+    });
 
     return {
         success: true,
         count: data.length,
+
         totalPayable,
+
+        cashCheque,
+        indianBankPayment,
+        axisBankPayment,
+
         salaryMonth: `${monthNames[m - 1]} ${y}`,
+
         data,
+
         filters: {
-            ulbid,
+            ulbid: Number(ulbid),
             month: m,
-            year:  y,
+            year: y,
             lastDate,
-            deptId:    deptId   || "-1",
-            bankId:    bankId   || "-1",
-            subdeptId: subdeptId || "-1",
-        },
+            deptId: normalizedDeptId,
+            bankId: normalizedBankId,
+            subdeptId: normalizedSubdeptId
+        }
     };
 }
+
 
 module.exports = {
     getDepartmentListService,

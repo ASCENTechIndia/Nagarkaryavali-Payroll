@@ -30,64 +30,93 @@ exports.getBankListReport = asyncHandler(async (req, res) => {
     return ok(res, data, "Bank List report fetched successfully");
 });
 
+
 exports.generateBankListPdf = asyncHandler(async (req, res) => {
     const {
-        ulbid, ulbId, month, year,
-        deptId, departmentId,
-        deptName, bankName, subDeptName,
-        bankId, subdeptId,
+        ulbid,
+        ulbId,
+        month,
+        year,
+        deptId,
+        departmentId,
+        deptName,
+        bankName,
+        subDeptName,
+        bankId,
+        subdeptId
     } = req.body;
 
     const resolvedUlbId = ulbid || ulbId;
-    const resolvedDeptId = deptId || departmentId || "-1";
+    const resolvedDeptId = deptId ?? departmentId ?? "-1";
 
     // Fetch report data
     const reportResult = await service.getBankListReportService({
-        ulbid:    resolvedUlbId,
+        ulbid: resolvedUlbId,
         month,
         year,
-        deptId:   resolvedDeptId,
-        bankId:   bankId || "-1",
-        subdeptId: subdeptId || "-1",
+        deptId: resolvedDeptId,
+        bankId: bankId ?? "-1",
+        subdeptId: subdeptId ?? "-1"
     });
 
-    // Fetch corporation name and logo
+    // Fetch corporation details
     let corporationName = "";
     let corporationLogo = "";
+
     try {
-        const corpInfo = await getCorporationService({ ulbId: resolvedUlbId });
-        corporationName = corpInfo.ABC_MUNICIPAL_TEXT || "";
-        corporationLogo = corpInfo.ULBLOGO || "";
-    } catch (_) {
-        corporationName = "";
-        corporationLogo = "";
+        const corpInfo = await getCorporationService({
+            ulbId: resolvedUlbId
+        });
+
+        corporationName = corpInfo?.ABC_MUNICIPAL_TEXT || "";
+        corporationLogo = corpInfo?.ULBLOGO || "";
+
+    } catch (error) {
+        console.error("Corporation details fetch failed:", error);
     }
 
-    // Enrich filters with display names
-    reportResult.filters.deptName    = deptName    || null;
-    reportResult.filters.bankName    = bankName    || null;
+    // Set filter display names
+    reportResult.filters.deptName = deptName || null;
+    reportResult.filters.bankName = bankName || null;
     reportResult.filters.subDeptName = subDeptName || null;
 
-    // Get userId from JWT token — JWT payload has: { sub, name, orgId }
+    // Get user ID from JWT
     const userId = req.user?.name || req.user?.sub || "";
 
+    // Generate PDF
     const pdf = await BankListReportPDFHelper({
-        rows:            reportResult.data,
-        filters:         reportResult.filters,
-        salaryMonth:     reportResult.salaryMonth,
+        rows: reportResult.data,
+        filters: reportResult.filters,
+        salaryMonth: reportResult.salaryMonth,
+
         corporationName,
         corporationLogo,
         userId,
+
+        cashCheque: reportResult.cashCheque,
+        indianBankPayment: reportResult.indianBankPayment,
+        axisBankPayment: reportResult.axisBankPayment,
+        grandTotal: reportResult.totalPayable
     });
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const pdfUrl  = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
+
+    const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
     return res.json({
-        success:  true,
-        message:  "Bank List PDF Generated Successfully",
+        success: true,
+        message: "Bank List PDF Generated Successfully",
         fileName: pdf.fileName,
         pdfUrl,
+
+        summary: {
+            totalEmployees: reportResult.count,
+            cashCheque: reportResult.cashCheque,
+            indianBankPayment: reportResult.indianBankPayment,
+            axisBankPayment: reportResult.axisBankPayment,
+            grandTotal: reportResult.totalPayable
+        }
     });
 });
+
 

@@ -1,7 +1,17 @@
+
 const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const Handlebars = require("handlebars");
+
+const formatAmount = (value) =>
+    (Number(value) || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+const getField = (row, key) =>
+    row[key] ?? row[key.toLowerCase()] ?? "";
 
 const BankListReportPDFHelper = async ({
     rows,
@@ -9,7 +19,11 @@ const BankListReportPDFHelper = async ({
     salaryMonth,
     corporationName,
     corporationLogo,
-    userId
+    userId,
+    cashCheque,
+    indianBankPayment,
+    axisBankPayment,
+    grandTotal
 }) => {
     const templatePath = path.resolve(
         __dirname,
@@ -19,28 +33,40 @@ const BankListReportPDFHelper = async ({
     const htmlFile = fs.readFileSync(templatePath, "utf8");
     const template = Handlebars.compile(htmlFile);
 
-    let grandTotal = 0;
-
+    // Map all repository fields
     const reportRows = rows.map((row, index) => {
-        const payable = Number(row.PAYABLEAMT || 0);
+        const payable = Number(getField(row, "PAYABLEAMT")) || 0;
 
-        grandTotal += payable;
+        const indAcc = getField(row, "INDACCNO");
+        const axisAcc = getField(row, "AXISACCNO");
+        const generalAcc = getField(row, "ACCNO");
 
         return {
             SRNO: index + 1,
-            EMPID: row.EMPID || row.EMPCODE || "",
-            EMPNAME: row.EMPNAME || "",
-            DEPTNAME: row.DEPTNAME || "",
-            BANKNAME: row.BANKNAME || "",
-            ACCNO:
-                row.ACCNO ||
-                row.INDACCNO ||
-                row.AXISACCNO ||
-                "",
-            PAYABLEAMT: payable.toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })
+
+            EMPID: getField(row, "EMPID") || "-",
+
+            BILLNO: getField(row, "BILLNO") || "-",
+
+            SLPNO: getField(row, "SLIPNO") || "-",
+
+            EMPNAME: getField(row, "EMPNAME") || "-",
+
+            // Account mapping
+            ADVACCNO:
+                (axisAcc && axisAcc !== "-"
+                    ? axisAcc
+                    : generalAcc) || "-",
+
+            INDIANACCNO: indAcc || "-",
+
+            // Repository is unchanged; IFSC is not fetched
+            IFSCCODE: "-",
+
+            // Keep the original account available for reference
+            ACCNO: generalAcc || "-",
+
+            PAYABLEAMT: formatAmount(payable)
         };
     });
 
@@ -55,10 +81,12 @@ const BankListReportPDFHelper = async ({
         hour12: true
     });
 
+    // Prepare HTML data
     const html = template({
         corporationName: corporationName || "",
         corporationLogo: corporationLogo || "",
-        salaryMonth,
+
+        salaryMonth: salaryMonth || "",
 
         department:
             filters.deptName ||
@@ -72,33 +100,29 @@ const BankListReportPDFHelper = async ({
                 ? "All"
                 : filters.bankId),
 
-        subDept: filters.subDeptName || "",
+        subDept:
+            filters.subDeptName ||
+            (Number(filters.subdeptId) === -1
+                ? "All"
+                : filters.subdeptId),
 
         printDate,
         printTime,
-
         userId: userId || "",
 
         rows: reportRows,
 
-        grandTotal: grandTotal.toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })
+        cashCheque: formatAmount(cashCheque),
+        indianBankPayment: formatAmount(indianBankPayment),
+        axisBankPayment: formatAmount(axisBankPayment),
+        grandTotal: formatAmount(grandTotal)
     });
 
-    //--------------------------------------------------
-    // Chrome Path
-    //--------------------------------------------------
-
+    // Chrome path
     const chromePath = path.resolve(
         __dirname,
         "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe"
     );
-
-    //--------------------------------------------------
-    // Puppeteer Launch Options
-    //--------------------------------------------------
 
     const launchOptions = {
         headless: true,
@@ -112,14 +136,8 @@ const BankListReportPDFHelper = async ({
         launchOptions.executablePath = chromePath;
         console.log("Using Chrome:", chromePath);
     } else {
-        console.log(
-            "Chrome path not found, using Puppeteer's default executable."
-        );
+        console.log("Using Puppeteer default Chrome");
     }
-
-    //--------------------------------------------------
-    // Launch Browser
-    //--------------------------------------------------
 
     let browser;
 
@@ -128,24 +146,17 @@ const BankListReportPDFHelper = async ({
 
         const page = await browser.newPage();
 
-        //--------------------------------------------------
-        // Set HTML
-        //--------------------------------------------------
-
         await page.setContent(html, {
             waitUntil: "networkidle0",
             timeout: 0
         });
 
-        //--------------------------------------------------
-        // Wait For Images
-        //--------------------------------------------------
-
+        // Wait for fonts and images
         await page.evaluate(async () => {
-            const images = Array.from(document.images);
+            await document.fonts.ready;
 
             await Promise.all(
-                images.map((img) => {
+                Array.from(document.images).map((img) => {
                     if (img.complete) {
                         return Promise.resolve();
                     }
@@ -158,27 +169,22 @@ const BankListReportPDFHelper = async ({
             );
         });
 
-        //--------------------------------------------------
         // Generate PDF
-        //--------------------------------------------------
-
         const pdfBuffer = await page.pdf({
             format: "A4",
             landscape: false,
             printBackground: true,
             preferCSSPageSize: true,
+            displayHeaderFooter: false,
             margin: {
-                top: "8mm",
-                right: "8mm",
-                bottom: "8mm",
-                left: "8mm"
+                top: "5mm",
+                right: "7mm",
+                bottom: "5mm",
+                left: "7mm"
             }
         });
 
-        //--------------------------------------------------
-        // Output Folder
-        //--------------------------------------------------
-
+        // Output folder
         const outputDir = path.resolve(
             __dirname,
             "../../../public/pdf"
@@ -190,10 +196,7 @@ const BankListReportPDFHelper = async ({
             });
         }
 
-        //--------------------------------------------------
         // Save PDF
-        //--------------------------------------------------
-
         const fileName = `BankList_${Date.now()}.pdf`;
 
         const filePath = path.join(
@@ -201,19 +204,13 @@ const BankListReportPDFHelper = async ({
             fileName
         );
 
-        fs.writeFileSync(
-            filePath,
-            pdfBuffer
-        );
-
-        //--------------------------------------------------
-        // Return
-        //--------------------------------------------------
+        fs.writeFileSync(filePath, pdfBuffer);
 
         return {
             fileName,
             filePath
         };
+
     } catch (error) {
         console.error(
             "Bank List PDF generation failed:",
@@ -221,16 +218,15 @@ const BankListReportPDFHelper = async ({
         );
 
         throw error;
+
     } finally {
         if (browser) {
-            try {
-                await browser.close();
-            } catch (error) {
+            await browser.close().catch((error) => {
                 console.error(
                     "Failed to close Puppeteer browser:",
                     error
                 );
-            }
+            });
         }
     }
 };
