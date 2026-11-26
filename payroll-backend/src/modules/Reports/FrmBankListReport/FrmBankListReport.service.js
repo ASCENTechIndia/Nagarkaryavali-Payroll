@@ -40,7 +40,10 @@ async function getBankListReportService({
     year,
     deptId,
     bankId,
-    subdeptId
+    subdeptId,
+    billNo,
+    empType,
+    userId
 }) {
     if (!ulbid) throw new AppError("ulbid is required", 400);
     if (!month) throw new AppError("Please select Month", 400);
@@ -48,13 +51,22 @@ async function getBankListReportService({
 
     const m = Number(month);
     const y = Number(year);
+    const ulbID = Number(ulbid);
 
-    if (isNaN(m) || m < 1 || m > 12) {
+    if (!Number.isInteger(m) || m < 1 || m > 12) {
         throw new AppError("Invalid month value", 400);
     }
 
-    if (isNaN(y) || y < 2000) {
+    if (!Number.isInteger(y) || y < 2000) {
         throw new AppError("Invalid year value", 400);
+    }
+
+    if ([930, 1750].includes(ulbID) && !userId) {
+        throw new AppError("User ID is required to generate this report", 400);
+    }
+
+    if (ulbID === 1750 && !["OLD", "NEW"].includes(String(empType).trim().toUpperCase())) {
+        throw new AppError("Please select Employee Type", 400);
     }
 
     const lastDay = new Date(y, m, 0).getDate();
@@ -64,20 +76,23 @@ async function getBankListReportService({
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
 
-    const lastDate =
-        `${String(lastDay).padStart(2, "0")}-${monthNames[m - 1]}-${y}`;
+    const lastDate = `${String(lastDay).padStart(2, "0")}-${monthNames[m - 1]}-${y}`;
 
     const normalizedDeptId = deptId ?? "-1";
     const normalizedBankId = bankId ?? "-1";
     const normalizedSubdeptId = subdeptId ?? "-1";
+    const normalizedBillNo = billNo ?? "-1";
+    const normalizedEmpType = String(empType ?? "NEW").trim().toUpperCase();
 
-    // Fetch report data (Repository unchanged)
     const data = await repo.getBankListReportRepo({
-        ulbid: Number(ulbid),
+        ulbid: ulbID,
         lastDate,
         deptId: normalizedDeptId,
         bankId: normalizedBankId,
-        subdeptId: normalizedSubdeptId
+        subdeptId: normalizedSubdeptId,
+        billNo: normalizedBillNo,
+        empType: normalizedEmpType,
+        userId
     });
 
     if (!data || data.length === 0) {
@@ -110,10 +125,7 @@ async function getBankListReportService({
             axisBankPayment += amount;
         } else if (hasAccount(indianAcc)) {
             indianBankPayment += amount;
-        } else if (hasAccount(account)) {
-            // Generic account category requires confirmation.
-            // Do not classify it as Indian Bank without verification.
-        } else {
+        } else if (!hasAccount(account)) {
             cashCheque += amount;
         }
     });
@@ -121,28 +133,26 @@ async function getBankListReportService({
     return {
         success: true,
         count: data.length,
-
         totalPayable,
-
         cashCheque,
         indianBankPayment,
         axisBankPayment,
-
         salaryMonth: `${monthNames[m - 1]} ${y}`,
-
         data,
-
         filters: {
-            ulbid: Number(ulbid),
+            ulbid: ulbID,
             month: m,
             year: y,
             lastDate,
             deptId: normalizedDeptId,
             bankId: normalizedBankId,
-            subdeptId: normalizedSubdeptId
+            subdeptId: normalizedSubdeptId,
+            billNo: normalizedBillNo,
+            empType: normalizedEmpType
         }
     };
 }
+
 
 
 module.exports = {
