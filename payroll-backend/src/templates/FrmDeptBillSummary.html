@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8" />
+<title>Department Bill Summary</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  @page {
+    size: A3 landscape;
+    margin: 8mm;
+  }
+
+  body {
+    font-family: "Nirmala UI", "Arial", sans-serif;
+    font-size: 11px;
+    margin: 0;
+    color: #000;
+  }
+
+  .container {
+    width: 100%;
+  }
+
+  .header-table,
+  .salary-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .header-table {
+    margin-bottom: 16px;
+  }
+
+  .header-table td {
+    border: 1px solid #000;
+    padding: 9px;
+  }
+
+  .report-title {
+    text-align: center;
+    font-size: 17px;
+    font-weight: normal;
+  }
+
+  .pay-label {
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+  }
+
+  .salary-table th,
+  .salary-table td {
+    border: 1px solid #000;
+    padding: 5px 3px;
+    vertical-align: middle;
+    word-break: break-word;
+  }
+
+  .salary-table thead {
+    display: table-header-group;
+  }
+
+  .group-header {
+    height: 35px;
+    font-size: 15px;
+    font-weight: normal;
+    text-align: center;
+  }
+
+  .payhead-header {
+    height: 42px;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .department-header {
+    width: 7%;
+  }
+
+  .payhead-column {
+    width: 5.1%;
+  }
+
+  .total-column {
+    width: 6.5%;
+  }
+
+  .salary-table tbody td {
+    height: 32px;
+    font-size: 11px;
+  }
+
+  .department-cell {
+    text-align: center;
+    font-weight: bold;
+    vertical-align: middle !important;
+  }
+
+  .amount-cell {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .total-cell {
+    text-align: right;
+    font-weight: bold;
+    vertical-align: middle !important;
+  }
+
+  .signature-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .signature-box {
+    width: 25%;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 20px;
+  }
+
+  @media print {
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    tr {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- Report Heading -->
+  <table class="header-table">
+    <tr>
+      <td class="report-title">
+        {{corporationName}}, जळगाव माहे
+        {{month}}, {{year}} अंतिम पगार बिल समरी क्र. ?
+      </td>
+    </tr>
+
+    <tr>
+      <td class="pay-label">
+        (7th Pay)
+      </td>
+    </tr>
+  </table>
+
+  <!-- Main Salary Table -->
+  <table class="salary-table">
+
+    <colgroup>
+      <col class="department-header" />
+
+      {{#each departmentGroups.[0].records.[0].salaryRows.[0].columns}}
+        <col class="payhead-column" />
+      {{/each}}
+
+      <col class="total-column" />
+      <col class="total-column" />
+    </colgroup>
+
+    <thead>
+
+      <!-- Addition / Deduction -->
+      <tr>
+        <th></th>
+
+        <th colspan="5" class="group-header">
+          Addition
+        </th>
+
+        <th colspan="8" class="group-header">
+          Deduction
+        </th>
+
+        <th class="group-header">
+          Total
+        </th>
+
+        <th class="group-header">
+          Total
+        </th>
+      </tr>
+
+      <!-- Payhead header row 1 -->
+      <tr>
+        <th rowspan="3" class="payhead-header">
+          विभाग
+        </th>
+
+        {{#each departmentGroups.[0].records.[0].salaryRows.[0].columns}}
+          <th class="payhead-header">
+            {{this.label}}
+          </th>
+        {{/each}}
+
+        <th rowspan="3" class="payhead-header">
+          Total_Deduc
+        </th>
+
+        <th rowspan="3" class="payhead-header">
+          Net_Pay
+        </th>
+      </tr>
+
+      <!-- Payhead header row 2 -->
+      <tr>
+        {{#each departmentGroups.[0].records.[0].salaryRows.[1].columns}}
+          <th class="payhead-header">
+            {{this.label}}
+          </th>
+        {{/each}}
+      </tr>
+
+      <!-- Payhead header row 3 -->
+      <tr>
+        {{#each departmentGroups.[0].records.[0].salaryRows.[2].columns}}
+          <th class="payhead-header">
+            {{this.label}}
+          </th>
+        {{/each}}
+      </tr>
+
+    </thead>
+
+
+<tbody>
+
+  {{#each departmentGroups}}
+
+    {{#each this.records}}
+
+      {{#each this.salaryRows}}
+
+        <tr>
+
+          <!-- Department name spans all 3 rows of every record -->
+          {{#if @../first}}
+            {{#if @first}}
+              <td
+                class="department-cell"
+                rowspan="{{multiply ../../records.length 3}}"
+              >
+                {{../../departmentName}}
+              </td>
+            {{/if}}
+          {{/if}}
+
+          <!-- Payhead amounts -->
+          {{#each this.columns}}
+            <td class="amount-cell">
+              {{formatNumber this.amount}}
+            </td>
+          {{/each}}
+
+          <!-- Total Deduction and Net Pay span 3 rows -->
+          {{#if @first}}
+
+            <td class="total-cell" rowspan="3">
+              {{formatNumber ../totalDeduction}}
+            </td>
+
+            <td class="total-cell" rowspan="3">
+              {{formatNumber ../netPay}}
+            </td>
+
+          {{/if}}
+
+        </tr>
+
+      {{/each}}
+
+    {{/each}}
+
+  {{/each}}
+
+  {{#unless departmentGroups.length}}
+    <tr>
+      <td colspan="16" class="empty-message">
+        No Records Found
+      </td>
+    </tr>
+  {{/unless}}
+
+</tbody>
+
+
+  </table>
+
+  <!-- Signature -->
+  <div class="signature-section">
+
+    <div class="signature-box">
+      तयार करणारे
+    </div>
+
+    <div class="signature-box">
+      कार्यालय अधीक्षक<br />
+      {{corporationName}}
+    </div>
+
+    <div class="signature-box">
+      लेखाधिकारी<br />
+      {{corporationName}}
+    </div>
+
+    <div class="signature-box">
+      आयुक्त<br />
+      {{corporationName}}
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>
