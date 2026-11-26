@@ -8,8 +8,28 @@ const {
   DeptBillSummaryPDFHelper
 } = require("../../../utils/pdfHelper/FrmDeptBillSummary");
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
+const toMonthName = (month) => {
+  if (month === undefined || month === null || month === "") return "";
 
+  const asString = String(month).trim();
+
+  const byName = MONTH_NAMES.find(
+    (m) => m.toLowerCase() === asString.toLowerCase()
+  );
+  if (byName) return byName;
+
+  const num = Number(asString);
+  if (Number.isInteger(num) && num >= 1 && num <= 12) {
+    return MONTH_NAMES[num - 1];
+  }
+
+  return asString;
+};
 
 
 // 1. Summary Head Wise Salary
@@ -86,8 +106,6 @@ exports.getPayheadMaster = asyncHandler(async (req, res) => {
 });
 
 
-
-
 exports.generateDeptBillSummaryPDF = asyncHandler(async (req, res) => {
   const {
     fromDate,
@@ -102,6 +120,11 @@ exports.generateDeptBillSummaryPDF = asyncHandler(async (req, res) => {
     throw new AppError("Required parameters are missing", 400);
   }
 
+  const monthName = toMonthName(month);
+  if (!monthName) {
+    throw new AppError("Valid month is required", 400);
+  }
+
   const result = await service.getSummaryHeadWiseSalaryService({
     fromDate,
     toDate,
@@ -111,7 +134,7 @@ exports.generateDeptBillSummaryPDF = asyncHandler(async (req, res) => {
 
   const pdf = await DeptBillSummaryPDFHelper({
     rows: result.data,
-    month,
+    month: monthName,
     year,
     ulbId
   });
