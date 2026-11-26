@@ -455,160 +455,70 @@ const getPaySlipData = async ({ ulbId, empId, deptId, subDept, categoryId, zoneI
   //----------------------------------------------------
 
   let query = `
-SELECT
-    num_salary_empid EmpId,
-
-    var_employee_engname EmpEName,
-
-    var_employee_marname EmpMName,
-
-    date_salary_saldate SalDate,
-
-    var_desigmst_designationname Designation,
-
-    var_deptmst_deptnamee Dept,
-
-    var_grademst_gradename Grade,
-
-    num_salary_presentdays,
-
-    total_days,
-
-    zonename,
-
-    empbankno,
-
-    emppanno,
-
-    emppfno,
-
-    num_salary_basic,
-
-    num_salary_gradepay,
-
-    panno,
-
-    billcode,
-
-    empsequence,
-
-    withoutpay,
-
-    medicalleave,
-
-    earnedleave,
-
-    halfday,
-
-    oldempno,
-
-    var_paysubheads_type,
-
-    PayHeadShortName,
-
-    var_payheads_ename,
-
-    NVL(num_salarydtl_amount,0) Amount
-
-FROM view_paysheet
-
-WHERE ulbid = :ulbId
-
-AND num_salarydtl_payheadid NOT IN
-(
-367,
-676,
-677,
-218
-)
-
-AND var_paysubheads_type IN
-(
-'D',
-'E'
-)
-
-AND num_salarydtl_amount > 0
+      SELECT
+          num_salary_empid EmpId,
+          var_employee_engname EmpEName,
+          var_employee_marname EmpMName,
+          date_salary_saldate SalDate,
+          var_desigmst_designationname Designation,
+          var_deptmst_deptnamee Dept,
+          var_grademst_gradename Grade,
+          num_salary_presentdays,
+          total_days,
+          zonename,
+          empbankno,
+          emppanno,
+          emppfno,
+          num_salary_basic,
+          num_salary_gradepay,
+          panno,
+          billcode,
+          empsequence,
+          withoutpay,
+          medicalleave,
+          earnedleave,
+          halfday,
+          oldempno,
+          var_paysubheads_type,
+          PayHeadShortName,
+          var_payheads_ename,
+          NVL(num_salarydtl_amount,0) Amount
+      FROM view_paysheet
+      WHERE ulbid = :ulbId
+      AND num_salarydtl_payheadid NOT IN(676, 677, 218, 367)
+      AND var_paysubheads_type IN('E', 'D')
+      AND num_salarydtl_amount > 0
 `;
-
-  //----------------------------------------------------
-  // Employee
-  //----------------------------------------------------
 
   if (empId) {
-    query += `
-AND num_salary_empid = :empId
-`;
-
+    query += ` AND num_salary_empid = :empId`;
     binds.empId = empId;
   }
 
-  //----------------------------------------------------
-  // Salary Date
-  //----------------------------------------------------
-
-  query += `
-AND date_salary_saldate = :lstdate
-`;
-
-  //----------------------------------------------------
-  // Department
-  //----------------------------------------------------
+  query += ` AND date_salary_saldate = :lstdate`;
 
   if (deptId && deptId !== "0" && deptId !== "-1" && deptId !== "") {
-    query += `
-AND num_salary_deptid = :deptId
-`;
-
+    query += ` AND num_salary_deptid = :deptId`;
     binds.deptId = deptId;
   }
 
-  //----------------------------------------------------
-  // Sub Department
-  //----------------------------------------------------
-
   if (subDept && subDept !== "" && subDept !== "-1" && subDept !== "0") {
-    query += `
-AND subdept = :subDept
-`;
-
+    query += ` AND subdept = :subDept`;
     binds.subDept = subDept;
   }
 
-  //----------------------------------------------------
-  // Category
-  //----------------------------------------------------
-
   if (categoryId && categoryId !== "0") {
-    query += `
-AND num_salary_categoryid = :categoryId
-`;
-
+    query += ` AND num_salary_categoryid = :categoryId`;
     binds.categoryId = categoryId;
   }
 
-  //----------------------------------------------------
-  // Zone
-  //----------------------------------------------------
-
   if (zoneId && zoneId !== "0") {
-    query += `
-AND NUM_SALARY_ZONE = :zoneId
-`;
-
+    query += ` AND NUM_SALARY_ZONE = :zoneId`;
     binds.zoneId = zoneId;
   }
 
-  //----------------------------------------------------
-  // Order
-  //----------------------------------------------------
-
-  query += `
-ORDER BY
-num_salary_empid,
-orderno
-`;
-
+  query += ` ORDER BY num_salary_empid, orderno`;
+  console.log({query, binds})
   return await executeQuery(query, binds);
 };
 

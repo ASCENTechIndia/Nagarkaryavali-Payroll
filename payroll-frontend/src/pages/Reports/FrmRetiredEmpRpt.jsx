@@ -38,9 +38,9 @@ const FrmRetiredEmpRpt = () => {
 
   const initialFormValues = {
     department: "-1",
-    subDepartment: "0",
+    subDepartment: "",
     zone: "",
-    billNo: "0",
+    billNo: "",
     fileFormat: "PDF",
   };
 
@@ -56,7 +56,7 @@ const FrmRetiredEmpRpt = () => {
     const loadInitialData = async () => {
       try {
         Swal.fire({
-          title: "Loading Data...",
+          text: "Loading Data...",
           allowOutsideClick: false,
           didOpen: () => Swal.showLoading(),
         });
@@ -70,7 +70,7 @@ const FrmRetiredEmpRpt = () => {
       } catch (error) {
         Swal.close();
         console.error("Error loading initial data:", error);
-        Swal.fire("Error loading data");
+        Swal.fire({text: "Error loading data"});
       }
     };
     loadInitialData();
@@ -79,13 +79,13 @@ const FrmRetiredEmpRpt = () => {
   const getDepartments = async () => {
     try {
       if (!ulbId) return;
-      
+
       const res = await axios.post(
         `${BASE_URL}/api/FrmEmployeeMstList/department-list`,
         { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${user?.token}` } }
       );
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
       const formatted = apiData.map((item) => ({
         label: item.DEPTNAME,
@@ -101,13 +101,13 @@ const FrmRetiredEmpRpt = () => {
   const getZones = async () => {
     try {
       if (!ulbId) return;
-      
+
       const res = await axios.post(
         `${BASE_URL}/api/FrmEmployeeMstList/zone-list`,
         { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${user?.token}` } }
       );
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
       const formatted = apiData.map((item) => ({
         label: item.ZONENAME,
@@ -123,62 +123,62 @@ const FrmRetiredEmpRpt = () => {
   const getSubDepartments = async (deptId) => {
     try {
       if (!ulbId) return;
-      
+
       Swal.fire({
-        title: "Loading Sub Departments...",
+        text: "Loading Sub Departments...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-      
+
       const res = await axios.post(
         `${BASE_URL}/api/FrmEmployeeMstList/subdepartment-list`,
-        { ulbid: Number(ulbId), deptid: deptId },
+        { ulbid: Number(ulbId), deptId: deptId },
         { headers: { Authorization: `Bearer ${user?.token}` } }
       );
-      
+
       Swal.close();
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
       const formatted = apiData.map((item) => ({
         label: item.VAR_DEPTSUB_SDEPTNAMEE,
         value: String(item.NUM_DEPTSUB_ID),
       }));
-      setSubDepartmentOptions([{ value: "0", label: "-- Select Option --" }, ...formatted]);
+      setSubDepartmentOptions(formatted);
     } catch (err) {
       Swal.close();
       console.error("Error fetching sub-departments:", err);
-      Swal.fire("Error loading sub departments");
+      Swal.fire({text: "Error loading sub departments"});
     }
   };
 
   const getBillNos = async (deptId, subDeptId) => {
     try {
       if (!ulbId) return;
-      
+
       Swal.fire({
-        title: "Loading Bill Numbers...",
+        text: "Loading Bill Numbers...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-      
+
       const res = await axios.post(
-        `${BASE_URL}/api/FrmEmployeeMstList/billno-list`,
-        { ulbid: Number(ulbId), deptid: deptId, subdeptid: subDeptId },
+        `${BASE_URL}/api/FrmSalaryCalulation/billno`,
+        { ulbid: Number(ulbId), deptId: deptId, subdeptid: subDeptId },
         { headers: { Authorization: `Bearer ${user?.token}` } }
       );
-      
+
       Swal.close();
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
-      const formatted = apiData.map((item) => ({
-        label: item.BILLCODE,
-        value: String(item.BILLNO),
-      }));
-      setBillNoOptions([{ value: "0", label: "-- Select Option --" }, ...formatted]);
+      const formatted = apiData.filter((item) => item.BILLCODE != null && item.BILLCODE !== "").map((item) => ({
+          label: item.BILLCODE || item.billno,
+          value: String(item.BILLCODE || item.billno),
+        }));
+      setBillNoOptions(formatted);
     } catch (err) {
       Swal.close();
       console.error("Error fetching bill numbers:", err);
-      Swal.fire("Error loading bill numbers");
+      Swal.fire({text: "Error loading bill numbers"});
     }
   };
 
@@ -337,7 +337,7 @@ const FrmRetiredEmpRpt = () => {
 
       Swal.fire({
         text: "Excel file downloaded successfully",
-        icon: "success",
+        // icon: "success",
         confirmButtonColor: "#083c76"
       });
     } catch (err) {
@@ -351,7 +351,7 @@ const FrmRetiredEmpRpt = () => {
 
   const handleProcess = async (values) => {
     if (!values.zone || values.zone === "0") {
-      Swal.fire("Please select Zone");
+      Swal.fire({text: "Please select Zone"});
       return;
     }
 
@@ -367,51 +367,51 @@ const FrmRetiredEmpRpt = () => {
         year: selectedYear,
       };
 
-       Swal.fire({
-        title: "Fetching Data...",
+      Swal.fire({
+        text: "Fetching Data...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
 
-      const dataEndpoint = `${BASE_URL}/api/FrmRetiredEmpRpt/retired-employee-list`;
-      //console.log("Calling endpoint:", dataEndpoint);
-      
-      const dataRes = await axios.post(dataEndpoint, payload, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+      // const dataEndpoint = `${BASE_URL}/api/FrmRetiredEmpRpt/retired-employee-list`;
+      // //console.log("Calling endpoint:", dataEndpoint);
 
-      //console.log("Data Response:", dataRes.data);
+      // const dataRes = await axios.post(dataEndpoint, payload, {
+      //   headers: { Authorization: `Bearer ${user?.token}` },
+      // });
 
-      const isSuccess = dataRes.data?.ok === true || dataRes.data?.success === true;
-      
-      if (!isSuccess) {
-        Swal.close();
-        Swal.fire({
-          text: dataRes.data?.message || "Failed to fetch data",
-          confirmButtonColor: "#083c76"
-        });
-        setIsLoading(false);
-        return;
-      }
+      // //console.log("Data Response:", dataRes.data);
 
-      const reportData = dataRes.data?.data?.data || dataRes.data?.data || [];
-      console.log("Report Data:", reportData);
-      console.log("Report Data Count:", reportData.length);
+      // const isSuccess = dataRes.data?.ok === true || dataRes.data?.success === true;
 
-      if (!reportData || reportData.length === 0) {
-        Swal.close();
-        Swal.fire({
-          text: "No records found",
-          icon: "info",
-          confirmButtonColor: "#083c76"
-        });
-        setIsLoading(false);
-        return;
-      }
+      // if (!isSuccess) {
+      //   Swal.close();
+      //   Swal.fire({
+      //     text: dataRes.data?.message || "Failed to fetch data",
+      //     confirmButtonColor: "#083c76"
+      //   });
+      //   setIsLoading(false);
+      //   return;
+      // }
+
+      // const reportData = dataRes.data?.data?.data || dataRes.data?.data || [];
+      // console.log("Report Data:", reportData);
+      // console.log("Report Data Count:", reportData.length);
+
+      // if (!reportData || reportData.length === 0) {
+      //   Swal.close();
+      //   Swal.fire({
+      //     text: "No records found",
+      //     // icon: "info",
+      //     confirmButtonColor: "#083c76"
+      //   });
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       if (values.fileFormat === "PDF") {
         Swal.fire({
-          title: "Generating PDF...",
+          text: "Generating PDF...",
           allowOutsideClick: false,
           didOpen: () => Swal.showLoading(),
         });
@@ -428,7 +428,7 @@ const FrmRetiredEmpRpt = () => {
         if (pdfResponse.data.success) {
           window.open(pdfResponse.data.pdfUrl, "_blank");
         } else {
-          Swal.fire(pdfResponse.data.message || "Failed to generate PDF");
+          Swal.fire({text: pdfResponse.data.message || "Failed to generate PDF"});
         }
       } else {
         Swal.close();
@@ -472,9 +472,9 @@ const FrmRetiredEmpRpt = () => {
   }));
 
   return (
-    <Formik 
-      initialValues={initialFormValues} 
-      enableReinitialize 
+    <Formik
+      initialValues={initialFormValues}
+      enableReinitialize
       onSubmit={(values) => {
         console.log("Formik onSubmit called with:", values);
         handleProcess(values);
@@ -488,99 +488,60 @@ const FrmRetiredEmpRpt = () => {
                 Retired Employee Report
               </CardTitle>
             </CardHeader>
+            <CardContent className="p-4 sm:p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-              
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold">Date</Label>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-2 w-1/2">
-                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="-- Select Month --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>
-                            {m.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className=" sm:w-34 shrink-0 flex justify-start sm:justify-between items-center">
+                    <Label text="Date" required />
+                    <span>:</span>
                   </div>
-                  <div className="flex flex-col gap-2 w-1/2">
-                    <Select value={selectedYear} onValueChange={setSelectedYear}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="-- Select Year --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((y) => (
-                          <SelectItem key={y.value} value={y.value}>
-                            {y.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex gap-4">
+                    <div className="flex flex-col gap-2 w-1/2">
+                      <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="-- Select Month --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {months.map((m) => (
+                            <SelectItem key={m.value} value={m.value}>
+                              {m.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col gap-2 w-1/2">
+                      <Select value={selectedYear} onValueChange={setSelectedYear}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="-- Select Year --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((y) => (
+                            <SelectItem key={y.value} value={y.value}>
+                              {y.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold">Zone </Label>
-                <Select
-                  value={values.zone}
-                  onValueChange={(value) => setFieldValue("zone", value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="-- Select Option --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {zoneOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-             
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold">Department</Label>
-                <Select
-                  value={values.department}
-                  onValueChange={(value) => handleDepartmentChange(value, setFieldValue)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="-- All --" />
-                  </SelectTrigger>
-                  <SelectContent showDefaultOption={false}>
-                    
-                    {departmentOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-             
-              {showSubDept && (
-                <div className="flex flex-col gap-2">
-                  <Label className="font-semibold">Sub Department</Label>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className=" sm:w-34 shrink-0 flex justify-start sm:justify-between items-center">
+                    <Label text="Zone" required />
+                    <span>:</span>
+                  </div>
                   <Select
-                    value={values.subDepartment}
-                    onValueChange={(value) =>
-                      handleSubDepartmentChange(value, values, setFieldValue)
-                    }
+                    value={values.zone}
+                    onValueChange={(value) => setFieldValue("zone", value)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="-- Select Option --" />
                     </SelectTrigger>
                     <SelectContent>
-                      {subDepartmentOptions.map((option) => (
+                      {zoneOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -588,21 +549,23 @@ const FrmRetiredEmpRpt = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              )}
 
-              
-              {showBillNo && (
-                <div className="flex flex-col gap-2">
-                  <Label className="font-semibold">Bill No</Label>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className=" sm:w-34 shrink-0 flex justify-start sm:justify-between items-center">
+                    <Label text="Department" required />
+                    <span>:</span>
+                  </div>
                   <Select
-                    value={values.billNo}
-                    onValueChange={(value) => setFieldValue("billNo", value)}
+                    value={values.department}
+                    onValueChange={(value) => handleDepartmentChange(value, setFieldValue)}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="-- Select Option --" />
+                      <SelectValue placeholder="-- All --" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {billNoOptions.map((option) => (
+                    <SelectContent showDefaultOption={false}>
+
+                      {departmentOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -610,13 +573,66 @@ const FrmRetiredEmpRpt = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              )}
 
-              
-              <div className="flex flex-col gap-2">
-                <Label className="font-semibold">File Format</Label>
-                <div className="flex items-center gap-6 pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer">
+
+                {showSubDept && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="sm:w-34 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Sub Department" required className="min-w-fit" />
+                      <span>:</span>
+                    </div>
+                    <Select
+                      value={values.subDepartment}
+                      onValueChange={(value) =>
+                        handleSubDepartmentChange(value, values, setFieldValue)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subDepartmentOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+
+                {showBillNo && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className=" sm:w-34 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label text="Bill No" required />
+                      <span>:</span>
+                    </div>
+                    <Select
+                      value={values.billNo}
+                      onValueChange={(value) => setFieldValue("billNo", value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="-- Select Option --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {billNoOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className=" sm:w-34 shrink-0 flex justify-start sm:justify-between items-center">
+                    <Label text="File Format" required />
+                    <span>:</span>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
                     <Input
                       type="radio"
                       name="fileFormat"
@@ -625,9 +641,7 @@ const FrmRetiredEmpRpt = () => {
                       onChange={() => setFieldValue("fileFormat", "PDF")}
                       className="w-4 h-4"
                     />
-                    <span>PDF</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Label text="PDF" className="flex items-center gap-2 cursor-pointer" />
                     <Input
                       type="radio"
                       name="fileFormat"
@@ -636,27 +650,24 @@ const FrmRetiredEmpRpt = () => {
                       onChange={() => setFieldValue("fileFormat", "EXCEL")}
                       className="w-4 h-4"
                     />
-                    <span>EXCEL</span>
-                  </label>
+                    <Label text="EXCEL" className="flex items-center gap-2 cursor-pointer" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <CardContent className="p-6 pt-0">
               <div className="flex justify-center gap-4">
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-blue-600 text-white hover:bg-blue-700 min-w-[100px]"
                 >
                   {isLoading ? "Processing..." : "Print"}
                 </Button>
 
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={handleCancel}
                   disabled={isLoading}
-                  className="bg-gray-200 text-black hover:bg-gray-300 min-w-[100px]"
                 >
                   Cancel
                 </Button>

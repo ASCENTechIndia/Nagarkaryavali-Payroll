@@ -78,45 +78,22 @@
 </head>
 
 <body>
-
     <div class="header">
         <img src="{{logo}}" style="height:50px;" />
-
-        <div class="main-title">
-            {{corporationName}}
-        </div>
+        <div class="main-title">{{corporationName}}</div>
     </div>
 
     <table class="top-table">
-
         <tr>
-            <td width="15%" class="center">
-                <b>Date</b>
-            </td>
-
-            <td width="70%" class="center">
-                <b>{{header}}</b>
-            </td>
-
-            <td width="15%" class="center">
-                <b>Page No</b>
-            </td>
+            <td width="15%" class="center"><b>Date</b></td>
+            <td width="70%" class="center"><b>{{subHeader}}</b></td>
+            <!-- <td width="15%" class="center"><b>Page No</b></td> -->
         </tr>
-
         <tr>
-            <td class="center">
-                {{printDate}}
-            </td>
-
-            <td class="center">
-                {{subHeader}}
-            </td>
-
-            <td class="center">
-                1
-            </td>
+            <td class="center">{{printDate}}</td>
+            <td class="center">{{header}}</td>
+            <!-- <td class="center">1</td> -->
         </tr>
-
     </table>
 
     <!-- {{#if header}}
@@ -126,61 +103,51 @@
     {{/if}} -->
 
     {{#if isBankList}}
-
     <table class="main-table">
-
         <thead>
-
             <tr>
                 <th>Sr No</th>
-                <th>Department Code</th>
+                <th>PRABHAG</th>
+                <!-- <th>Department Code</th> -->
                 <th>Department Name</th>
-                <th>Employee Code</th>
+                <th>BILLNO</th>
+                <th>SLIPNO</th>
+                <!-- <th>Employee Code</th> -->
                 <th>Employee Name</th>
                 <th>Bank Account No.</th>
+                <th>SHORTCODE</th>
                 <th>Net Salary</th>
             </tr>
-
         </thead>
 
         <tbody>
-
             {{#each rows}}
             <tr>
-
                 <td class="center">{{SRNO}}</td>
-                <td class="center">{{DEPTCODE}}</td>
+                <td class="center">{{PRABHAG}}</td>
+                <!-- <td class="center">{{DEPTCODE}}</td> -->
                 <td>{{DEPTNAME}}</td>
-                <td class="center">{{EMPCODE}}</td>
+                <td class="center">{{BILLNO}}</td>
+                <td class="center">{{SLIPNO}}</td>
+                <!-- <td class="center">{{EMPCODE}}</td> -->
                 <td>{{EMPNAME}}</td>
                 <td class="center">{{BANKACCOUNTNO}}</td>
+                <td class="center">{{SHORTCODE}}</td>
                 <td class="right">{{NETSALARY}}</td>
-
             </tr>
             {{/each}}
-
             <tr>
-                <td colspan="6" class="right">
-                    <b>Total</b>
-                </td>
-
-                <td class="right">
-                    <b>{{grandTotal}}</b>
-                </td>
+                <td colspan="8" class="right"><b>Total</b></td>
+                <td class="right"><b>{{grandTotal}}</b></td>
             </tr>
-
         </tbody>
-
     </table>
 
     {{/if}}
-
     {{#if isDeductionReport}}
 
     <table class="main-table">
-
         <thead>
-
             <tr>
                 <th>Prabhag</th>
                 <th>Department</th>
@@ -189,94 +156,53 @@
                 <th>Short Code</th>
                 <th>Amount</th>
             </tr>
-
         </thead>
-
         <tbody>
-
             {{#each rows}}
-
             <tr>
-
                 <td>{{PRABHAG}}</td>
                 <td>{{DEPARTMENT}}</td>
                 <td>{{EMPCODE}}</td>
                 <td>{{NAME}}</td>
                 <td>{{SHORTCODE}}</td>
                 <td class="right">{{AMOUNT}}</td>
-
             </tr>
-
             {{/each}}
-
             <tr>
-
-                <td colspan="5" class="right">
-                    <b>Total</b>
-                </td>
-
-                <td class="right">
-                    <b>{{grandTotal}}</b>
-                </td>
-
+                <td colspan="5" class="right"><b>Total</b></td>
+                <td class="right"><b>{{grandTotal}}</b></td>
             </tr>
-
         </tbody>
-
     </table>
 
     {{/if}}
-
     {{#if isEcsReport}}
 
     <table class="main-table">
-
         <thead>
-
             <tr>
-
                 <th>Emp Id</th>
                 <th>Name & Designation</th>
                 <th>Account No</th>
                 <th>Net Pay</th>
-
             </tr>
-
         </thead>
-
         <tbody>
-
             {{#each rows}}
-
             <tr>
-
                 <td>{{EMPID}}</td>
                 <td>{{EMPNAME_AND_DESIG}}</td>
                 <td>{{ACNO}}</td>
                 <td class="right">{{NETPAY}}</td>
-
             </tr>
-
             {{/each}}
-
             <tr>
-
-                <td colspan="3" class="right">
-                    <b>Department Total</b>
-                </td>
-
-                <td class="right">
-                    <b>{{grandTotal}}</b>
-                </td>
-
+                <td colspan="3" class="right"><b>Department Total</b></td>
+                <td class="right"><b>{{grandTotal}}</b></td>
             </tr>
-
         </tbody>
-
     </table>
-
     {{/if}}
-
 </body>
 
 </html>

@@ -15,7 +15,7 @@ const RetiredEmployeePDFHelper = async ({
   ulbInfo,
   filters,
 }) => {
-  console.log("PDF Helper - rows received:", rows ? rows.length : 0);
+  console.log("PDF Helper - rows received:", rows);
 
   if (!rows || rows.length === 0) {
     throw new Error("No data to generate PDF");
@@ -43,6 +43,8 @@ const RetiredEmployeePDFHelper = async ({
 
   const employees = rows.map((row, index) => ({
     SRNO: index + 1,
+    billNo: row.billno,
+    newslipno: row.newslipno,
     oldslipno: row.oldslipno || "",
     oldempno: row.oldempno || "",
     name: row.name || "",
@@ -50,6 +52,9 @@ const RetiredEmployeePDFHelper = async ({
     department: row.department || "",
     type: row.type || "",
   }));
+
+  const showBillInHeader = rows.length === 1;
+  const showBillInTable = rows.length > 1;
 
   let billNoDisplay = "";
   if (filters.billNo && filters.billNo !== "0" && filters.billNo !== "-1") {
@@ -82,11 +87,11 @@ const RetiredEmployeePDFHelper = async ({
       const possibleLogoPaths = [
         //path.resolve(__dirname, "../../../public/images/logo.png"),
         //path.resolve(__dirname, "../../../public/images/logo.jpg"),
-       // path.resolve(__dirname, "../../../public/logo.png"),
+        // path.resolve(__dirname, "../../../public/logo.png"),
         //path.resolve(__dirname, "../../../public/logo.jpg"),
         path.resolve(__dirname, "../../../assets/NMC_Logo.jpeg"),
-       // path.resolve(__dirname, "../../../assets/logo.png"),
-       // path.resolve(__dirname, "../../../assets/logo.jpg"),
+        // path.resolve(__dirname, "../../../assets/logo.png"),
+        // path.resolve(__dirname, "../../../assets/logo.jpg"),
       ];
 
       for (const logoPath of possibleLogoPaths) {
@@ -114,7 +119,10 @@ const RetiredEmployeePDFHelper = async ({
     employees: employees,
     retireDate: retireDate,
     departmentName: departmentName,
-    billNo: billNoDisplay,
+    // billNo: billNoDisplay,
+    billNo: rows.length === 1 ? rows[0].billno || "" : "",
+    showBillInHeader,
+    showBillInTable,
     isSpecialUlb: isSpecialUlb,
     isUlb770: isUlb770,
   };
@@ -125,31 +133,31 @@ const RetiredEmployeePDFHelper = async ({
     departmentName: data.departmentName,
     employeeCount: data.employees.length,
   });
- // Compile template
+  // Compile template
   const html = template(data);
 
-  
+
   const debugHtmlPath = path.resolve(__dirname, "../../../public/debug.html");
   fs.writeFileSync(debugHtmlPath, html);
   console.log("Debug HTML saved to:", debugHtmlPath);
 
-  
-const chromePath = path.resolve(__dirname, "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe");
 
-    const launchOptions = {
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
-    };
+  const chromePath = path.resolve(__dirname, "../../../node_modules/puppeteer/.cache/puppeteer/chrome/win64-135.0.7049.84/chrome-win64/chrome.exe");
 
-    if (fs.existsSync(chromePath)) {
-      launchOptions.executablePath = chromePath;
-      console.log("Using Chrome :", chromePath);
-    } else {
-      console.log("Chrome executable not found at :", chromePath);
-    }
+  const launchOptions = {
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+  };
 
-    browser = await puppeteer.launch(launchOptions);
-    const page = await browser.newPage();
+  if (fs.existsSync(chromePath)) {
+    launchOptions.executablePath = chromePath;
+    console.log("Using Chrome :", chromePath);
+  } else {
+    console.log("Chrome executable not found at :", chromePath);
+  }
+
+  browser = await puppeteer.launch(launchOptions);
+  const page = await browser.newPage();
 
   await page.setViewport({
     width: 1200,
