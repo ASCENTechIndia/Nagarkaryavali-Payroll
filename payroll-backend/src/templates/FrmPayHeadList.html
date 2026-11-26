@@ -286,50 +286,123 @@
                     विभागाचे नाव - {{this.deptName}}
                 </div>
 
-                <!-- Employee Table -->
-                <table class="employee-table">
-                    <thead>
-                        <tr>
-                            <th style="width:6%">अ.क्र.</th>
-                            <th style="width:15%">कर्मचारी क्र.</th>
-                            <th style="width:37%">कर्मचारी नाव</th>
-                            
-                            {{#if ../showPanColumn}}
-                                <th style="width:20%">पॅन नंबर</th>
-                            {{else}}
-                                <th style="width:20%">कपात क्र.</th>
-                            {{/if}}
-                            
-                            <th style="width:22%">कपात केलेली रक्कम</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{#each this.employees}}
-                        <tr>
-                            <td class="center">{{srNo}}</td>
-                            <td class="center">{{empId}}</td>
-                            <td class="center">{{employeeName}}</td>
-                            
-                            {{#if ../../showPanColumn}}
-                                <td class="center">{{panNo}}</td>
-                            {{else}}
-                                <!-- <td class="center">{{headid}}</td> -->
-                                <td class="center"></td>
-                            {{/if}}
-                            
-                            <td class="right">{{formatAmount amount}}</td>
-                        </tr>
-                        {{/each}}
-                    </tbody>
-                </table>
+                {{#if ../isUlb930PFFund}}
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th style="width:6%">अ.क्र.</th>
+                                <th style="width:8%">बिल नं.</th>
+                                <th style="width:8%">सिल नं.</th>
+                                <th style="width:26%">कर्मचारी नाव</th>
+                                <th style="width:11%">बेसिक</th>
+                                <th style="width:11%">फंड वर्गणी</th>
+                                <th style="width:10%">फंड कर्ज</th>
+                                <th style="width:12%">PF_Subs_7th<br/>Pay_Diff_2/48_Inst</th>
+                                <th style="width:12%">एकूण रक्कम</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each this.employees}}
+                            <tr>
+                                <td class="center">{{srNo}}</td>
+                                <td class="center">{{billno}}</td>
+                                <td class="center">{{slipno}}</td>
+                                <td class="left">{{employeeName}}</td>
+                                <td class="right">{{formatNumber basic}}</td>
+                                <td class="right">{{formatNumber pfSubs}}</td>
+                                <td class="right">{{formatNumber pfRef}}</td>
+                                <td class="right">{{formatNumber pfSubs7th}}</td>
+                                <td class="right">{{formatNumber total}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
 
-                <!-- Department Total -->
-                <table class="dept-total-table">
-                    <tr>
-                        <td class="label">विभागाची एकूण रक्कम</td>
-                        <td class="amount">{{formatAmount this.deptTotal}}</td>
-                    </tr>
-                </table>
+                    <table class="dept-total-table">
+                        <tr style="border-top: 2px solid #000;">
+                            <td class="label" colspan="4" style="text-align: center; font-weight: bold;">एकूण</td>
+                            <td class="amount">{{formatNumber (sum this.employees 'basic')}}</td>
+                            <td class="amount">{{formatNumber (sum this.employees 'pfSubs')}}</td>
+                            <td class="amount">{{formatNumber (sum this.employees 'pfRef')}}</td>
+                            <td class="amount">{{formatNumber (sum this.employees 'pfSubs7th')}}</td>
+                            <td class="amount">{{formatNumber (sum this.employees 'total')}}</td>
+                        </tr>
+                    </table>
+
+                {{else if (eq ../ulbid 930)}}
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th style="width:6%">अ.क्र.</th>
+                                <th style="width:8%">बिल नं.</th>
+                                <th style="width:8%">सिल नं.</th>
+                                <th style="width:36%">कर्मचारी नाव</th>
+                                <th style="width:14%">PF No</th>
+                                <th style="width:14%">पॅन नं.</th>
+                                <th style="width:14%">रक्कम</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each this.employees}}
+                            <tr>
+                                <td class="center">{{srNo}}</td>
+                                <td class="center">{{billno}}</td>
+                                <td class="center">{{slipno}}</td>
+                                <td class="left">{{employeeName}}</td>
+                                <td class="center">{{pfNo}}</td>
+                                <td class="center">{{panNo}}</td>
+                                <td class="right">{{formatAmount amount}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+
+                    <table class="dept-total-table">
+                        <tr style="border-top: 2px solid #000;">
+                            <td class="label" colspan="6" style="text-align: right; font-weight: bold;">एकूण</td>
+                            <td class="amount">{{formatAmount this.deptTotal}}</td>
+                        </tr>
+                    </table>
+
+                {{else}}
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th style="width:6%">अ.क्र.</th>
+                                <th style="width:15%">कर्मचारी क्र.</th>
+                                <th style="width:37%">कर्मचारी नाव</th>
+                                {{#if ../showPanColumn}}
+                                    <th style="width:20%">पॅन नंबर</th>
+                                {{else}}
+                                    <th style="width:20%">कपात क्र.</th>
+                                {{/if}}
+                                <th style="width:22%">कपात केलेली रक्कम</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each this.employees}}
+                            <tr>
+                                <td class="center">{{srNo}}</td>
+                                <td class="center">{{empId}}</td>
+                                <td class="center">{{employeeName}}</td>
+                                {{#if ../../showPanColumn}}
+                                    <td class="center">{{panNo}}</td>
+                                {{else}}
+                                    <td class="center"></td>
+                                {{/if}}
+                                <td class="right">{{formatAmount amount}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+
+                    <table class="dept-total-table">
+                        <tr>
+                            <td class="label">विभागाची एकूण रक्कम</td>
+                            <td class="amount">{{formatAmount this.deptTotal}}</td>
+                        </tr>
+                    </table>
+                {{/if}}
 
             </div>
 

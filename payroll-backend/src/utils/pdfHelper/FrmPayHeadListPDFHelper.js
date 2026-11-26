@@ -19,6 +19,11 @@ Handlebars.registerHelper("formatAmount", function (value) {
     });
 });
 
+Handlebars.registerHelper("sum", function (items, property) {
+    if (!items || !Array.isArray(items)) return 0;
+    return items.reduce((acc, item) => acc + Number(item[property] || 0), 0);
+});
+
 Handlebars.registerHelper("inc", function (value) {
     return Number(value) + 1;
 });
@@ -93,6 +98,7 @@ async function generatePayHeadListPDF(params) {
             department = "",
             payHeadName = "",
             payHeadId = "",
+            ulbid = "",
             reportType = "MAIN_PAYHEAD_LIST",
             corporationName,
             corporationLogo = "",
@@ -121,7 +127,15 @@ async function generatePayHeadListPDF(params) {
                 amount: emp.amount || 0,
                 panNo: emp.panNo || "",
                 headid: emp.headid || "",
-                kapatno: emp.kapatno || ""
+                kapatno: emp.kapatno || "",
+                billno: emp.billno || "",
+                slipno: emp.slipno || "",
+                pfNo: emp.PFNO || emp.pfNo || "",
+                basic: emp.basic || 0,
+                pfSubs: emp.pfSubs || 0,
+                pfRef: emp.pfRef || 0,
+                pfSubs7th: emp.pfSubs7th || 0,
+                total: emp.total || 0
             }))
         }));
 
@@ -158,7 +172,9 @@ async function generatePayHeadListPDF(params) {
             }),
             hasData: data.length > 0,
             isProfessionalTax: reportType === "SUB_DETAIL_PROFESSIONAL_TAX",
-            isKapatPayHead: payHeadId == 287
+            isKapatPayHead: payHeadId == 287,
+            isUlb930PFFund: reportType === "ULB_930_PF_FUND",
+            ulbid: ulbid,
         };
 
         const html = template(templateData);

@@ -97,6 +97,8 @@ async function getPFFundRepo({
             SLIPNO
     `;
 
+    console.log("sql: ", sql);
+
     const result = await executeQuery(sql, binds);
     if (!result.success) throw new Error(result.error);
     return result.rows;
@@ -337,6 +339,14 @@ async function getMainPayHeadListRepo({
         useShortName
     })
 
+    if (ulbid == 930 && payHeadId == "415") {
+        return await getPFFundRepo({
+            salaryDate, ulbid, categoryId, zoneId,
+            empStatus: empStatus,
+            deptId
+        });
+    }
+
     let sql = `
         SELECT 
             LPAD(p.num_salary_empid, 5, '0') AS EMPID,
@@ -347,6 +357,13 @@ async function getMainPayHeadListRepo({
             p.oldempno AS OLDEMPNO,
             p.num_salarydtl_payheadid AS HEADID,
     `;
+
+    if (ulbid == 930 || ulbid == 1750) {
+        sql += `
+            d.var_deptslip_code AS BILLNO,
+            d.var_deptslip_sequence AS SLIPNO,
+        `;
+    }
 
     if (useShortName || ulbid == 870) {
         sql += `
@@ -396,6 +413,14 @@ async function getMainPayHeadListRepo({
             LEFT JOIN aopr_rechead_mas r
                 ON r.num_rechead_empid = e.num_employee_empid 
                 AND r.num_rechead_ulbid = p.ulbid
+        `;
+    }
+
+    if (ulbid == 930 || ulbid == 1750) {
+        sql += `
+            LEFT JOIN aopr_deptslip_mas d
+                ON d.num_deptslip_empid = p.num_salary_empid 
+                AND d.num_deptslip_ulbid = p.ulbid
         `;
     }
 
