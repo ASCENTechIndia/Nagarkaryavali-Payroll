@@ -9,6 +9,7 @@ const getEarningDeductionTotalDataService = async (requestData) => {
     categoryId: String(requestData.categoryId || "0").trim(),
     gradeId: String(requestData.gradeId || "0").trim(),
     subDeptId: String(requestData.subDeptId || "").trim(),
+    billNo: String(requestData.billNo || "").trim(),
     reportType: requestData.reportType || "EARN",
   };
 
@@ -24,7 +25,13 @@ const getEarningDeductionTotalDataService = async (requestData) => {
     throw new Error("Zone selection is required.");
   }
 
-  const result = await repo.getEarningDeductionTotalData(payload);
+  // const result = await repo.getEarningDeductionTotalData(payload);
+  let result;
+  if (payload.reportType === "ALL") {
+    result = await repo.AllEarningDeductions(payload);
+  } else {
+    result = await repo.getEarningDeductionTotalData(payload);
+  }
 
   if (!result.success) {
     return {

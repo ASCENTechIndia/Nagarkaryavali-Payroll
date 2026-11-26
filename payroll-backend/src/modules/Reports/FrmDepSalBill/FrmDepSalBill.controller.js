@@ -12,6 +12,7 @@ const {
 const {
   generateDeptSalBillALLPDF,
 } = require("../../../utils/pdfHelper/generateDeptSalBillALLPDF");
+const { generateDeptSalBillJCMCPDF } = require("../../../utils/pdfHelper/GenerateDeptSalBillJCMCPDF");
 
 const getDeptSalBillPDF = asyncHandler(async (req, res) => {
   const filters = req.body;
@@ -61,7 +62,25 @@ const getDeptSalBillPDF = asyncHandler(async (req, res) => {
       zone: filters.zoneName || "",
       ulbId: String(filters.ulbId || "").trim(),
     });
-  } else {
+  } 
+  else if (String(filters.ulbId) === "930") {
+    pdf = await generateDeptSalBillJCMCPDF({
+      reportData,
+      reportType,
+      salaryDate: filters.salaryDate,
+      corporationName: corpInfo?.ABC_MUNICIPAL_TEXT || "",
+      logo: corpInfo?.ULBLOGO,
+      month: filters.monthName || "",
+      year: filters.year || "",
+      department: filters.departmentName || "",
+      departmentName: filters.departmentName || "",
+      billNo: filters.billNo || "1",
+      summaryHead: "ADM",
+      subDepartmentName: filters.subDepartmentName || "",
+      payCommissionName: "7 वा वेतन आयोग",
+    });
+  }
+  else {
     pdf = await generateDeptSalBillPDF({
       reportData,
       reportType: reportType,

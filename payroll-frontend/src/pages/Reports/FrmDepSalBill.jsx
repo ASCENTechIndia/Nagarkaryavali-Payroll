@@ -359,7 +359,10 @@ const FrmDepSalBill = () => {
         billNo: values.billNo !== "0" ? values.billNo : null,
         categoryId: values.category !== "0" ? values.category : null,
         gradeId: values.grade !== "0" ? values.grade : null,
-        reportType: values.reportType === "E" ? "EARN" : values.reportType === "D" ? "DEDUCT" : (Number(ulbId) === 4 ? "ALL" : "EARN"),
+        // reportType: values.reportType === "E" ? "EARN" : values.reportType === "D" ? "DEDUCT" : (Number(ulbId) === 4 ? "ALL" : "EARN"),
+        reportType: values.reportType === "E" ? "EARN" 
+                  : values.reportType === "D" ? "DEDUCT" 
+                  : (Number(ulbId) === 930 || Number(ulbId) === 4) ? "ALL" : "EARN",
         fileFormat: values.fileFormat,
         searchEmpId: values.employeeCode || null,
         searchEmpName: values.employeeName || null,
@@ -471,22 +474,22 @@ const FrmDepSalBill = () => {
 
   useEffect(() => {
     if (ulbId) {
-      if (ulbId === "590") {
+      if (ulbId == "590") {
         setShowSubDept(true);
         setShowBillNo(false);
         setShowFileFormat(true);
       } 
-      else if (ulbId === "770" || ulbId === "1750") {
+      else if (ulbId == "770" || ulbId == "1750" || ulbId == "930") {
         setShowSubDept(true);
         setShowBillNo(true);
         setShowFileFormat(false);
       }
-      else if (ulbId === "2") {
+      else if (ulbId == "2") {
         setShowSubDept(false);
         setShowBillNo(false);
         setShowFileFormat(true);
       }
-      else if (ulbId === "1630") {
+      else if (ulbId == "1630") {
         setShowSubDept(true);
         setShowBillNo(false);
         setShowFileFormat(false);
