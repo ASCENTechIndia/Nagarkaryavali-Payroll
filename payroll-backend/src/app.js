@@ -158,6 +158,7 @@ app.use("/api/FrmBankListReport", require("./modules/Reports/FrmBankListReport/F
 app.use("/api/FrmDeptsummrpt",require("./modules/Reports/FrmDepartmentBillSummary/FrmDeptBillSummary.route"))
 app.use("/api/FrmDesignationWiseEmployeeCountReport", require("./modules/Reports/FrmDesignationWiseEmployeeCountReport/FrmDesignationWiseEmployeeCountReport.route"))
 app.use("/api/FrmDeleteEmployeeReport", require("./modules/Reports/FrmDeleteEmployeeReport/FrmDeleteEmployeeReport.route"))
+app.use("/api/FrmCashNCheckRpt", require("./modules/Reports/FrmCashNCheckRpt/FrmCashNCheckRpt.route"))
 //Loans and Advances
 app.use("/api/FrmBankLoanMstList", require("./modules/Loans/FrmBankLoanMstList/FrmBankLoanMstList.route"))
 app.use("/api/FrmIncreamentPramotionMst", require("./modules/Loans/FrmIncreamentPramotionMst/FrmIncreamentPramotionMst.route"))
