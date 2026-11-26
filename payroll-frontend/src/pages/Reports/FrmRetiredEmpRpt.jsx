@@ -70,7 +70,7 @@ const FrmRetiredEmpRpt = () => {
       } catch (error) {
         Swal.close();
         console.error("Error loading initial data:", error);
-        Swal.fire({text: "Error loading data"});
+        Swal.fire({ text: "Error loading data" });
       }
     };
     loadInitialData();
@@ -147,7 +147,7 @@ const FrmRetiredEmpRpt = () => {
     } catch (err) {
       Swal.close();
       console.error("Error fetching sub-departments:", err);
-      Swal.fire({text: "Error loading sub departments"});
+      Swal.fire({ text: "Error loading sub departments" });
     }
   };
 
@@ -171,14 +171,14 @@ const FrmRetiredEmpRpt = () => {
 
       const apiData = res.data?.data?.data || res.data?.data || [];
       const formatted = apiData.filter((item) => item.BILLCODE != null && item.BILLCODE !== "").map((item) => ({
-          label: item.BILLCODE || item.billno,
-          value: String(item.BILLCODE || item.billno),
-        }));
+        label: item.BILLCODE || item.billno,
+        value: String(item.BILLCODE || item.billno),
+      }));
       setBillNoOptions(formatted);
     } catch (err) {
       Swal.close();
       console.error("Error fetching bill numbers:", err);
-      Swal.fire({text: "Error loading bill numbers"});
+      Swal.fire({ text: "Error loading bill numbers" });
     }
   };
 
@@ -351,7 +351,7 @@ const FrmRetiredEmpRpt = () => {
 
   const handleProcess = async (values) => {
     if (!values.zone || values.zone === "0") {
-      Swal.fire({text: "Please select Zone"});
+      Swal.fire({ text: "Please select Zone" });
       return;
     }
 
@@ -428,7 +428,7 @@ const FrmRetiredEmpRpt = () => {
         if (pdfResponse.data.success) {
           window.open(pdfResponse.data.pdfUrl, "_blank");
         } else {
-          Swal.fire({text: pdfResponse.data.message || "Failed to generate PDF"});
+          Swal.fire({ text: pdfResponse.data.message || "Failed to generate PDF" });
         }
       } else {
         Swal.close();
@@ -482,9 +482,9 @@ const FrmRetiredEmpRpt = () => {
     >
       {({ values, setFieldValue, handleSubmit }) => (
         <Form onSubmit={handleSubmit}>
-          <Card className="shadow-sm border">
-            <CardHeader className="border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <CardTitle className="text-2xl font-semibold">
+          <Card className="border shadow-sm">
+            <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
+              <CardTitle className="text-xl font-bold">
                 Retired Employee Report
               </CardTitle>
             </CardHeader>
