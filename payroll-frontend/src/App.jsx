@@ -112,6 +112,8 @@ import FrmAttendenceEntryDMC from './pages/Transaction/FrmAttendenceEntryDMC';
 import FrmAttendenceEntryAuth from './pages/Transaction/FrmAttendenceEntryAuth';
 import FrmAttendenceExcellAuthList from './pages/Transaction/FrmAttendenceExcellAuthList';
 import FrmBillDmc from './pages/Reports/FrmBillDmc';
+import FrmDepartmentBillSummary from './pages/Reports/FrmDepartmentBillSummary';
+import FrmCashNCheckRpt from './pages/Reports/FrmCashNCheckRpt';
 
 export const router = createBrowserRouter([
   {
@@ -588,6 +590,14 @@ export const router = createBrowserRouter([
       {
         path: "ReportsForm/FrmBillDmc",
         element: <FrmBillDmc />
+      },
+      {
+        path: "ReportsForm/FrmDepartmentBillSummary",
+        element: <FrmDepartmentBillSummary />
+      },
+      {
+        path: "ReportsForm/FrmCashNCheckRpt",
+        element: <FrmCashNCheckRpt />
       },
 
       // Loan and Advance 
