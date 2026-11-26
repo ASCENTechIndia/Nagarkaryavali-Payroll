@@ -95,6 +95,8 @@ import FrmAttendanceEntryUpdate from './pages/Transaction/FrmAttendanceEntryUpda
 import FrmSalaryConsolidationReport from "./pages/Reports/FrmSalaryConsolidationRpt"
 import FrmMonthlyBankUploadReport from './pages/Reports/FrmMonthlyBankUploadReport';
 import FrmBankListReport from './pages/Reports/FrmBankListReport';
+import FrmDesignationWiseEmployeeCountReport from './pages/Reports/FrmDesignationWiseEmployeeCountReport';
+import FrmDeleteEmployeeReport from './pages/Reports/FrmDeleteEmployeeReport';
 import FrmPayrollDashboard from './pages/HomePopup/FrmPayrollDashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
 import FrmEsevaEmpList from './pages/Transaction/FrmEsevaEmpList';
@@ -576,6 +578,18 @@ export const router = createBrowserRouter([
       {
         path: "ReportsForm/FrmBankList",
         element: <FrmBankListReport />
+      },
+      {
+        path: "ReportsForm/FrmDesigwiseEmpCountRpt",
+        element: <FrmDesignationWiseEmployeeCountReport />
+      },
+      {
+        path: "ReportsForm/FrmDeleteEmployeeReport",
+        element: <FrmDeleteEmployeeReport />
+      },
+      {
+        path: "ReportsForm/FrmDeleteEmployeeRecordRpt",
+        element: <FrmDeleteEmployeeReport />
       },
       {
         path: "Transactions/FrmAttendenceExcellAuthList",

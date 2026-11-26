@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm 10mm 14mm 10mm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                font-family: Arial, sans-serif;
+            }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, "Mangal", "Nirmala UI", sans-serif;
+            font-size: 12px;
+            color: #000;
+            background: #fff;
+        }
+
+        /* Top bar: Date & Time on left, User ID on right */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            white-space: nowrap;
+        }
+        .top-right {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* Header block: Logo on left, centered Corporation & Report Title */
+        .header-block {
+            position: relative;
+            min-height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            padding: 0 76px;
+        }
+        .logo-container {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .header-logo {
+            height: 60px;
+            max-width: 68px;
+            object-fit: contain;
+            display: block;
+        }
+        .title-center {
+            text-align: center;
+        }
+        .corp-name {
+            font-size: 21px;
+            font-weight: bold;
+            line-height: 1.25;
+        }
+        .report-title {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+        .salary-for {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        /* Sub-header: Department & Salary Date */
+        .sub-header {
+            margin-top: 4px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .sub-header-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        /* Main table: clean white/grey-bordered grid */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            border: 1px solid #999;
+            border-bottom: 3px double #999;
+        }
+        .main-table thead th {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #999;
+            padding: 6px 7px;
+            text-align: center;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+        .main-table tbody td {
+            border: 1px solid #bbb;
+            padding: 6px 7px;
+            background-color: #fff;
+            vertical-align: middle;
+        }
+        .td-num  { text-align: center; }
+        .td-left { text-align: left; }
+
+        /* Footer row */
+        .footer-row td {
+            font-weight: bold;
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #999;
+            padding: 6px 7px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-left">
+            <span>दिनांक :{{printDate}}</span>
+            <span>वेळ &nbsp;: {{printTime}}</span>
+        </div>
+        <div class="top-right">
+            <span>छपाई करणाऱ्याचे आई. डी. :{{userId}}</span>
+        </div>
+    </div>
+
+    <div class="header-block">
+        {{#if corporationLogo}}
+        <div class="logo-container">
+            <img class="header-logo" src="{{corporationLogo}}" alt="Logo" />
+        </div>
+        {{/if}}
+        <div class="title-center">
+            <div class="corp-name">{{corporationName}}</div>
+            <div class="report-title">Designation Working Status Report</div>
+            <div class="salary-for">Salary Month : {{salaryMonth}}</div>
+        </div>
+    </div>
+
+    <div class="sub-header">
+        <div class="sub-header-row">
+            <div>Department : <strong>{{department}}</strong></div>
+            <div>Salary Date : <strong>{{salaryDate}}</strong></div>
+        </div>
+    </div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th style="width: 8%;">अनु. क्र.</th>
+                <th style="width: 44%;">Designation</th>
+                <th style="width: 16%;">Working</th>
+                <th style="width: 16%;">Rikt</th>
+                <th style="width: 16%;">Post</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each rows}}
+            <tr>
+                <td class="td-num">{{SRNO}}</td>
+                <td class="td-left">{{DESIGNATION}}</td>
+                <td class="td-num">{{WORKING}}</td>
+                <td class="td-num">{{RIKT}}</td>
+                <td class="td-num">{{POST}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+        <tfoot>
+            <tr class="footer-row">
+                <td colspan="2" class="td-left">Total</td>
+                <td class="td-num">{{totalWorking}}</td>
+                <td class="td-num">{{totalRikt}}</td>
+                <td class="td-num">{{totalPost}}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+</body>
+</html>
