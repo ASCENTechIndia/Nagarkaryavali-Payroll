@@ -188,6 +188,30 @@ async function processMainPayHeadListService(payload) {
         useShortName: useShortName 
     });
 
+    if (ulbid == 930 && payHeadId == "415") {
+        const mappedData = data.map((row, index) => ({
+            srNo: index + 1,
+            empId: String(row.SLIPNO || row.EMPID || "").padStart(5, '0'),
+            slipno: row.SLIPNO,
+            billno: row.BILLNO,
+            employeeName: row.MARNAME || row.ENGNAME || "",
+            basic: Number(row.NUM_SALARY_BASIC || 0),
+            pfSubs: Number(row.PF_SUBS || 0),
+            pfRef: Number(row.PF_REF || 0),
+            pfSubs7th: Number(row.PF_SUBS_7TH || 0),
+            total: Number(row.TOTAL || 0),
+            deptName: "सर्व विभाग"
+        }));
+
+        return {
+            success: true,
+            reportType: "ULB_930_PF_FUND",
+            salaryDate,
+            count: mappedData.length,
+            data: mappedData
+        };
+    }
+
     return {
         success: true,
         reportType: "MAIN_PAYHEAD_LIST",

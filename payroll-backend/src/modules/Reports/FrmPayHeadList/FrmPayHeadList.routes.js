@@ -11,5 +11,6 @@ router.post("/lic", auth(), controller.getLICReport);
 router.post("/excel-gross-tds", auth(), controller.getExcelGrossTDSReport);
 router.post("/generate-pdf", auth(), controller.generatePayHeadListPDF);
 router.post("/payhead-dropdown", auth(), controller.getPayHeadDropdown);
+router.post("/process-excel-data", auth(), controller.getExcelData);
 
 module.exports = router;

@@ -16,6 +16,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { FrmPayHeadListValidationSchema } from "../../validations/global.validation";
+import { Input } from "@/components/ui/input";
+import * as XLSX from "xlsx";
 
 const initialValues = {
   month: new Date().getMonth() + 1,
@@ -24,7 +26,14 @@ const initialValues = {
   department: "-1",
   payHead: "",
   category: "",
+  empType: "NEW",
+  reportType: "pdf",
 };
+
+const reportTypeOptions = [
+  { value: "pdf", label: "PDF" },
+  { value: "excel", label: "Excel" },
+];
 
 const FrmPayHeadList = () => {
   const { user } = useAuth();
@@ -213,6 +222,128 @@ const FrmPayHeadList = () => {
     loadDropdowns();
   }, [token]);
 
+  const handleDownloadExcel = async (values) => {
+    try {
+        Swal.fire({
+            title: "Generating Excel...",
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        const showEmpType = [930, 770, 1750].includes(Number(ulbId));
+
+        const payload = {
+            ulbid: Number(ulbId),
+            month: Number(values.month),
+            year: values.year,
+            categoryId: values.category,
+            zoneId: values.zone,
+            payHeadId: values.payHead,
+            deptId: values.department || "-1",
+            empStatus: showEmpType ? values.empType : "",
+            departmentName: departmentOptions.find(d => d.DEPTID.toString() === values.department)?.DEPTNAME || "सर्व विभाग",
+            payHeadName: payHeadOptions.find(p => p.NUM_PAYHEADS_ID.toString() === values.payHead)?.VAR_PAYHEADS_ENAME || "विविध कपात"
+        };
+
+        const res = await axios.post(
+            `${BASE_URL}/api/FrmPayHeadList/process-excel-data`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        Swal.close();
+
+        if (!res.data?.success || !res.data?.data?.length) {
+            Swal.fire({
+                text: res.data?.message || "No records found",
+                confirmButtonColor: "#1e3a8a",
+            });
+            return;
+        }
+
+        const { data, reportType, monthNameMarathi, departmentName, payHeadName, corporationName } = res.data;
+        const isUlb930PFFund = reportType === "ULB_930_PF_FUND";
+        const isUlb930Standard = ulbId == 930 && !isUlb930PFFund;
+
+        const deptMap = new Map();
+        data.forEach(item => {
+            const dept = item.deptName || "इतर";
+            if (!deptMap.has(dept)) {
+                deptMap.set(dept, { deptName: dept, employees: [], deptTotal: 0 });
+            }
+            const group = deptMap.get(dept);
+            group.employees.push(item);
+            group.deptTotal += item.total !== undefined ? Number(item.total) : Number(item.amount || 0);
+        });
+
+        const departmentGroups = Array.from(deptMap.values());
+        const currentYear = new Date().getFullYear();
+        const monthYearText = `${monthNameMarathi} ${currentYear}`;
+
+        const dataForSheet = [];
+
+        // Headers
+        dataForSheet.push([corporationName || ""]);
+        if (isUlb930PFFund) {
+            dataForSheet.push([`फंड वर्गणी आणि फंड कर्ज मासिक कपात अहवाल माहे ${monthYearText}`]);
+            dataForSheet.push(["(7th pay)"]);
+        } else {
+            dataForSheet.push([`List Of ${payHeadName} for the Month of ${monthYearText}`]);
+            dataForSheet.push([`विभागाचे नाव - ${departmentName}`]);
+        }
+        dataForSheet.push([]);
+
+        departmentGroups.forEach(group => {
+            dataForSheet.push([`विभागाचे नाव - ${group.deptName}`]);
+
+            if (isUlb930PFFund) {
+                dataForSheet.push(["अ.क्र.", "बिल नं.", "सिल नं.", "कर्मचारी नाव", "बेसिक", "फंड वर्गणी", "फंड कर्ज", "PF_Subs_7th Pay_Diff_2/48_Inst", "एकूण रक्कम"]);
+                group.employees.forEach(emp => {
+                    dataForSheet.push([emp.srNo, emp.billno, emp.slipno, emp.employeeName, emp.basic, emp.pfSubs, emp.pfRef, emp.pfSubs7th, emp.total]);
+                });
+                dataForSheet.push(["", "", "", "एकूण", 
+                    group.employees.reduce((s, e) => s + Number(e.basic || 0), 0),
+                    group.employees.reduce((s, e) => s + Number(e.pfSubs || 0), 0),
+                    group.employees.reduce((s, e) => s + Number(e.pfRef || 0), 0),
+                    group.employees.reduce((s, e) => s + Number(e.pfSubs7th || 0), 0),
+                    group.employees.reduce((s, e) => s + Number(e.total || 0), 0)
+                ]);
+            } else if (isUlb930Standard) {
+                dataForSheet.push(["अ.क्र.", "बिल नं.", "सिल नं.", "कर्मचारी नाव", "PF No", "पॅन नं.", "रक्कम"]);
+                group.employees.forEach(emp => {
+                    dataForSheet.push([emp.srNo, emp.billno || "", emp.slipno || "", emp.employeeName, emp.pfNo || "", emp.panNo || "", emp.amount]);
+                });
+                dataForSheet.push(["", "", "", "एकूण", "", "", group.deptTotal]);
+            } else {
+                dataForSheet.push(["अ.क्र.", "कर्मचारी क्र.", "कर्मचारी नाव", "पॅन नं.", "कपात केलेली रक्कम"]);
+                group.employees.forEach(emp => {
+                    dataForSheet.push([emp.srNo, emp.empId, emp.employeeName, emp.panNo || "", emp.amount]);
+                });
+                dataForSheet.push(["", "", "विभागाची एकूण रक्कम", "", group.deptTotal]);
+            }
+
+            dataForSheet.push([]); 
+        });
+
+        const grandTotal = data.reduce((sum, emp) => sum + Number(emp.total !== undefined ? emp.total : (emp.amount || 0)), 0);
+        dataForSheet.push(["", "एकूण रक्कम", grandTotal]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet(dataForSheet);
+        worksheet['!cols'] = [{ wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 35 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 15 }];
+        
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "PayHead List");
+        XLSX.writeFile(workbook, `PayHeadList_${values.payHead}_${Date.now()}.xlsx`);
+
+        Swal.fire({ text: "Excel downloaded successfully!", confirmButtonColor: "#1e3a8a", timer: 2000 });
+
+    } catch (error) {
+        console.error("Excel Generation Error:", error);
+        Swal.close();
+        Swal.fire({ text: error.response?.data?.message || "Failed to generate Excel", confirmButtonColor: "#1e3a8a" });
+    }
+  };
+
   const handleSubmit = async (values) => {
     const validationResult = FrmPayHeadListValidationSchema.safeParse(values);
     if (!validationResult.success) {
@@ -224,12 +355,18 @@ const FrmPayHeadList = () => {
       return;
     }
 
+    if (values.reportType === "excel") {
+        return handleDownloadExcel(values);
+    }
+
     try {
         Swal.fire({
             title: "Generating PDF...",
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading(),
         });
+
+        const showEmpType = [930, 770, 1750].includes(Number(ulbId));
 
         const payload = {
             ulbid: Number(ulbId),
@@ -239,6 +376,7 @@ const FrmPayHeadList = () => {
             zoneId: values.zone,
             payHeadId: values.payHead,
             deptId: values.department || "-1",
+            empStatus: showEmpType ? values.empType : "",
             departmentName: departmentOptions.find(d => d.DEPTID.toString() === values.department)?.DEPTNAME || "सर्व विभाग",
             payHeadName: payHeadOptions.find(p => p.NUM_PAYHEADS_ID.toString() === values.payHead)?.VAR_PAYHEADS_ENAME || "विविध कपात"
         };
@@ -495,31 +633,53 @@ const FrmPayHeadList = () => {
                     </Select>
                   </div>
 
-                  {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                          <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
-                                              <Label
-                                                  text="Employee Type"
-                                                  required
-                                                  className="text-[15px] font-semibold text-black"
-                                              />
-                                              <span>:</span>
-                                          </div>
+                  {ulbId == 930 && (
+                    <>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                          <Label text="Employee Type" required />
+                          <span>:</span>
+                        </div>
 
-                                          <Select
-                                              value={values.empType}
-                                              onValueChange={(value) => setFieldValue("empType", value)}
-                                          >
-                                              <SelectTrigger className="w-full h-9">
-                                                  <SelectValue placeholder="-- Select Option --" />
-                                              </SelectTrigger>
+                        <Select
+                            value={values.empType}
+                            onValueChange={(value) => setFieldValue("empType", value)}
+                        >
+                            <SelectTrigger className="w-full h-9">
+                                <SelectValue placeholder="-- Select Option --" />
+                            </SelectTrigger>
 
-                                              <SelectContent>
-                                                  <SelectItem value="ALL">ALL</SelectItem>
-                                                  <SelectItem value="OLD">OLD</SelectItem>
-                                                  <SelectItem value="NEW">NEW</SelectItem>
-                                              </SelectContent>
-                                          </Select>
-                                      </div> */}
+                            <SelectContent>
+                                <SelectItem value="OLD">OLD</SelectItem>
+                                <SelectItem value="NEW">NEW</SelectItem>
+                            </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
+                          <Label text="Report Type" />
+                          <span>:</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {reportTypeOptions.map((option) => (
+                            <div key={option.value} className="flex items-center gap-1">
+                              <Input
+                                type="radio"
+                                name="reportType"
+                                value={option.value}
+                                checked={values.reportType === option.value}
+                                onChange={() => setFieldValue("reportType", option.value)}
+                                className="w-4 h-4 "
+                              />
+                              <span className="font-medium text-gray-700 text-sm cursor-pointer">
+                                {option.label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Buttons */}
