@@ -435,7 +435,7 @@ const { JWT_SECRET, NODE_ENV } = require("../../config/env");
 const { encryptPassword } = require("../../libs/encryption");
 
 
-const ACCESS_TOKEN_EXPIRES_IN = "30m";
+const ACCESS_TOKEN_EXPIRES_IN = "1h";
 const REFRESH_TOKEN_EXPIRES_IN = "30d";
 const USE_REFRESH_TOKENS = true;
 

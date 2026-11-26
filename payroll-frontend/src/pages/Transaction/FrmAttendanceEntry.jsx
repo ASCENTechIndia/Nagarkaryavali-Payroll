@@ -294,10 +294,13 @@ const FrmAttendanceEntry = () => {
       const apiData = res.data?.data?.data || res.data?.data || [];
 
       if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.BILLCODE || item.billno,
-          value: String(item.BILLCODE || item.billno),
-        }));
+        const formatted = apiData
+          .filter((item) => item.BILLCODE != null && item.BILLCODE !== "")
+          .map((item) => ({
+            label: item.BILLCODE || item.billno,
+            value: String(item.BILLCODE || item.billno),
+          }));
+
         setBillNoOptions(formatted);
       } else {
         setBillNoOptions([]);
@@ -353,8 +356,8 @@ const FrmAttendanceEntry = () => {
       if (apiData.length > 0) {
         const mappedData = apiData.map((item, index) => ({
           srNo: index + 1,
-          empId: (Number(ulbId) === 770 || Number(ulbId) === 1750 || Number(ulbId) === 930) 
-            ? item.VAR_DEPTSLIP_SEQUENCE 
+          empId: (Number(ulbId) === 770 || Number(ulbId) === 1750 || Number(ulbId) === 930)
+            ? item.VAR_DEPTSLIP_SEQUENCE
             : item.NUM_EMPLOYEE_EMPID,
           empPkId: item.NUM_EMPLOYEE_EMPID,
           empName: item.EMPNAME,
@@ -678,6 +681,7 @@ const FrmAttendanceEntry = () => {
                       </div>
                       <Select
                         value={values.subDepartment}
+                        disabled={!values.department}
                         onValueChange={(v) =>
                           handleSubDepartmentChange(
                             v,
@@ -709,6 +713,7 @@ const FrmAttendanceEntry = () => {
                       </div>
                       <Select
                         value={values.billNo}
+                        disabled={!values.department}
                         onValueChange={(v) => setFieldValue("billNo", v)}
                       >
                         <SelectTrigger className="w-full! h-9 overflow-hidden">
@@ -816,12 +821,12 @@ const FrmAttendanceEntry = () => {
 
                   {!loading && attendanceData.length > 0 && (
                     <AttendanceTable
-                        attendanceData={attendanceData}
-                        handleRowCheck={handleRowCheck}
-                        handleLeaveFieldChange={handleLeaveFieldChange}
-                        setAttendanceData={setAttendanceData}
-                        isAllChecked={isAllChecked}
-                        handleHeaderCheckboxChange={handleHeaderCheckboxChange}
+                      attendanceData={attendanceData}
+                      handleRowCheck={handleRowCheck}
+                      handleLeaveFieldChange={handleLeaveFieldChange}
+                      setAttendanceData={setAttendanceData}
+                      isAllChecked={isAllChecked}
+                      handleHeaderCheckboxChange={handleHeaderCheckboxChange}
                     />
                   )}
 
@@ -851,256 +856,255 @@ export default FrmAttendanceEntry;
 
 
 const AttendanceTable = ({
-    attendanceData,
-    handleRowCheck,
-    handleLeaveFieldChange,
-    setAttendanceData,
-    isAllChecked,
-    handleHeaderCheckboxChange,
-  }) => {
-    const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 10;
-    const totalPages = Math.ceil(attendanceData.length / rowsPerPage);
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const currentData = attendanceData.slice(
-      startIndex,
-      startIndex + rowsPerPage,
-    );
+  attendanceData,
+  handleRowCheck,
+  handleLeaveFieldChange,
+  setAttendanceData,
+  isAllChecked,
+  handleHeaderCheckboxChange,
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  const totalPages = Math.ceil(attendanceData.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const currentData = attendanceData.slice(
+    startIndex,
+    startIndex + rowsPerPage,
+  );
 
-    return (
-      <div className="border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table className="w-full [&_thead_tr:hover]:bg-[#083c76]">
-            <TableHeader>
-              <TableRow className="bg-[#083c76]">
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Sr No.
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Emp ID
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Name
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap w-16">
-                  <div className="flex justify-center items-center">
-                    <Checkbox
-                      checked={isAllChecked}
-                      onCheckedChange={handleHeaderCheckboxChange}
-                      className="border-2 border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-900"
-                    />
-                  </div>
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Bio-Metric
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Attendance
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Medical Leave
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Earned Leave
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  HP
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  LWP
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Present
-                </TableHead>
-                <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
-                  Remark
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentData.map((row, idx) => {
-                const actualIndex = startIndex + idx;
-                return (
-                  <TableRow key={actualIndex} className="hover:bg-gray-50">
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      {actualIndex + 1}
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      {row.empId}
-                    </TableCell>
-                    <TableCell className="p-2 text-left whitespace-nowrap">
-                      {row.empName}
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <div className="flex justify-center items-center">
-                        <Checkbox
-                          checked={row.checked}
-                          onCheckedChange={(checked) =>
-                            handleRowCheck(
-                              actualIndex,
-                              checked === true,
-                              setAttendanceData,
-                            )
-                          }
-                          disabled={row.isDisabled}
-                          className={`border-2 border-gray-500 ${
-                            row.isDisabled
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table className="w-full [&_thead_tr:hover]:bg-[#083c76]">
+          <TableHeader>
+            <TableRow className="bg-[#083c76]">
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Sr No.
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Emp ID
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Name
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap w-16">
+                <div className="flex justify-center items-center">
+                  <Checkbox
+                    checked={isAllChecked}
+                    onCheckedChange={handleHeaderCheckboxChange}
+                    className="border-2 border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-900"
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Bio-Metric
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Attendance
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Medical Leave
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Earned Leave
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                HP
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                LWP
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Present
+              </TableHead>
+              <TableHead className="text-white text-center font-semibold p-3 whitespace-nowrap">
+                Remark
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentData.map((row, idx) => {
+              const actualIndex = startIndex + idx;
+              return (
+                <TableRow key={actualIndex} className="hover:bg-gray-50">
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    {actualIndex + 1}
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    {row.empId}
+                  </TableCell>
+                  <TableCell className="p-2 text-left whitespace-nowrap">
+                    {row.empName}
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <div className="flex justify-center items-center">
+                      <Checkbox
+                        checked={row.checked}
+                        onCheckedChange={(checked) =>
+                          handleRowCheck(
+                            actualIndex,
+                            checked === true,
+                            setAttendanceData,
+                          )
+                        }
+                        disabled={row.isDisabled}
+                        className={`border-2 border-gray-500 ${row.isDisabled
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
                           }`}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.biometric}
-                        onChange={(e) => {
-                          const newData = [...attendanceData];
-                          newData[actualIndex].biometric = e.target.value;
-                          setAttendanceData(newData);
-                        }}
-                        className="w-20 h-8 text-center"
-                        disabled={row.isDisabled}
                       />
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.attendance}
-                        readOnly
-                        className="w-20 h-8 text-center bg-gray-100"
-                      />
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.medicalLeave}
-                        onChange={(e) =>
-                          handleLeaveFieldChange(
-                            actualIndex,
-                            "medicalLeave",
-                            e.target.value,
-                            setAttendanceData,
-                          )
-                        }
-                        className="w-20 h-8 text-center"
-                        disabled={row.isDisabled}
-                      />
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.earnedLeave}
-                        onChange={(e) =>
-                          handleLeaveFieldChange(
-                            actualIndex,
-                            "earnedLeave",
-                            e.target.value,
-                            setAttendanceData,
-                          )
-                        }
-                        className="w-20 h-8 text-center"
-                        disabled={row.isDisabled}
-                      />
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.halfDay}
-                        onChange={(e) =>
-                          handleLeaveFieldChange(
-                            actualIndex,
-                            "halfDay",
-                            e.target.value,
-                            setAttendanceData,
-                          )
-                        }
-                        className="w-20 h-8 text-center"
-                        disabled={row.isDisabled}
-                      />
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.lwp}
-                        onChange={(e) =>
-                          handleLeaveFieldChange(
-                            actualIndex,
-                            "lwp",
-                            e.target.value,
-                            setAttendanceData,
-                          )
-                        }
-                        className="w-20 h-8 text-center"
-                        disabled={row.isDisabled}
-                      />
-                    </TableCell>
-                    <TableCell className="p-2 text-center whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.present}
-                        readOnly
-                        className="w-20 h-8 text-center bg-gray-100"
-                      />
-                    </TableCell>
-                    <TableCell className="p-2 text-left whitespace-nowrap">
-                      <Input
-                        type="text"
-                        value={row.remark}
-                        onChange={(e) => {
-                          const newData = [...attendanceData];
-                          newData[actualIndex].remark = e.target.value;
-                          setAttendanceData(newData);
-                        }}
-                        className="w-40 h-8"
-                        disabled={row.isDisabled}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-
-              {totalPages > 1 && (
-                <TableRow>
-                  <TableCell colSpan={12} className="p-4">
-                    <div className="flex justify-center items-center gap-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(1, prev - 1))
-                        }
-                        disabled={currentPage === 1}
-                        className="px-4 py-1"
-                      >
-                        Previous
-                      </Button>
-                      <span className="font-medium">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(totalPages, prev + 1),
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                        className="px-4 py-1"
-                      >
-                        Next
-                      </Button>
                     </div>
                   </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.biometric}
+                      onChange={(e) => {
+                        const newData = [...attendanceData];
+                        newData[actualIndex].biometric = e.target.value;
+                        setAttendanceData(newData);
+                      }}
+                      className="w-20 h-8 text-center"
+                      disabled={row.isDisabled}
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.attendance}
+                      readOnly
+                      className="w-20 h-8 text-center bg-gray-100"
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.medicalLeave}
+                      onChange={(e) =>
+                        handleLeaveFieldChange(
+                          actualIndex,
+                          "medicalLeave",
+                          e.target.value,
+                          setAttendanceData,
+                        )
+                      }
+                      className="w-20 h-8 text-center"
+                      disabled={row.isDisabled}
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.earnedLeave}
+                      onChange={(e) =>
+                        handleLeaveFieldChange(
+                          actualIndex,
+                          "earnedLeave",
+                          e.target.value,
+                          setAttendanceData,
+                        )
+                      }
+                      className="w-20 h-8 text-center"
+                      disabled={row.isDisabled}
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.halfDay}
+                      onChange={(e) =>
+                        handleLeaveFieldChange(
+                          actualIndex,
+                          "halfDay",
+                          e.target.value,
+                          setAttendanceData,
+                        )
+                      }
+                      className="w-20 h-8 text-center"
+                      disabled={row.isDisabled}
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.lwp}
+                      onChange={(e) =>
+                        handleLeaveFieldChange(
+                          actualIndex,
+                          "lwp",
+                          e.target.value,
+                          setAttendanceData,
+                        )
+                      }
+                      className="w-20 h-8 text-center"
+                      disabled={row.isDisabled}
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-center whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.present}
+                      readOnly
+                      className="w-20 h-8 text-center bg-gray-100"
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 text-left whitespace-nowrap">
+                    <Input
+                      type="text"
+                      value={row.remark}
+                      onChange={(e) => {
+                        const newData = [...attendanceData];
+                        newData[actualIndex].remark = e.target.value;
+                        setAttendanceData(newData);
+                      }}
+                      className="w-40 h-8"
+                      disabled={row.isDisabled}
+                    />
+                  </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              );
+            })}
+
+            {totalPages > 1 && (
+              <TableRow>
+                <TableCell colSpan={12} className="p-4">
+                  <div className="flex justify-center items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="px-4 py-1"
+                    >
+                      Previous
+                    </Button>
+                    <span className="font-medium">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(totalPages, prev + 1),
+                        )
+                      }
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-1"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
-    );
+    </div>
+  );
 };

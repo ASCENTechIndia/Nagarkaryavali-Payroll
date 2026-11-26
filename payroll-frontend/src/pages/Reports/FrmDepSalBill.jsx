@@ -84,7 +84,7 @@ const FrmDepSalBill = () => {
     zone: "",
     department: "-1",
     subDepartment: "",
-    billNo: "0",
+    billNo: "",
     category: "",
     grade: "",
     reportType: "A",
@@ -265,7 +265,7 @@ const FrmDepSalBill = () => {
       const apiData = res.data?.data?.data || res.data?.data || [];
       
       if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
+        const formatted = apiData.filter((item) => item.BILLCODE != null && item.BILLCODE !== "").map((item) => ({
           label: item.BILLCODE || item.billno,
           value: String(item.BILLCODE || item.billno),
         }));
@@ -471,22 +471,22 @@ const FrmDepSalBill = () => {
 
   useEffect(() => {
     if (ulbId) {
-      if (ulbId === "590") {
+      if (ulbId == "590") {
         setShowSubDept(true);
         setShowBillNo(false);
         setShowFileFormat(true);
       } 
-      else if (ulbId === "770" || ulbId === "1750") {
+      else if (ulbId == "770" || ulbId == "1750" || ulbId == "930") {
         setShowSubDept(true);
         setShowBillNo(true);
         setShowFileFormat(false);
       }
-      else if (ulbId === "2") {
+      else if (ulbId == "2") {
         setShowSubDept(false);
         setShowBillNo(false);
         setShowFileFormat(true);
       }
-      else if (ulbId === "1630") {
+      else if (ulbId == "1630") {
         setShowSubDept(true);
         setShowBillNo(false);
         setShowFileFormat(false);
@@ -611,6 +611,7 @@ const FrmDepSalBill = () => {
                         <span>:</span>
                       </div>
                       <Select
+                        disabled={!values.department}
                         value={values.subDepartment}
                         onValueChange={(v) => handleSubDepartmentChange(v, setFieldValue, values.department)}
                       >
@@ -636,6 +637,7 @@ const FrmDepSalBill = () => {
                       </div>
                       <Select
                         value={values.billNo}
+                        disabled={!values.department}
                         onValueChange={(v) => setFieldValue("billNo", v)}
                       >
                         <SelectTrigger className="w-full h-9">

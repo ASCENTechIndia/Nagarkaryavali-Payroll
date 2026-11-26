@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
@@ -38,7 +38,7 @@ const FrmSalaryEditCalulation = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [showSubDept, setShowSubDept] = useState(false);
   const [showBillNo, setShowBillNo] = useState(false);
-  
+
   const [showSalaryEdit, setShowSalaryEdit] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchParams, setSearchParams] = useState(null);
@@ -64,7 +64,7 @@ const FrmSalaryEditCalulation = () => {
   const [currentSearchValues, setCurrentSearchValues] = useState(null);
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
-  
+
   const monthOptions = [
     { value: "-1", label: "Select Month" },
     { value: "1", label: "January" },
@@ -80,7 +80,7 @@ const FrmSalaryEditCalulation = () => {
     { value: "11", label: "November" },
     { value: "12", label: "December" },
   ];
-  
+
   const yearOptions = [
     { value: "-1", label: "Select Year" },
     { value: new Date().getFullYear().toString(), label: new Date().getFullYear().toString() },
@@ -98,7 +98,7 @@ const FrmSalaryEditCalulation = () => {
     employeeCode: "",
     employeeName: "",
   };
-  
+
   const searchHeaders = [
     "Select",
     "Emp ID",
@@ -125,7 +125,7 @@ const FrmSalaryEditCalulation = () => {
 
   const earningHeaders = ["Earning", "Amount"];
   const deductionHeaders = ["Deduction", "Amount"];
-  
+
   const fetchCategories = async () => {
     if (!ulbId) return;
     try {
@@ -134,9 +134,9 @@ const FrmSalaryEditCalulation = () => {
         { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
-      
+
       if (apiData.length > 0) {
         const formatted = apiData.map((item) => ({
           label: item.VAR_CATEGORY_NAME,
@@ -152,15 +152,15 @@ const FrmSalaryEditCalulation = () => {
   const fetchDepartment = async () => {
     try {
       if (!ulbId) return;
-      
+
       const res = await axios.post(
         `${BASE_URL}/api/FrmSalaryCalulation/department`,
         { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
-      
+
       if (apiData.length > 0) {
         const formatted = apiData.map((item) => ({
           label: item.DEPTNAME,
@@ -179,18 +179,18 @@ const FrmSalaryEditCalulation = () => {
         setSubDepartmentOptions([{ value: "-1", label: "-- ALL --" }]);
         return;
       }
-      
+
       const res = await axios.post(
         `${BASE_URL}/api/FrmSalaryCalulation/subdepartment`,
-        { 
+        {
           ulbid: Number(ulbId),
           deptId: Number(deptId)
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
-      
+
       if (apiData.length > 0) {
         const formatted = apiData.map((item) => ({
           label: item.VAR_DEPTSUB_SDEPTNAMEE,
@@ -209,7 +209,7 @@ const FrmSalaryEditCalulation = () => {
   const fetchBillNo = async (deptId, subDeptId) => {
     try {
       if (!ulbId) return;
-      
+
       const res = await axios.post(
         `${BASE_URL}/api/FrmSalaryCalulation/billno`,
         {
@@ -219,21 +219,24 @@ const FrmSalaryEditCalulation = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const apiData = res.data?.data?.data || res.data?.data || [];
-      
+
       if (apiData.length > 0) {
-        const formatted = apiData.map((item) => ({
-          label: item.BILLCODE || item.billno,
-          value: String(item.BILLCODE || item.billno),
-        }));
-        setBillNoOptions([{ value: "0", label: "-- Select Bill No --" }, ...formatted]);
+        const formatted = apiData
+          .filter((item) => item.BILLCODE != null && item.BILLCODE !== "")
+          .map((item) => ({
+            label: item.BILLCODE || item.billno,
+            value: String(item.BILLCODE || item.billno),
+          }));
+        setBillNoOptions([{ value: "0", label: "-- All --" }, ...formatted]);
+        // setBillNoOptions([{ value: "0", label: "-- Select Bill No --" }, ...formatted]);
       } else {
-        setBillNoOptions([{ value: "0", label: "-- Select Bill No --" }]);
+        setBillNoOptions([]);
       }
     } catch (err) {
       console.error("Error fetching bill numbers:", err);
-      setBillNoOptions([{ value: "0", label: "-- Select Bill No --" }]);
+      setBillNoOptions([]);
     }
   };
 
@@ -261,14 +264,14 @@ const FrmSalaryEditCalulation = () => {
     }
 
     setCurrentSearchValues({
-        month: values.month,
-        year: values.year,
-        category: values.category,
-        department: values.department,
-        subDepartment: values.subDepartment,
-        billNo: values.billNo,
-        employeeCode: values.employeeCode,
-        employeeName: values.employeeName,
+      month: values.month,
+      year: values.year,
+      category: values.category,
+      department: values.department,
+      subDepartment: values.subDepartment,
+      billNo: values.billNo,
+      employeeCode: values.employeeCode,
+      employeeName: values.employeeName,
     });
 
     setHasSearched(true);
@@ -304,7 +307,7 @@ const FrmSalaryEditCalulation = () => {
       );
 
       const apiData = res.data?.data?.data || res.data?.data || [];
-      
+
       if (apiData.length > 0) {
         const mappedData = apiData.map((item) => ({
           NUM_SALARY_EMPID: item.NUM_SALARY_EMPID,
@@ -318,7 +321,7 @@ const FrmSalaryEditCalulation = () => {
           EMPSEQUENCE: item.EMPSEQUENCE,
         }));
 
-        console.log("mappedData :",mappedData)
+        console.log("mappedData :", mappedData)
         setFilteredData(mappedData);
       } else {
         setFilteredData([]);
@@ -343,11 +346,11 @@ const FrmSalaryEditCalulation = () => {
   const fetchEmployeeSalaryData = async (empId, month, year, empSequence) => {
     setSalaryEditLoading(true);
     try {
-        console.log("year  :", year);
-        console.log("month  :", month);
+      console.log("year  :", year);
+      console.log("month  :", month);
 
       const formattedLastDate = formatDateForAPI(year, month);
-      
+
       const empDetailRes = await axios.post(
         `${BASE_URL}/api/FrmSalaryCalulation/employee-salary-detail`,
         {
@@ -359,7 +362,7 @@ const FrmSalaryEditCalulation = () => {
       );
 
       const empData = empDetailRes.data?.data?.data?.[0] || empDetailRes.data?.data?.[0] || {};
-      
+
       setEmployeeDetails({
         empId: empData.NUM_SALARY_EMPID || empId,
         empSequence: empData.EMPSEQUENCE || empSequence || "",
@@ -417,13 +420,13 @@ const FrmSalaryEditCalulation = () => {
 
     const month = currentSearchValues?.month;
     const year = currentSearchValues?.year;
-    
+
     if (!month || month === "-1" || !year || year === "-1") {
-        Swal.fire({
+      Swal.fire({
         text: "Please select valid Month and Year before editing salary",
         confirmButtonColor: "#1e3a8a",
-        });
-        return;
+      });
+      return;
     }
 
     setSelectedEmployee(row);
@@ -477,21 +480,21 @@ const FrmSalaryEditCalulation = () => {
     setSalaryEditLoading(true);
     try {
       let paramStr = "";
-      
+
       earningList.forEach((item) => {
         const amount = parseFloat(item.NUM_SALARYDTL_AMOUNT) || 0;
         if (amount > 0) {
           paramStr += `${amount}#${item.NUM_PAYHEADS_ID}$`;
         }
       });
-      
+
       deductionList.forEach((item) => {
         const amount = parseFloat(item.NUM_SALARYDTL_AMOUNT) || 0;
         if (amount > 0) {
           paramStr += `${amount}#${item.NUM_PAYHEADS_ID}$`;
         }
       });
-      
+
       if (paramStr.endsWith("$")) {
         paramStr = paramStr.slice(0, -1);
       }
@@ -567,17 +570,17 @@ const FrmSalaryEditCalulation = () => {
       fetchBillNo(deptId, value);
     }
   };
-  
+
   const transformedSearchData = filteredData.map((row) => ({
     select: (
-        <Button
+      <Button
         variant="link"
         size="sm"
         className="text-blue-700 font-medium px-0 cursor-pointer hover:text-blue-900"
         onClick={() => handleSelectEmployee(row, currentSearchValues)}
-        >
+      >
         Select
-        </Button>
+      </Button>
     ),
     employeeId: row.NUM_SALARY_EMPID || row.EMPSEQUENCE || "",
     employeeName: row.VAR_EMPLOYEE_ENGNAME || "",
@@ -617,11 +620,11 @@ const FrmSalaryEditCalulation = () => {
 
   useEffect(() => {
     if (ulbId) {
-      if (ulbId === "590") {
+      if (ulbId == "590") {
         setShowSubDept(true);
         setShowBillNo(false);
-      } 
-      else if (ulbId === "770" || ulbId === "1750") {
+      }
+      else if (ulbId == "770" || ulbId == "1750" || ulbId == "930") {
         setShowSubDept(true);
         setShowBillNo(true);
       }
@@ -928,7 +931,7 @@ const FrmSalaryEditCalulation = () => {
 
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  
+
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
                       <Label text="Date" required />
@@ -1020,6 +1023,7 @@ const FrmSalaryEditCalulation = () => {
                       </div>
                       <Select
                         value={values.subDepartment}
+                        disabled={!values.department}
                         onValueChange={(v) => handleSubDepartmentChange(v, setFieldValue, values.department)}
                       >
                         <SelectTrigger className="w-full h-9">
@@ -1044,6 +1048,7 @@ const FrmSalaryEditCalulation = () => {
                       </div>
                       <Select
                         value={values.billNo}
+                        disabled={!values.department}
                         onValueChange={(v) => setFieldValue("billNo", v)}
                       >
                         <SelectTrigger className="w-full h-9">
@@ -1123,7 +1128,7 @@ const FrmSalaryEditCalulation = () => {
                     </div>
                   )}
 
-                  {hasSearched && !loading && filteredData.length === 0 && (
+                  {hasSearched && !loading && filteredData.length == 0 && (
                     <div className="py-10 text-center text-sm text-muted-foreground">
                       No records found.
                     </div>

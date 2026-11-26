@@ -163,9 +163,10 @@ const FrmSalaryCalculation = () => {
             );
 
             const rows = res?.data?.data?.data || [];
+            console.log({rows})
             setBillOptions(
-                rows.map((item) => ({
-                    value: item.BILLNO.toString(),
+                rows.filter((item) => item.BILLCODE != null && item.BILLCODE !== "").map((item) => ({
+                    value: item.BILLNO,
                     label: item.BILLCODE,
                 }))
             );
@@ -504,6 +505,7 @@ const FrmSalaryCalculation = () => {
                                 <Select
                                     value={subDeptId}
                                     onValueChange={setSubDeptId}
+                                    disabled={!deptId}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="-- Select Sub Department --" />
@@ -533,6 +535,7 @@ const FrmSalaryCalculation = () => {
                                 <Select
                                     value={billNo}
                                     onValueChange={setBillNo}
+                                    disabled={!deptId}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="-- Select Bill No --" />
