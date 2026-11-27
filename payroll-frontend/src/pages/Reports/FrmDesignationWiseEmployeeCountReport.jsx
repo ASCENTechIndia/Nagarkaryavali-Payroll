@@ -242,11 +242,11 @@ const FrmDesignationWiseEmployeeCountReport = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="p-4 md:p-5 min-h-screen"
+            className="p-4 md:p-5"
           >
             <Card className="border shadow-sm">
-                <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
-                  <CardTitle className="text-xl font-bold">
+              <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
+                <CardTitle className="text-xl font-bold">
                   Designation Working Status Report
                 </CardTitle>
               </CardHeader>
