@@ -168,7 +168,7 @@ const FrmDeleteEmployeeReport = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="p-4 md:p-5 min-h-screen"
+            className="p-4 md:p-5"
           >
             <Card className="border shadow-sm">
               <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
@@ -178,14 +178,15 @@ const FrmDeleteEmployeeReport = () => {
               </CardHeader>
 
               <CardContent className="p-4 sm:p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Department */}
-                  <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-3 xl:col-span-1">
-                    <Label
-                      required
-                      text="Department"
-                      className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label
+                        text="Department"
+                        className="text-[15px] font-semibold text-black"
+                      />
+                      <span>:</span>
+                    </div>
                     <Select
                       value={values.department}
                       onValueChange={(value) =>
@@ -216,11 +217,14 @@ const FrmDeleteEmployeeReport = () => {
                   </div>
 
                   {/* Bill No. */}
-                  <div className="flex flex-col gap-1.5">
-                    <Label
-                      text="Bill No."
-                      className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
-                    />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label
+                        text="Bill No."
+                        className="text-[15px] font-semibold text-black"
+                      />
+                      <span>:</span>
+                    </div>
                     <Select
                       value={values.billNo}
                       onValueChange={(value) => setFieldValue("billNo", value)}
@@ -248,11 +252,14 @@ const FrmDeleteEmployeeReport = () => {
                   </div>
 
                   {/* Slip No. */}
-                  <div className="flex flex-col gap-1.5">
-                    <Label
-                      text="Slip No."
-                      className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
-                    />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label
+                        text="Slip No."
+                        className="text-[15px] font-semibold text-black"
+                      />
+                      <span>:</span>
+                    </div>
                     <Input
                       type="text"
                       name="slipNo"
@@ -264,11 +271,14 @@ const FrmDeleteEmployeeReport = () => {
                   </div>
 
                   {/* Employee Name */}
-                  <div className="flex flex-col gap-1.5">
-                    <Label
-                      text="Employee Name"
-                      className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
-                    />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="sm:w-44 shrink-0 flex justify-start sm:justify-between items-center">
+                      <Label
+                        text="Employee Name"
+                        className="text-[15px] font-semibold text-black"
+                      />
+                      <span>:</span>
+                    </div>
                     <Input
                       type="text"
                       name="empName"

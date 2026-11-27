@@ -245,21 +245,22 @@ const FrmDesignationWiseEmployeeCountReport = () => {
             className="p-4 md:p-5 min-h-screen"
           >
             <Card className="border shadow-sm">
-              <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
-                <CardTitle className="text-xl font-bold">
+                <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
+                  <CardTitle className="text-xl font-bold">
                   Designation Working Status Report
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="p-4 sm:p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Salary Date */}
-                  <div className="flex flex-col gap-1.5">
-                    <Label
-                      required
-                      text="Salary Date"
-                      className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex justify-start sm:justify-between items-center">
+                      <Label
+                        text="Salary Date"
+                        className="text-[15px] font-semibold text-black"
+                      />
+                      <span>:</span>
+                    </div>
                     <div className="flex gap-3">
                       <Select
                         value={values.month}
@@ -302,12 +303,14 @@ const FrmDesignationWiseEmployeeCountReport = () => {
                   </div>
 
                   {/* Department */}
-                  <div className="flex flex-col gap-1.5">
-                    <Label
-                      required
-                      text="Department"
-                      className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
-                    />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex justify-start sm:justify-between items-center">
+                      <Label
+                        text="Department"
+                        className="text-[15px] font-semibold text-black"
+                      />
+                      <span>:</span>
+                    </div>
                     <Select
                       value={values.department}
                       onValueChange={(value) =>
