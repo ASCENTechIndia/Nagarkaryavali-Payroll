@@ -359,7 +359,10 @@ const FrmDepSalBill = () => {
         billNo: values.billNo !== "0" ? values.billNo : null,
         categoryId: values.category !== "0" ? values.category : null,
         gradeId: values.grade !== "0" ? values.grade : null,
-        reportType: values.reportType === "E" ? "EARN" : values.reportType === "D" ? "DEDUCT" : (Number(ulbId) === 4 ? "ALL" : "EARN"),
+        // reportType: values.reportType === "E" ? "EARN" : values.reportType === "D" ? "DEDUCT" : (Number(ulbId) === 4 ? "ALL" : "EARN"),
+        reportType: values.reportType === "E" ? "EARN" 
+                  : values.reportType === "D" ? "DEDUCT" 
+                  : (Number(ulbId) === 930 || Number(ulbId) === 4) ? "ALL" : "EARN",
         fileFormat: values.fileFormat,
         searchEmpId: values.employeeCode || null,
         searchEmpName: values.employeeName || null,

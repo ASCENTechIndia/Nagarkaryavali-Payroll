@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @page { size: A4 landscape; margin: 5mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans Devanagari", Arial, sans-serif;
+      font-size: 7.5px;
+      margin: 0;
+      padding: 0;
+      color: #000;
+      line-height: 1.25;
+    }
+    .page { width: 100%; }
+    .page-break { page-break-before: always; break-before: page; }
+    .top-timestamp { font-size: 7.5px; margin-bottom: 2px; }
+
+    .header-box { border: 0.8px solid #000; margin-bottom: 3px; }
+    .org-title { text-align: center; padding: 4px 6px; border-bottom: 0.8px solid #000; }
+    .org-title h1 { margin: 0; font-size: 12px; font-weight: bold; }
+    .org-title .sub-title { font-size: 9px; font-weight: bold; margin-top: 2px; }
+    .meta-row { padding: 2.5px 6px; border-bottom: 0.8px solid #000; font-size: 7.8px; }
+    .meta-row:last-child { border-bottom: none; }
+    .meta-grid { display: table; width: 100%; }
+    .meta-cell { display: table-cell; width: 33.33%; }
+    .bill-band { padding: 2.5px 6px; font-size: 7.8px; }
+    .bill-band .pay-comm { display: inline-block; margin-left: 110px; }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td {
+      border: 0.6px solid #333;
+      padding: 1.5px 2px;
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    th {
+      font-weight: bold;
+      font-size: 7px;
+      background-color: #fff;
+      text-align: left;
+    }
+    .group-header th { text-align: center; font-size: 8px; padding: 2.5px; }
+
+    .center { text-align: center; }
+    .left { text-align: left; }
+    .right { text-align: right; }
+    .bold { font-weight: bold; }
+
+    .th-line {
+      border-bottom: 0.5px solid #555;
+      padding: 1.5px 1px;
+      min-height: 13px;
+    }
+    .th-line:last-child { border-bottom: none; }
+
+    .val-line {
+      padding: 1.8px 1px;
+      min-height: 14px;
+      white-space: nowrap;
+    }
+    .emp-line {
+      padding: 1.8px 1px;
+      min-height: 14px;
+    }
+
+    .post-banner td {
+      font-weight: bold;
+      font-size: 8.5px;
+      padding: 3px 5px;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+    }
+    .total-row td {
+      font-weight: bold;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+    }
+    .gross-words-row td {
+      padding: 4px 6px;
+      font-size: 8px;
+      border-bottom: 0.8px solid #000;
+    }
+
+    .signatories { display: table; width: 100%; border: 0.8px solid #000; border-top: none; }
+    .sign-col {
+      display: table-cell;
+      width: 20%;
+      text-align: center;
+      padding: 20px 4px 6px 4px;
+      border-right: 0.8px solid #000;
+      font-size: 7.5px;
+    }
+    .sign-col:last-child { border-right: none; }
+
+    .vacancy-wrap { margin-top: 6px; border-bottom: 1px solid #000; padding-bottom: 8px; }
+    .vacancy-table { width: 34%; border-collapse: collapse; font-size: 8px; }
+    .vacancy-table th, .vacancy-table td { border: 0.6px solid #333; padding: 2.5px 5px; }
+    .vacancy-table th { text-align: left; }
+    .vacancy-table td.num { text-align: right; }
+    .vacancy-table tr.total-vac td { font-weight: bold; }
+
+    .certificate-box { margin-top: 6px; font-size: 8px; }
+    .cert-heading { text-align: center; font-weight: bold; margin-bottom: 4px; }
+    .cert-body { padding-left: 36px; margin-bottom: 16px; }
+    .cert-sign { text-align: center; margin-top: 12px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="page">
+  <div class="top-timestamp">{{generatedTimestamp}}</div>
+
+  <div class="header-box">
+    <div class="org-title">
+      <h1>{{corporationName}}</h1>
+      <div class="sub-title">{{paysheetTitle}}</div>
+    </div>
+    <div class="meta-row">Date - {{reportDate}}</div>
+    <div class="meta-row">
+      <div class="meta-grid">
+        <div class="meta-cell">Name Of Summary Head - {{summaryHead}}</div>
+        <div class="meta-cell">Name Of Department - {{departmentName}}</div>
+        <div class="meta-cell">Name Of Sub Department - {{subDepartmentName}}</div>
+      </div>
+    </div>
+    <div class="bill-band">
+      <span>Bill No - {{billNo}}</span>
+      <span class="pay-comm">( {{payCommissionText}} )</span>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr class="group-header">
+        <th style="width: 2.4%;"></th>
+        <th style="width: 8.6%;">Bill No - {{billNo}}</th>
+        <th colspan="6" style="width: 34%;">Addition</th>
+        <th colspan="10" style="width: 55%;">Deduction</th>
+      </tr>
+      <tr>
+        <th class="center" style="vertical-align: middle;">Sr.<br>no</th>
+        <th>
+          <div class="th-line">Name of Emp</div>
+          <div class="th-line">Ecode</div>
+          <div class="th-line">Designation</div>
+          <div class="th-line">Pran No.</div>
+        </th>
+        <th style="width: 5.5%;">
+          <div class="th-line">AbsentDays</div>
+          <div class="th-line">LeaveDays</div>
+          <div class="th-line">PresentDays</div>
+          <div class="th-line">सु.आ.प्र.योजना पे मॅट्रीक्स</div>
+        </th>
+        <th style="width: 5.7%;">
+          <div class="th-line">Basic Pay</div>
+          <div class="th-line">HRA</div>
+          <div class="th-line"></div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.7%;">
+          <div class="th-line">DA</div>
+          <div class="th-line">DA_Diff</div>
+          <div class="th-line">7th_Pay_Diff_2/48_Inst</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.7%;">
+          <div class="th-line">Wash_Allow</div>
+          <div class="th-line">Sweeper_Allow</div>
+          <div class="th-line">Tpt_Allow</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.7%;">
+          <div class="th-line">Petrol_Allow</div>
+          <div class="th-line">DCPS 10 %</div>
+          <div class="th-line">Cash_Allow</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.7%;">
+          <div class="th-line">Other</div>
+          <div class="th-line">NPA</div>
+          <div class="th-line">Gross</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.8%;">
+          <div class="th-line">PF_Subs</div>
+          <div class="th-line">PF_Ref</div>
+          <div class="th-line">PF_Subs_7th_Pay_Diff_2/48_Inst</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.3%;">
+          <div class="th-line">Prf_Tax</div>
+          <div class="th-line">I_Tax</div>
+          <div class="th-line">G.I.S</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.3%;">
+          <div class="th-line">Coop_Soc</div>
+          <div class="th-line">Cons_Soc</div>
+          <div class="th-line">CL_4_Soc</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.3%;">
+          <div class="th-line">DCPS 10 %</div>
+          <div class="th-line">LIC</div>
+          <div class="th-line">Mrutyu_Nidhi</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.3%;">
+          <div class="th-line">Pani / Ghar</div>
+          <div class="th-line">Court_Rec</div>
+          <div class="th-line">Audit_Rec</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.3%;">
+          <div class="th-line">Hsg_Rent</div>
+          <div class="th-line">Bank_Rec</div>
+          <div class="th-line">Granth_Rec</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.3%;">
+          <div class="th-line">Cash_Adv</div>
+          <div class="th-line">Fest_Adv</div>
+          <div class="th-line">Other_Pay</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.5%;">
+          <div class="th-line">Flag_Nidhi</div>
+          <div class="th-line">Mudrank_Kapat</div>
+          <div class="th-line">AccidentPolicy</div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 5.2%;">
+          <div class="th-line"></div>
+          <div class="th-line">DCPS 10%</div>
+          <div class="th-line"></div>
+          <div class="th-line"></div>
+        </th>
+        <th style="width: 6.7%;">
+          <div class="th-line">Total_Deduc</div>
+          <div class="th-line">Net_Pay</div>
+          <div class="th-line"></div>
+          <div class="th-line"></div>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {{#each postGroups}}
+        <tr class="post-banner">
+          <td colspan="18">{{postBannerText}}</td>
+        </tr>
+
+        {{#each employees}}
+        <tr>
+          <td class="center" style="padding-top: 3px;">{{srNo}}</td>
+          <td>
+            <div class="emp-line">{{employeeName}}</div>
+            <div class="emp-line">{{empCode}}</div>
+            <div class="emp-line">{{designation}}</div>
+            <div class="emp-line">{{pranNo}}</div>
+          </td>
+          <td class="right">
+            <div class="val-line">{{absentDays}}</div>
+            <div class="val-line">{{leaveDays}}</div>
+            <div class="val-line">{{presentDays}}</div>
+            <div class="val-line">{{payMatrixShort}}</div>
+          </td>
+
+          {{#each additionCells}}
+            <td class="right">
+              {{#each this}}
+                <div class="val-line">{{#if (ne this null)}}{{formatNumber this}}{{/if}}</div>
+              {{/each}}
+            </td>
+          {{/each}}
+
+          {{#each deductionCells}}
+            <td class="right">
+              {{#each this}}
+                <div class="val-line">{{#if (ne this null)}}{{formatNumber this}}{{/if}}</div>
+              {{/each}}
+            </td>
+          {{/each}}
+        </tr>
+        {{/each}}
+      {{/each}}
+
+      <tr class="total-row">
+        <td colspan="3" class="left" style="padding-top: 3px;">Bill Total</td>
+
+        {{#each additionTotals}}
+          <td class="right">
+            {{#each this}}
+              <div class="val-line">{{#if (ne this null)}}{{formatNumber this}}{{/if}}</div>
+            {{/each}}
+          </td>
+        {{/each}}
+
+        {{#each deductionTotals}}
+          <td class="right">
+            {{#each this}}
+              <div class="val-line">{{#if (ne this null)}}{{formatNumber this}}{{/if}}</div>
+            {{/each}}
+          </td>
+        {{/each}}
+      </tr>
+
+      <tr class="gross-words-row">
+        <td colspan="18">
+          <span class="bold" style="margin-left: 115px;">Gross Total Amount :</span>
+          <span>{{grossTotalInWords}}</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="signatories">
+    <div class="sign-col"><div class="bold">वेतन लिपीक</div><div>आस्थापना विभाग, म.न. पा</div></div>
+    <div class="sign-col"><div class="bold">आस्थापना अधीक्षक</div><div>जळगाव शहर महानगरपालिका, जळगाव</div></div>
+    <div class="sign-col"><div class="bold">मुख्य लेखाधिकारी</div><div>जळगाव शहर महानगरपालिका, जळगाव</div></div>
+    <div class="sign-col"><div class="bold">मुख्य लेखापरीक्षक</div><div>जळगाव शहर महानगरपालिका, जळगाव</div></div>
+    <div class="sign-col"><div class="bold">उपायुक्त (सा. प्र)</div><div>जळगाव शहर महानगरपालिका, जळगाव</div></div>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page page-break">
+  <div class="vacancy-wrap">
+    <table class="vacancy-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th class="right" style="width: 20%;">Post</th>
+          <th class="right" style="width: 22%;">Working</th>
+          <th class="right" style="width: 18%;">Rikt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each postSummaryRows}}
+        <tr>
+          <td>{{typeName}}</td>
+          <td class="num">{{postCount}}</td>
+          <td class="num">{{workingCount}}</td>
+          <td class="num">{{riktCount}}</td>
+        </tr>
+        {{/each}}
+        <tr class="total-vac">
+          <td>एकूण</td>
+          <td class="num">{{totalPost}}</td>
+          <td class="num">{{totalWorking}}</td>
+          <td class="num">{{totalRikt}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="certificate-box">
+    <div class="cert-heading">प्रमाणपत्र</div>
+    <div class="cert-body">{{certificateText}}</div>
+    <div class="cert-sign">वेतन लिपीक</div>
+  </div>
+</div>
+
+</body>
+</html>
