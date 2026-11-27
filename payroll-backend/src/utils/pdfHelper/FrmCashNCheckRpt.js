@@ -13,11 +13,16 @@ const formatTime = (date) =>
         })
         .replace(/\s+([AP]M)/i, (_, m) => m.toUpperCase());
 
-const formatAmount = (val) =>
+const formatAmountDecimals = (val) =>
     Number(val || 0).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
+
+const formatPlainAmount = (val) => {
+    const num = Number(val || 0);
+    return Number.isInteger(num) ? String(num) : num.toFixed(2);
+};
 
 async function renderHtmlToPdf({ html, prefix, landscape = false }) {
     const chromePath = path.resolve(
@@ -85,38 +90,56 @@ async function renderHtmlToPdf({ html, prefix, landscape = false }) {
     }
 }
 
+const cleanAccountNo = (val) => {
+    if (val == null) return "";
+    const trimmed = String(val).trim();
+    return trimmed === "-" ? "" : trimmed;
+};
+
 const CashReportPDFHelper = async ({
     rows,
     salaryMonth,
     department,
     paymode,
     corporationName,
-    corporationLogo,
     userId,
 }) => {
     const templatePath = path.resolve(__dirname, "../../templates/FrmCashNCheckCash.html");
     const template = Handlebars.compile(fs.readFileSync(templatePath, "utf8"));
 
     let totalPayable = 0;
+    let cashChequeTotal = 0;
+    let indianBankTotal = 0;
+    let axisBankTotal = 0;
+
     const reportRows = rows.map((row, index) => {
         const payable = Number(row.PAYABLEAMT || 0);
+        const axisAcc = cleanAccountNo(row.AXISACCNO);
+        const indAcc = cleanAccountNo(row.INDACCNO);
+
         totalPayable += payable;
+        if (axisAcc) {
+            axisBankTotal += payable;
+        } else if (indAcc) {
+            indianBankTotal += payable;
+        } else {
+            cashChequeTotal += payable;
+        }
 
         return {
             SRNO: index + 1,
             BILLNO: row.BILLNO || "",
             SLIPNO: row.SLIPNO || "",
             EMPNAME: row.EMPNAME || "",
-            AXISACCNO: row.AXISACCNO || "-",
-            INDACCNO: row.INDACCNO || "-",
-            PAYABLEAMT: formatAmount(payable),
+            AXISACCNO: axisAcc,
+            INDACCNO: indAcc,
+            PAYABLEAMT: formatPlainAmount(payable),
         };
     });
 
     const now = new Date();
     const html = template({
         corporationName: corporationName || "",
-        corporationLogo: corporationLogo || "",
         salaryMonth,
         department: department || "All",
         paymode: paymode || "All",
@@ -124,7 +147,10 @@ const CashReportPDFHelper = async ({
         printTime: formatTime(now),
         userId: userId || "",
         rows: reportRows,
-        totalPayable: formatAmount(totalPayable),
+        totalPayable: formatPlainAmount(totalPayable),
+        cashChequeTotal: cashChequeTotal > 0 ? formatPlainAmount(cashChequeTotal) : "",
+        indianBankTotal: indianBankTotal > 0 ? formatPlainAmount(indianBankTotal) : "",
+        axisBankTotal: axisBankTotal > 0 ? formatPlainAmount(axisBankTotal) : "",
     });
 
     return renderHtmlToPdf({ html, prefix: "Cash_and_Check", landscape: false });
@@ -134,23 +160,18 @@ const DcpsReportPDFHelper = async ({
     rows,
     salaryMonth,
     corporationName,
-    corporationLogo,
     userId,
 }) => {
     const templatePath = path.resolve(__dirname, "../../templates/FrmCashNCheckDcps.html");
     const template = Handlebars.compile(fs.readFileSync(templatePath, "utf8"));
 
-    const totals = {
+    const rawTotals = {
         basic: 0,
         gp: 0,
         da: 0,
-        daDiff: 0,
         eDcps14: 0,
-        eDcps14Diff: 0,
         dDcps10: 0,
         dDcps14: 0,
-        dDcps10Diff: 0,
-        dDcps14Diff: 0,
         total: 0,
     };
 
@@ -158,62 +179,114 @@ const DcpsReportPDFHelper = async ({
         const basic = Number(row.E_BASIC || 0);
         const gp = Number(row.E_GP || 0);
         const da = Number(row.E_DA || 0);
-        const daDiff = Number(row.E_DADIFF || 0);
         const eDcps14 = Number(row.E_DCPS14 || 0);
-        const eDcps14Diff = Number(row.E_DCPSDIFF14 || 0);
         const dDcps10 = Number(row.D_DCPS10 || 0);
         const dDcps14 = Number(row.D_DCPS14 || 0);
-        const dDcps10Diff = Number(row.D_DCPSDIFF10 || 0);
-        const dDcps14Diff = Number(row.D_DCPSDIFF14 || 0);
-        const total = Number(row.TOTAL || 0);
+        // एकूण रक्कम = Employee 10% + Employer 14% DCPS deduction contribution
+        const rowTotal = dDcps10 + dDcps14;
 
-        totals.basic += basic;
-        totals.gp += gp;
-        totals.da += da;
-        totals.daDiff += daDiff;
-        totals.eDcps14 += eDcps14;
-        totals.eDcps14Diff += eDcps14Diff;
-        totals.dDcps10 += dDcps10;
-        totals.dDcps14 += dDcps14;
-        totals.dDcps10Diff += dDcps10Diff;
-        totals.dDcps14Diff += dDcps14Diff;
-        totals.total += total;
+        rawTotals.basic += basic;
+        rawTotals.gp += gp;
+        rawTotals.da += da;
+        rawTotals.eDcps14 += eDcps14;
+        rawTotals.dDcps10 += dDcps10;
+        rawTotals.dDcps14 += dDcps14;
+        rawTotals.total += rowTotal;
 
         return {
             SRNO: index + 1,
             BILLNO: row.BILLNO || "",
             SLIPNO: row.SLIPNO || "",
             EMPNAME: row.EMPNAME || "",
-            E_BASIC: basic,
-            E_GP: gp,
-            E_DA: da,
-            E_DADIFF: daDiff,
-            E_DCPS14: eDcps14,
-            E_DCPSDIFF14: eDcps14Diff,
-            D_DCPS10: dDcps10,
-            D_DCPS14: dDcps14,
-            D_DCPSDIFF10: dDcps10Diff,
-            D_DCPSDIFF14: dDcps14Diff,
-            TOTAL: total,
+            E_BASIC: formatAmountDecimals(basic),
+            E_GP: formatAmountDecimals(gp),
+            E_DA: formatAmountDecimals(da),
+            E_DCPS14: formatAmountDecimals(eDcps14),
+            D_DCPS10: formatAmountDecimals(dDcps10),
+            D_DCPS14: formatAmountDecimals(dDcps14),
+            TOTAL: formatAmountDecimals(rowTotal),
         };
     });
 
     const now = new Date();
     const html = template({
         corporationName: corporationName || "",
-        corporationLogo: corporationLogo || "",
         salaryMonth,
         printDate: now.toLocaleDateString("en-GB"),
         printTime: formatTime(now),
         userId: userId || "",
         rows: reportRows,
-        totals,
+        totals: {
+            basic: formatAmountDecimals(rawTotals.basic),
+            gp: formatAmountDecimals(rawTotals.gp),
+            da: formatAmountDecimals(rawTotals.da),
+            eDcps14: formatAmountDecimals(rawTotals.eDcps14),
+            dDcps10: formatAmountDecimals(rawTotals.dDcps10),
+            dDcps14: formatAmountDecimals(rawTotals.dDcps14),
+            total: formatAmountDecimals(rawTotals.total),
+        },
     });
 
-    return renderHtmlToPdf({ html, prefix: "DCPS_Addition_Deduction", landscape: true });
+    return renderHtmlToPdf({ html, prefix: "DCPS_Addition_Deduction", landscape: false });
+};
+
+const ManualPayslipPDFHelper = async ({
+    employees,
+    salaryMonthDash,
+    paidDate,
+    corporationName,
+    corporationAddress,
+    corporationLogo,
+}) => {
+    const templatePath = path.resolve(__dirname, "../../templates/FrmCashNCheckPayslip.html");
+    const template = Handlebars.compile(fs.readFileSync(templatePath, "utf8"));
+
+    const slips = employees.map((emp) => {
+        const earnings = Array.isArray(emp.earnings) ? emp.earnings : [];
+        const deductions = Array.isArray(emp.deductions) ? emp.deductions : [];
+        const maxLen = Math.max(earnings.length, deductions.length);
+
+        const pairedRows = [];
+        for (let i = 0; i < maxLen; i++) {
+            const e = earnings[i];
+            const d = deductions[i];
+            pairedRows.push({
+                eHead: e ? e.head : "",
+                eAmt: e ? formatAmountDecimals(e.amount) : "",
+                dHead: d ? d.head : "",
+                dAmt: d ? formatAmountDecimals(d.amount) : "",
+            });
+        }
+
+        const gross = Number(emp.grossSalary || 0);
+        const totalDed = Number(emp.totalDeduction || 0);
+        const net = Number(emp.netSalary ?? gross - totalDed);
+
+        return {
+            empName: emp.EmpMName || emp.EmpEName || "",
+            designation: emp.Designation || "",
+            deptName: emp.Dept || "",
+            rows: pairedRows,
+            grossSalary: gross.toFixed(2),
+            totalDeduction: totalDed.toFixed(2),
+            netSalary: formatAmountDecimals(net),
+        };
+    });
+
+    const html = template({
+        slips,
+        salaryMonthDash,
+        paidDate,
+        corporationName: corporationName || "",
+        corporationAddress: corporationAddress || "",
+        corporationLogo: corporationLogo || "",
+    });
+
+    return renderHtmlToPdf({ html, prefix: "Manual_Payslip", landscape: false });
 };
 
 module.exports = {
     CashReportPDFHelper,
     DcpsReportPDFHelper,
+    ManualPayslipPDFHelper,
 };

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm 10mm 10mm 10mm;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, "Mangal", "Nirmala UI", sans-serif;
+            font-size: 13px;
+            color: #000;
+            background: #fff;
+        }
+
+        .slip-card {
+            border: 1px solid #aaa;
+            background: #fff;
+            page-break-inside: avoid;
+            margin-bottom: 14px;
+        }
+        .slip-card.page-break {
+            page-break-after: always;
+        }
+
+        .slip-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #aaa;
+            padding: 8px 12px;
+            gap: 12px;
+        }
+        .logo-wrap {
+            flex-shrink: 0;
+        }
+        .logo-img {
+            height: 70px;
+            max-width: 78px;
+            object-fit: contain;
+            display: block;
+        }
+        .hamipatra-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 140px;
+        }
+        .rule-line {
+            flex: 1;
+            border-top: 1px solid #888;
+            height: 1px;
+        }
+        .hamipatra-text {
+            font-size: 15px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .corp-right {
+            text-align: center;
+            min-width: 52%;
+        }
+        .corp-title {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.25;
+        }
+        .corp-address {
+            font-size: 12px;
+            color: #222;
+            margin-top: 2px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #888;
+        }
+        .slip-subtitle {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .slip-body {
+            padding: 12px 14px 20px 14px;
+        }
+        .intro-text {
+            font-size: 13px;
+            line-height: 1.65;
+            text-indent: 36px;
+            margin-bottom: 16px;
+        }
+
+        .pay-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .pay-table td {
+            padding: 4px 8px;
+            vertical-align: middle;
+        }
+        .col-e-head { width: 32%; text-align: left; }
+        .col-e-amt  { width: 16%; text-align: right; padding-right: 16px !important; }
+        .col-d-head { width: 34%; text-align: left; padding-left: 10px !important; }
+        .col-d-amt  { width: 18%; text-align: right; }
+
+        .totals-row td {
+            border-top: 1.5px solid #000;
+            border-bottom: 1.5px solid #000;
+            font-weight: bold;
+            padding: 5px 8px;
+        }
+        .net-row td {
+            font-weight: bold;
+            padding: 8px 8px 4px 8px;
+            font-size: 13px;
+        }
+
+        .sign-block {
+            margin-top: 32px;
+            margin-left: 24px;
+            display: inline-block;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .sign-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    {{#each slips}}
+    <div class="slip-card {{#unless @last}}page-break{{/unless}}">
+        <div class="slip-header">
+            {{#if ../corporationLogo}}
+            <div class="logo-wrap">
+                <img class="logo-img" src="{{../corporationLogo}}" alt="Logo" />
+            </div>
+            {{/if}}
+
+            <div class="hamipatra-wrap">
+                <span class="rule-line" style="max-width: 28px;"></span>
+                <span class="hamipatra-text">हमीपत्र नाही</span>
+                <span class="rule-line"></span>
+            </div>
+
+            <div class="corp-right">
+                <div class="corp-title">{{../corporationName}}</div>
+                <div class="corp-address">{{../corporationAddress}}</div>
+                <div class="slip-subtitle">वेतन प्राप्तीचा दाखला({{deptName}})</div>
+            </div>
+        </div>
+
+        <div class="slip-body">
+            <div class="intro-text">
+                श्री. {{empName}} &nbsp;पदनाम &nbsp;{{designation}} यांस दाखला देण्यात येतो की ते महानगरपालिका खात्यात हंगामी / कायम सेवेत असून त्यांना माहे &nbsp;{{../salaryMonthDash}} पेड इन &nbsp;{{../paidDate}} चा पगार खालील प्रमाणे अदा करण्यात आला.
+            </div>
+
+            <table class="pay-table">
+                <tbody>
+                    {{#each rows}}
+                    <tr>
+                        <td class="col-e-head">{{eHead}}</td>
+                        <td class="col-e-amt">{{eAmt}}</td>
+                        <td class="col-d-head">{{dHead}}</td>
+                        <td class="col-d-amt">{{dAmt}}</td>
+                    </tr>
+                    {{/each}}
+                    <tr class="totals-row">
+                        <td class="col-e-head">एकूण -</td>
+                        <td class="col-e-amt">{{grossSalary}}</td>
+                        <td class="col-d-head">एकूण &nbsp;कपात -</td>
+                        <td class="col-d-amt">{{totalDeduction}}</td>
+                    </tr>
+                    <tr class="net-row">
+                        <td colspan="2">(सदरचा दाखला कर्जासाठी नाही</td>
+                        <td class="col-d-head">निव्वळ अदा -</td>
+                        <td class="col-d-amt">{{netSalary}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="sign-block">
+                <div class="sign-title">आस्थापना अधिक्षक</div>
+                <div>{{../corporationName}}</div>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</body>
+</html>

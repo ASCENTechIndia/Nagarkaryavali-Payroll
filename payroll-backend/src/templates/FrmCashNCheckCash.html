@@ -6,9 +6,9 @@
         @page {
             size: A4 portrait;
             margin: 10mm 10mm 14mm 10mm;
-            @bottom-center {
+            @bottom-right {
                 content: "Page " counter(page) " of " counter(pages);
-                font-size: 10px;
+                font-size: 11px;
                 font-family: Arial, sans-serif;
             }
         }
@@ -26,64 +26,106 @@
             font-size: 12px;
             margin-bottom: 10px;
         }
-        .top-left { display: flex; gap: 28px; white-space: nowrap; }
+        .top-left { display: flex; gap: 26px; white-space: nowrap; }
         .top-right { text-align: right; white-space: nowrap; }
 
-        .header-block {
-            position: relative;
-            min-height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 8px;
-            padding: 0 76px;
+        .title-block {
+            text-align: center;
+            margin-bottom: 6px;
         }
-        .logo-container { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
-        .header-logo { height: 60px; max-width: 68px; object-fit: contain; display: block; }
-        .title-center { text-align: center; }
-        .corp-name { font-size: 20px; font-weight: bold; line-height: 1.25; }
-        .report-title {
-            font-family: "Times New Roman", Times, serif;
-            font-size: 15px;
+        .corp-name {
+            font-size: 20px;
             font-weight: bold;
+            line-height: 1.25;
+        }
+        .salary-for {
+            font-size: 14px;
             margin-top: 3px;
         }
 
         .sub-header {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 6px;
+            font-size: 13px;
+            margin: 6px 0 4px 0;
         }
 
         .main-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 12px;
             border: 1px solid #999;
-            border-bottom: 3px double #999;
+        }
+        .main-table thead {
+            display: table-header-group;
         }
         .main-table thead th {
             background-color: #fff;
             color: #000;
             border: 1px solid #999;
-            padding: 6px 5px;
+            padding: 6px 6px;
             text-align: center;
             font-weight: bold;
+            vertical-align: middle;
         }
         .main-table tbody td {
             border: 1px solid #bbb;
-            padding: 5px 6px;
+            padding: 6px 6px;
             background-color: #fff;
+            vertical-align: top;
         }
         .td-center { text-align: center; }
         .td-left   { text-align: left; }
         .td-right  { text-align: right; }
-        .footer-row td {
-            font-weight: bold;
-            background-color: #fff;
+
+        .total-row td {
             border: 1px solid #999;
-            padding: 6px 6px;
+            padding: 5px 6px;
+            background-color: #fff;
+        }
+        .total-label {
+            font-size: 11px;
+            text-align: left;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .total-val {
+            font-weight: bold;
+            font-size: 13px;
+            text-align: right;
+            display: block;
+        }
+
+        .summary-box {
+            border: 1px solid #999;
+            border-top: none;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1.45;
+            page-break-inside: avoid;
+        }
+        .summary-item {
+            margin-bottom: 4px;
+        }
+        .summary-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .sign-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 28px;
+            padding: 0 24px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .sign-col {
+            width: 30%;
+            line-height: 1.35;
         }
     </style>
 </head>
@@ -98,54 +140,89 @@
         </div>
     </div>
 
-    <div class="header-block">
-        {{#if corporationLogo}}
-        <div class="logo-container">
-            <img class="header-logo" src="{{corporationLogo}}" alt="Logo" />
-        </div>
-        {{/if}}
-        <div class="title-center">
-            <div class="corp-name">{{corporationName}}</div>
-            <div class="report-title">Cash &amp; Cheque Report — Salary For : {{salaryMonth}}</div>
-        </div>
+    <div class="title-block">
+        <div class="corp-name">{{corporationName}}</div>
+        <div class="salary-for">Salary For - {{salaryMonth}}</div>
     </div>
 
     <div class="sub-header">
-        <div>Department : <strong>{{department}}</strong></div>
-        <div>Pay Mode : <strong>{{paymode}}</strong></div>
+        <div>Dept - {{department}}</div>
+        <div>Bank - {{paymode}}</div>
     </div>
 
     <table class="main-table">
         <thead>
             <tr>
-                <th style="width: 6%;">Sr. No.</th>
+                <th style="width: 7%;">Sr.</th>
                 <th style="width: 10%;">Bill No.</th>
-                <th style="width: 10%;">Slip No.</th>
-                <th style="width: 30%;">Employee Name</th>
-                <th style="width: 15%;">Axis Acc No.</th>
-                <th style="width: 15%;">Indian Acc No.</th>
-                <th style="width: 14%;">Payable Amount</th>
+                <th style="width: 10%;">SlipNo</th>
+                <th style="width: 26%;">Emp Name</th>
+                <th style="width: 16%;">Axis Acc No.</th>
+                <th style="width: 16%;">Indian Acc<br>No</th>
+                <th style="width: 15%;">Payble<br>Amount</th>
             </tr>
         </thead>
         <tbody>
             {{#each rows}}
             <tr>
                 <td class="td-center">{{SRNO}}</td>
-                <td class="td-center">{{BILLNO}}</td>
-                <td class="td-center">{{SLIPNO}}</td>
+                <td class="td-left">{{BILLNO}}</td>
+                <td class="td-left">{{SLIPNO}}</td>
                 <td class="td-left">{{EMPNAME}}</td>
-                <td class="td-center">{{AXISACCNO}}</td>
-                <td class="td-center">{{INDACCNO}}</td>
+                <td class="td-left">{{AXISACCNO}}</td>
+                <td class="td-left">{{INDACCNO}}</td>
                 <td class="td-right">{{PAYABLEAMT}}</td>
             </tr>
             {{/each}}
-        </tbody>
-        <tfoot>
-            <tr class="footer-row">
-                <td colspan="6" class="td-right">Total :</td>
-                <td class="td-right">{{totalPayable}}</td>
+            <tr class="total-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <span class="total-label">Total :</span>
+                    <span class="total-val">{{totalPayable}}</span>
+                </td>
             </tr>
-        </tfoot>
+        </tbody>
     </table>
+
+    <div class="summary-box">
+        <div class="summary-item">
+            <div>Cash/Cheque:</div>
+            {{#if cashChequeTotal}}<div>{{cashChequeTotal}}</div>{{/if}}
+        </div>
+        <div class="summary-item">
+            <div>Indian Bank Payment:</div>
+            {{#if indianBankTotal}}<div>{{indianBankTotal}}</div>{{/if}}
+        </div>
+        <div class="summary-item">
+            <div>Axis Bank Payment:</div>
+            {{#if axisBankTotal}}<div>{{axisBankTotal}}</div>{{/if}}
+        </div>
+        <div class="summary-item">
+            <div>Total :</div>
+            <div>{{totalPayable}}</div>
+        </div>
+    </div>
+
+    <div class="sign-row">
+        <div class="sign-col">
+            लिपिक,<br>
+            आस्थापना विभाग,<br>
+            {{corporationName}}
+        </div>
+        <div class="sign-col">
+            वरिष्ठ लिपिक,<br>
+            आस्थापना विभाग,<br>
+            {{corporationName}}
+        </div>
+        <div class="sign-col">
+            आस्थापना अधीक्षक,<br>
+            {{corporationName}}
+        </div>
+    </div>
 </body>
 </html>
