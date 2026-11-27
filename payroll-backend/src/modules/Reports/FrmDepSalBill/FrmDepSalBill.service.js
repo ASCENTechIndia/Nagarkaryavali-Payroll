@@ -47,6 +47,8 @@ const getEarningDeductionTotalDataService = async (requestData) => {
     };
   }
 
+  console.log("Service Result: ", result);
+
   return {
     status: "SUCCESS",
     message: "Data retrieved successfully.",
@@ -54,6 +56,7 @@ const getEarningDeductionTotalDataService = async (requestData) => {
       reportHeaderTitle: result.reportHeaderTitle || "",
       headers: result.headers || {},
       employees: result.employees || [],
+      postStrength: result.postStrength || [],
       reportTotals: result.reportTotals || {},
       aggregates: {
         earn: result.grandEarn || 0,
