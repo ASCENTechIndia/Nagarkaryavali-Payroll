@@ -38,6 +38,11 @@ async function getCashReportRepo({ ulbid, lstdate, deptId, paymode, empType }) {
             AND TRIM(UPPER(empname)) NOT LIKE '%RIKT%'
         `;
         binds.empType = empType;
+    } else if (ulbStr === "930" && empType) {
+        query += `
+            AND var_employee_empstatus = :empType
+        `;
+        binds.empType = empType;
     }
 
     if (deptId != null && String(deptId) !== "-1" && String(deptId) !== "0" && deptId !== "") {
@@ -105,8 +110,42 @@ async function getDcpsReportRepo({ ulbid, lstdate, empType }) {
     return result.rows;
 }
 
+async function getPayslipEmpIdsByStatusRepo({ ulbid, lstdate, deptId, empType }) {
+    const binds = { ulbid: Number(ulbid), lstdate, empType };
+
+    let query = `
+        SELECT DISTINCT num_salary_empid AS empid
+        FROM view_paysheet
+        WHERE ulbid = :ulbid
+          AND date_salary_saldate = TO_DATE(:lstdate, 'DD-MON-YYYY')
+          AND var_employee_empstatus = :empType
+    `;
+
+    if (deptId != null && String(deptId) !== "-1" && String(deptId) !== "0" && deptId !== "") {
+        query += ` AND num_salary_deptid = :deptId`;
+        binds.deptId = Number(deptId);
+    }
+
+    const result = await executeQuery(query, binds);
+    if (!result.success) throw new Error(result.error);
+    return result.rows.map((r) => Number(r.EMPID));
+}
+
+async function getCorporationAddressRepo({ ulbid }) {
+    const sql = `
+        SELECT var_corporation_address AS corporationaddress
+        FROM admins.aoma_corporation_mas
+        WHERE num_corporation_id = :ulbid
+    `;
+    const result = await executeQuery(sql, { ulbid: Number(ulbid) });
+    if (!result.success) return "";
+    return result.rows?.[0]?.CORPORATIONADDRESS || "";
+}
+
 module.exports = {
     getDepartmentListRepo,
     getCashReportRepo,
     getDcpsReportRepo,
+    getPayslipEmpIdsByStatusRepo,
+    getCorporationAddressRepo,
 };

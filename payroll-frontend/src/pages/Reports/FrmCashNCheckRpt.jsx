@@ -1,7 +1,16 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Form, Formik } from "formik";
+import { motion } from "framer-motion";
+import axios from "axios";
+import Swal from "sweetalert2";
+import * as XLSX from "xlsx";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,39 +18,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
-import { Form, Formik } from "formik";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
-import * as XLSX from "xlsx";
 
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const initialValues = {
-  reportType: "Cash",
-  month: new Date().getMonth() + 1,
-  year: new Date().getFullYear().toString(),
-  department: "-1",
-  paymode: "-1",
-  empType: "NEW",   
-  fileFormat: "PDF",
-};
+const REPORT_TYPE_OPTIONS = [
+  { value: "Cash", label: "Cash & Cheque" },
+  { value: "DCPS", label: "DCPS Addition & Deduction" },
+  { value: "Payslip", label: "Manual payslip" },
+];
+
+const EMP_TYPE_OPTIONS = [
+  { value: "OLD", label: "OLD" },
+  { value: "NEW", label: "NEW" },
+];
+
+const FILE_FORMAT_OPTIONS = [
+  { value: "PDF", label: "PDF" },
+  { value: "EXCEL", label: "EXCEL" },
+];
 
 const FrmCashNCheckRpt = () => {
-  const { user } = useAuth();
-  const token = user?.token;
+  const { user, token: authToken } = useAuth();
+  const token = authToken || user?.token;
   const ulbId = user?.ulbId;
   const navigate = useNavigate();
-
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [paymodeOptions, setPaymodeOptions] = useState([]);
 
-  const isSpecialUlb = ["770", "1750"].includes(String(ulbId));
-  const showEmpType = isSpecialUlb;
-  const showFileFormat = isSpecialUlb;
+  const initialValues = {
+    reportType: "Cash",
+    month: String(new Date().getMonth() + 1),
+    year: String(new Date().getFullYear()),
+    department: "-1",
+    paymode: "-1",
+    empType: "NEW",
+    fileFormat: "PDF",
+  };
 
   const monthOptions = useMemo(() => {
     const fmt = new Intl.DateTimeFormat("en", { month: "long" });
@@ -59,41 +72,35 @@ const FrmCashNCheckRpt = () => {
     }));
   }, []);
 
-  const reportTypeOptions = [
-    { value: "Cash", label: "Cash & Cheque" },
-    { value: "DCPS", label: "DCPS Addition & Deduction" },
-    { value: "Payslip", label: "Manual payslip" },
-  ];
-
-  const empTypeOptions = [
-    { value: "OLD", label: "OLD" },
-    { value: "NEW", label: "NEW" },
-  ];
-
   const getVisibility = (reportType) => {
     switch (reportType) {
       case "Cash":
-        return { paymode: true, department: true, fileFormat: showFileFormat };
+        return { paymode: true, department: true, fileFormat: true };
       case "DCPS":
-        return { paymode: false, department: false, fileFormat: showFileFormat };
+        return { paymode: false, department: false, fileFormat: true };
       case "Payslip":
         return { paymode: false, department: true, fileFormat: false };
       default:
-        return { paymode: true, department: true, fileFormat: showFileFormat };
+        return { paymode: true, department: true, fileFormat: true };
     }
   };
 
-  // ---- Fetchers ----
+  const handleReportTypeChange = (selectedValue, setFieldValue) => {
+    setFieldValue("reportType", selectedValue);
+    if (selectedValue === "Payslip") {
+      setFieldValue("fileFormat", "PDF");
+    }
+  };
+
   const fetchDepartments = useCallback(async () => {
     try {
       const res = await axios.post(
         `${BASE_URL}/api/FrmCashNCheckRpt/department-list`,
-        { ulbid: ulbId },
+        { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const raw = res.data?.data?.data ?? [];
-
       const normalized = (Array.isArray(raw) ? raw : [])
         .map((d) => ({
           value: String(d.DEPTID ?? d.deptid ?? d.deptId ?? ""),
@@ -105,20 +112,20 @@ const FrmCashNCheckRpt = () => {
     } catch (error) {
       console.error("Department fetch error:", error);
     }
-  }, [BASE_URL, token, ulbId]);
+  }, [token, ulbId]);
 
   const fetchPaymodes = useCallback(async () => {
     try {
       const res = await axios.post(
         `${BASE_URL}/api/FrmCashNCheckRpt/paymode-list`,
-        { ulbid: ulbId },
+        { ulbid: Number(ulbId) },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setPaymodeOptions(res.data?.data?.data || []);
     } catch (error) {
       console.error("Paymode fetch error:", error);
     }
-  }, [BASE_URL, token, ulbId]);
+  }, [token, ulbId]);
 
   useEffect(() => {
     if (!token || !ulbId) return;
@@ -127,14 +134,12 @@ const FrmCashNCheckRpt = () => {
       Swal.fire({
         title: "Loading...",
         allowOutsideClick: false,
+        showConfirmButton: false,
         didOpen: () => Swal.showLoading(),
       });
 
       try {
-        await Promise.allSettled([
-          fetchDepartments(),
-          fetchPaymodes(),
-        ]);
+        await Promise.allSettled([fetchDepartments(), fetchPaymodes()]);
       } catch (error) {
         console.error(error);
       } finally {
@@ -260,10 +265,20 @@ const FrmCashNCheckRpt = () => {
   };
 
   const handleSubmit = async (values) => {
+    if (!values.month) {
+      Swal.fire({ text: "Please select Month.", confirmButtonColor: "#1e3a8a" });
+      return;
+    }
+    if (!values.year) {
+      Swal.fire({ text: "Please select Year.", confirmButtonColor: "#1e3a8a" });
+      return;
+    }
+
     try {
       Swal.fire({
         title: "Generating Report...",
         allowOutsideClick: false,
+        showConfirmButton: false,
         didOpen: () => Swal.showLoading(),
       });
 
@@ -294,7 +309,7 @@ const FrmCashNCheckRpt = () => {
           vis.paymode && selectedPaymode
             ? (selectedPaymode.paymode ?? selectedPaymode.paymodeName)
             : "All",
-        empType: showEmpType ? values.empType : "NEW",
+        empType: values.empType || "NEW",
         fileFormat: resolvedFormat,
       };
 
@@ -323,11 +338,6 @@ const FrmCashNCheckRpt = () => {
         });
       } else if (res.data?.success && res.data?.pdfUrl) {
         window.open(res.data.pdfUrl, "_blank");
-        Swal.fire({
-          text: "Report generated successfully!",
-          confirmButtonColor: "#1e3a8a",
-          timer: 2000,
-        });
       } else {
         Swal.fire({
           text: res.data?.message || "Failed to generate report",
@@ -357,219 +367,241 @@ const FrmCashNCheckRpt = () => {
 
         return (
           <Form>
-            <Card className="shadow-sm border">
-              <CardHeader className="border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                <CardTitle className="text-xl font-semibold">
-                  Salary Reports
-                </CardTitle>
-              </CardHeader>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-4 md:p-5 min-h-screen"
+            >
+              <Card className="border shadow-sm">
+                <CardHeader className="px-4 pb-6 border-b border-[#d7d7d7]">
+                  <CardTitle className="text-xl font-bold">
+                    Salary Reports
+                  </CardTitle>
+                </CardHeader>
 
-              <CardContent className="p-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {/* Date (Month + Year) */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                      <Label text="Salary Date" required />
-                      <span>:</span>
-                    </div>
-                    <div className="flex gap-2 flex-1">
-                      <Select
-                        value={values.month.toString()}
-                        onValueChange={(v) =>
-                          setFieldValue("month", parseInt(v))
-                        }
-                      >
-                        <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="Select Month" />
-                        </SelectTrigger>
-                        <SelectContent showDefaultOption={false}>
-                          {monthOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select
-                        value={values.year}
-                        onValueChange={(v) => setFieldValue("year", v)}
-                      >
-                        <SelectTrigger className="w-28 h-9">
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent showDefaultOption={false}>
-                          {yearOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Department  */}
-                  {vis.department && (
+                <CardContent className="p-4 sm:p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {/* Salary Date */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                        <Label text="Department" required />
+                      <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
+                        <Label
+                          required
+                          text="Salary Date"
+                          className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
+                        />
                         <span>:</span>
                       </div>
-                      <Select
-                        value={values.department}
-                        onValueChange={(v) => setFieldValue("department", v)}
-                      >
-                        <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="Select Department" />
-                        </SelectTrigger>
-                        <SelectContent showDefaultOption={false}>
-                          <SelectItem value="-1">-- ALL --</SelectItem>
-                          {departmentOptions.map((dept) => (
-                            <SelectItem key={dept.value} value={dept.value}>
-                              {dept.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Paymode  */}
-                  {vis.paymode && (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                        <Label text="Pay Mode" required />
-                        <span>:</span>
-                      </div>
-                      <Select
-                        value={values.paymode}
-                        onValueChange={(v) => setFieldValue("paymode", v)}
-                      >
-                        <SelectTrigger className="w-full h-9">
-                          <SelectValue placeholder="Select Pay Mode" />
-                        </SelectTrigger>
-                        <SelectContent showDefaultOption={false}>
-                          <SelectItem value="-1">-- ALL --</SelectItem>
-                          {paymodeOptions.map((pm) => (
-                            <SelectItem
-                              key={pm.paymodeid ?? pm.paymodeId}
-                              value={String(pm.paymodeid ?? pm.paymodeId)}
-                            >
-                              {pm.paymode ?? pm.paymodeName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Employee Type */}
-                  {showEmpType && (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
-                        <Label text="Employee Type" required />
-                        <span>:</span>
-                      </div>
-                      <Select
-                        value={values.empType}
-                        onValueChange={(v) => setFieldValue("empType", v)}
-                      >
-                        <SelectTrigger className="w-full h-9 overflow-hidden">
-                          <SelectValue placeholder="-- Select Option --" />
-                        </SelectTrigger>
-                        <SelectContent showDefaultOption={false}>
-                          {empTypeOptions.map((et) => (
-                            <SelectItem key={et.value} value={et.value}>
-                              {et.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* File Format */}
-                  {vis.fileFormat && (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2">
-                      <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center">
-                        <Label text="File Format" required />
-                        <span>:</span>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Input
-                            type="radio"
-                            name="fileFormat"
-                            value="PDF"
-                            checked={values.fileFormat === "PDF"}
-                            onChange={() => setFieldValue("fileFormat", "PDF")}
-                          />
-                          <span className="text-sm">PDF</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Input
-                            type="radio"
-                            name="fileFormat"
-                            value="EXCEL"
-                            checked={values.fileFormat === "EXCEL"}
-                            onChange={() => setFieldValue("fileFormat", "EXCEL")}
-                          />
-                          <span className="text-sm">EXCEL</span>
-                        </label>
-                      </div>
-                    </div>
-                  )}
-
-                  
-                </div>
-
-                {/* Report Type */}
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-6 pt-2">
-                    <div className="sm:w-36 shrink-0 flex justify-start sm:justify-between items-center pt-1">
-                      <Label text="Report Type" required />
-                      <span>:</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-6 pt-1">
-                      {reportTypeOptions.map((option) => (
-                        <label
-                          key={option.value}
-                          className="flex items-center gap-2 cursor-pointer"
+                      <div className="flex gap-2 flex-1 min-w-0">
+                        <Select
+                          value={String(values.month)}
+                          onValueChange={(v) => setFieldValue("month", v)}
                         >
-                          <Input
-                            type="radio"
-                            name="reportType"
-                            value={option.value}
-                            checked={values.reportType === option.value}
-                            onChange={() =>
-                              setFieldValue("reportType", option.value)
-                            }
+                          <SelectTrigger className="h-9 flex-1 min-w-0 overflow-hidden">
+                            <SelectValue placeholder="Month" />
+                          </SelectTrigger>
+                          <SelectContent showDefaultOption={false}>
+                            {monthOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select
+                          value={values.year}
+                          onValueChange={(v) => setFieldValue("year", v)}
+                        >
+                          <SelectTrigger className="h-9 w-24 shrink-0">
+                            <SelectValue placeholder="Year" />
+                          </SelectTrigger>
+                          <SelectContent showDefaultOption={false}>
+                            {yearOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Department */}
+                    {vis.department && (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
+                          <Label
+                            required
+                            text="Department"
+                            className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
                           />
-                          <span className="text-sm">{option.label}</span>
-                        </label>
-                      ))}
+                          <span>:</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Select
+                            value={values.department}
+                            onValueChange={(v) => setFieldValue("department", v)}
+                          >
+                            <SelectTrigger className="w-full h-9 overflow-hidden">
+                              <SelectValue placeholder="-- ALL --" />
+                            </SelectTrigger>
+                            <SelectContent showDefaultOption={false}>
+                              <SelectItem value="-1">-- ALL --</SelectItem>
+                              {departmentOptions.map((dept) => (
+                                <SelectItem key={dept.value} value={dept.value}>
+                                  {dept.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Paymode */}
+                    {vis.paymode && (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
+                          <Label
+                            text="Paymode"
+                            className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
+                          />
+                          <span>:</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Select
+                            value={values.paymode}
+                            onValueChange={(v) => setFieldValue("paymode", v)}
+                          >
+                            <SelectTrigger className="w-full h-9 overflow-hidden">
+                              <SelectValue placeholder="-- ALL --" />
+                            </SelectTrigger>
+                            <SelectContent showDefaultOption={false}>
+                              <SelectItem value="-1">-- ALL --</SelectItem>
+                              {paymodeOptions.map((pm) => {
+                                const id = String(pm.paymodeid ?? pm.paymodeId ?? "");
+                                if (!id) return null;
+                                return (
+                                  <SelectItem key={id} value={id}>
+                                    {pm.paymode ?? pm.paymodeName}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Employee Type */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
+                        <Label
+                          text="Employee Type"
+                          className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
+                        />
+                        <span>:</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <Select
+                          value={values.empType}
+                          onValueChange={(v) => setFieldValue("empType", v)}
+                        >
+                          <SelectTrigger className="w-full h-9 overflow-hidden">
+                            <SelectValue placeholder="Select Employee Type" />
+                          </SelectTrigger>
+                          <SelectContent showDefaultOption={false}>
+                            {EMP_TYPE_OPTIONS.map((et) => (
+                              <SelectItem key={et.value} value={et.value}>
+                                {et.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* File Format (PDF / EXCEL) */}
+                    {vis.fileFormat && (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
+                          <Label
+                            text="File Format"
+                            className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
+                          />
+                          <span>:</span>
+                        </div>
+                        <div className="flex items-center gap-6 h-9 flex-1 min-w-0">
+                          {FILE_FORMAT_OPTIONS.map((fmt) => (
+                            <label
+                              key={fmt.value}
+                              className="flex items-center gap-2 cursor-pointer text-sm text-gray-800"
+                            >
+                              <Input
+                                type="radio"
+                                name="fileFormat"
+                                value={fmt.value}
+                                checked={values.fileFormat === fmt.value}
+                                onChange={(e) =>
+                                  setFieldValue("fileFormat", e.target.value)
+                                }
+                              />
+                              <span>{fmt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Report Type */}
+                    <div className="md:col-span-2 xl:col-span-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="sm:w-32 shrink-0 flex justify-start sm:justify-between items-center whitespace-nowrap">
+                        <Label
+                          text="Report Type"
+                          className="w-auto sm:w-auto text-[13px] font-semibold text-gray-700"
+                        />
+                        <span>:</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-6 min-h-9 flex-1 min-w-0">
+                        {REPORT_TYPE_OPTIONS.map((option) => (
+                          <label
+                            key={option.value}
+                            className="flex items-center gap-2 cursor-pointer text-sm text-gray-800"
+                          >
+                            <Input
+                              type="radio"
+                              name="reportType"
+                              value={option.value}
+                              checked={values.reportType === option.value}
+                              onChange={(e) =>
+                                handleReportTypeChange(e.target.value, setFieldValue)
+                              }
+                            />
+                            <span>{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                  <Button
-                    type="submit"
-                    className="bg-blue-900 hover:bg-blue-800 text-white px-8"
-                  >
-                    Process
-                  </Button>
+                  {/* Buttons */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <Button type="submit" className="px-8">
+                      Print
+                    </Button>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="px-8"
-                    onClick={() => navigate("/HomePage/FrmHomePage")}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="px-8"
+                      onClick={() => navigate("/HomePage/FrmHomePage")}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </Form>
         );
       }}

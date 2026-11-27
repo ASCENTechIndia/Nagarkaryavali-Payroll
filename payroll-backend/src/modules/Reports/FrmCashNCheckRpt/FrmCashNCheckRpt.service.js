@@ -37,11 +37,15 @@ function buildLastDate(month, year) {
     if (isNaN(y) || y < 2000)        throw new AppError("Invalid year value", 400);
 
     const lastDay = new Date(y, m, 0).getDate();
+    const paddedDay = String(lastDay).padStart(2, "0");
+    const paddedMonth = String(m).padStart(2, "0");
     return {
         m,
         y,
-        lstdate: `${String(lastDay).padStart(2, "0")}-${MONTH_NAMES[m - 1]}-${y}`,
+        lstdate: `${paddedDay}-${MONTH_NAMES[m - 1]}-${y}`,
+        paidDate: `${paddedDay}/${paddedMonth}/${y}`,
         salaryMonth: `${FULL_MONTH_NAMES[m - 1]} ${y}`,
+        salaryMonthDash: `${FULL_MONTH_NAMES[m - 1]}-${y}`,
     };
 }
 
@@ -58,7 +62,7 @@ async function generateReportService({
     if (!month) throw new AppError("Please select Month", 400);
     if (!year)  throw new AppError("Please select Year", 400);
 
-    const { m, y, lstdate, salaryMonth } = buildLastDate(month, year);
+    const { m, y, lstdate, paidDate, salaryMonth, salaryMonthDash } = buildLastDate(month, year);
     const resolvedEmpType = (empType || "NEW").trim().toUpperCase();
 
     if (reportType === "Cash") {
@@ -131,11 +135,33 @@ async function generateReportService({
             throw new AppError("AMC Payslip PDF is not supported here.", 501);
         }
 
+        let employees = result.data.employees;
+
+        if (["770", "1750", "930"].includes(String(ulbid)) && resolvedEmpType) {
+            const allowedEmpIds = new Set(
+                await repo.getPayslipEmpIdsByStatusRepo({
+                    ulbid: Number(ulbid),
+                    lstdate,
+                    deptId,
+                    empType: resolvedEmpType,
+                })
+            );
+            employees = employees.filter((emp) => allowedEmpIds.has(Number(emp.EmpId)));
+            if (employees.length === 0) {
+                throw new AppError("No Records Found", 404);
+            }
+        }
+
+        const corporationAddress = await repo.getCorporationAddressRepo({ ulbid: Number(ulbid) });
+
         return {
             reportType: "Payslip",
             salaryMonth,
+            salaryMonthDash,
+            paidDate,
             lstdate,
-            employees: result.data.employees,
+            corporationAddress,
+            employees,
             leaveDetails: result.data.leaveDetails || [],
             filters: {
                 ulbid,

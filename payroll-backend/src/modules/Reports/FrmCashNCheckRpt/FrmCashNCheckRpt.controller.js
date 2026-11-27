@@ -4,8 +4,8 @@ const service = require("./FrmCashNCheckRpt.service");
 const {
     CashReportPDFHelper,
     DcpsReportPDFHelper,
+    ManualPayslipPDFHelper,
 } = require("../../../utils/pdfHelper/FrmCashNCheckRpt");
-const { PaySlipPDFHelper } = require("../../../utils/pdfHelper/FrmPaySlip");
 const { getCorporationService } = require("../../MenuAccess/MenuAccess.service");
 const path = require("path");
 
@@ -86,7 +86,6 @@ exports.generateReport = asyncHandler(async (req, res) => {
             department: deptName || (String(deptId) === "-1" ? "All" : deptId),
             paymode: paymodeName || (String(paymode) === "-1" ? "All" : paymode),
             corporationName,
-            corporationLogo,
             userId,
         });
     } else if (reportType === "DCPS") {
@@ -94,17 +93,16 @@ exports.generateReport = asyncHandler(async (req, res) => {
             rows: reportResult.data,
             salaryMonth: reportResult.salaryMonth,
             corporationName,
-            corporationLogo,
             userId,
         });
     } else {
-        pdf = await PaySlipPDFHelper({
-            reportType: "NORMAL",
+        pdf = await ManualPayslipPDFHelper({
             employees: reportResult.employees,
-            leaveDetails: reportResult.leaveDetails,
-            ulbInfo: corpInfo || { ABC_MUNICIPAL_TEXT: corporationName, ULBLOGO: corporationLogo },
-            month: Number(month),
-            year: Number(year),
+            salaryMonthDash: reportResult.salaryMonthDash,
+            paidDate: reportResult.paidDate,
+            corporationName,
+            corporationAddress: reportResult.corporationAddress || "",
+            corporationLogo,
         });
     }
 
