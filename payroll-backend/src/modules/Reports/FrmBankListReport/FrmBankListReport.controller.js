@@ -55,7 +55,6 @@ exports.generateBankListPdf = asyncHandler(async (req, res) => {
     const resolvedBankId = bankId ?? "-1";
     const resolvedSubdeptId = subdeptId ?? subDepartmentId ?? "-1";
 
-    // Use the authenticated user's ID for Aopr_Userbill_Config.
     const reportUserId =
         req.user?.userId ??
         req.user?.userid ??
@@ -106,6 +105,8 @@ exports.generateBankListPdf = asyncHandler(async (req, res) => {
         corporationName,
         corporationLogo,
         userId: reportUserId,
+
+        // Payment summary
         cashCheque: reportResult.cashCheque,
         indianBankPayment: reportResult.indianBankPayment,
         axisBankPayment: reportResult.axisBankPayment,
@@ -115,7 +116,7 @@ exports.generateBankListPdf = asyncHandler(async (req, res) => {
     const baseUrl = `${req.protocol}://${req.get("host")}`;
     const pdfUrl = `${baseUrl}/pdf/${path.basename(pdf.filePath)}`;
 
-    return res.json({
+    return res.status(200).json({
         success: true,
         message: "Bank List PDF Generated Successfully",
         fileName: pdf.fileName,
@@ -129,6 +130,8 @@ exports.generateBankListPdf = asyncHandler(async (req, res) => {
         }
     });
 });
+
+
 
 exports.getBankListReportData = asyncHandler(async (req, res) => {
     const {
@@ -158,11 +161,17 @@ exports.getBankListReportData = asyncHandler(async (req, res) => {
         "";
 
     if (!resolvedUlbId || !month || !year) {
-        throw new AppError("ULB, Month and Year are required.", 400);
+        throw new AppError(
+            "ULB, Month and Year are required.",
+            400
+        );
     }
 
     if ([930, 1750].includes(resolvedUlbId) && !reportUserId) {
-        throw new AppError("User ID not found. Please login again.", 401);
+        throw new AppError(
+            "User ID not found. Please login again.",
+            401
+        );
     }
 
     const reportResult = await service.getBankListReportService({
@@ -177,25 +186,171 @@ exports.getBankListReportData = asyncHandler(async (req, res) => {
         userId: reportUserId,
     });
 
-    if (!reportResult.data?.length && !reportResult.rows?.length) {
+    const rows = reportResult.data ?? reportResult.rows ?? [];
+
+    if (!rows.length) {
         throw new AppError(
             "No records found for the selected filters.",
             404
         );
     }
 
+    const cashCheque =
+        Number(reportResult.cashCheque) || 0;
+
+    const indianBankPayment =
+        Number(reportResult.indianBankPayment) || 0;
+
+    const axisBankPayment =
+        Number(reportResult.axisBankPayment) || 0;
+
+    const grandTotal =
+        Number(
+            reportResult.totalPayable ??
+            reportResult.grandTotal
+        ) || 0;
+
     return res.status(200).json({
         success: true,
-        message: "Bank list data fetched successfully.",
+        message: "Bank list Excel data fetched successfully.",
+
         data: {
-            rows: reportResult.data ?? reportResult.rows,
-            count: reportResult.count,
-            filters: reportResult.filters,
-            salaryMonth: reportResult.salaryMonth,
-            cashCheque: reportResult.cashCheque,
-            indianBankPayment: reportResult.indianBankPayment,
-            axisBankPayment: reportResult.axisBankPayment,
-            grandTotal: reportResult.totalPayable ?? reportResult.grandTotal,
+            rows,
+            count: reportResult.count ?? rows.length,
+
+            filters: reportResult.filters ?? {},
+
+            salaryMonth: reportResult.salaryMonth ?? "",
+
+            cashCheque,
+            indianBankPayment,
+            axisBankPayment,
+            grandTotal,
+
+            paymentSummary: {
+                cashCheque,
+                indianBankPayment,
+                axisBankPayment,
+                grandTotal,
+            },
+        },
+    });
+});
+
+
+
+exports.generateBankListReportPDF = asyncHandler(async (req, res) => {
+    const {
+        ulbid,
+        ulbId,
+        month,
+        year,
+        deptId,
+        departmentId,
+        bankId,
+        subdeptId,
+        subDepartmentId,
+        billNo,
+        employeeType,
+    } = req.body;
+
+    const resolvedUlbId = Number(ulbid ?? ulbId);
+    const resolvedDeptId = deptId ?? departmentId ?? "-1";
+    const resolvedBankId = bankId ?? "-1";
+    const resolvedSubdeptId = subdeptId ?? subDepartmentId ?? "-1";
+
+    const reportUserId =
+        req.user?.userId ??
+        req.user?.userid ??
+        req.user?.id ??
+        req.user?.sub ??
+        "";
+
+    if (!resolvedUlbId || !month || !year) {
+        throw new AppError(
+            "ULB, Month and Year are required.",
+            400
+        );
+    }
+
+    if ([930, 1750].includes(resolvedUlbId) && !reportUserId) {
+        throw new AppError(
+            "User ID not found. Please login again.",
+            401
+        );
+    }
+
+    // Fetch report data
+    const reportResult = await service.getBankListReportService({
+        ulbid: resolvedUlbId,
+        month,
+        year,
+        deptId: resolvedDeptId,
+        bankId: resolvedBankId,
+        subdeptId: resolvedSubdeptId,
+        billNo: billNo ?? "-1",
+        empType: employeeType ?? "NEW",
+        userId: reportUserId,
+    });
+
+    const rows = reportResult.data ?? reportResult.rows ?? [];
+
+    if (!rows.length) {
+        throw new AppError(
+            "No records found for the selected filters.",
+            404
+        );
+    }
+
+    // Payment summary
+    const cashCheque =
+        Number(reportResult.cashCheque) || 0;
+
+    const indianBankPayment =
+        Number(reportResult.indianBankPayment) || 0;
+
+    const axisBankPayment =
+        Number(reportResult.axisBankPayment) || 0;
+
+    const grandTotal =
+        Number(
+            reportResult.totalPayable ??
+            reportResult.grandTotal
+        ) || 0;
+
+    // Generate PDF
+    const pdfResult = await BankListReportPDFHelper({
+        rows,
+        filters: reportResult.filters ?? {},
+        salaryMonth: reportResult.salaryMonth ?? "",
+
+        corporationName: req.user?.corporationName ?? "",
+        corporationLogo: req.user?.corporationLogo ?? "",
+
+        userId: reportUserId,
+
+        cashCheque,
+        indianBankPayment,
+        axisBankPayment,
+        grandTotal,
+    });
+
+    return res.status(200).json({
+        success: true,
+        message: "Bank List PDF generated successfully.",
+
+        data: {
+            fileName: pdfResult.fileName,
+            pdfUrl: `/pdf/${pdfResult.fileName}`,
+
+            count: rows.length,
+
+            paymentSummary: {
+                cashCheque,
+                indianBankPayment,
+                axisBankPayment,
+                grandTotal,
+            },
         },
     });
 });

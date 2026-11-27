@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Bank List Report</title>
@@ -16,11 +17,14 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: Arial, "Noto Sans Devanagari",
+                "Mangal", sans-serif;
             font-size: 10px;
             color: #000;
             margin: 0;
         }
+
+        /* HEADER */
 
         .header {
             text-align: center;
@@ -37,7 +41,6 @@
         .corporation-name {
             font-size: 17px;
             font-weight: bold;
-            text-transform: uppercase;
             margin-bottom: 5px;
         }
 
@@ -46,6 +49,8 @@
             font-weight: bold;
             margin-top: 5px;
         }
+
+        /* FILTER DETAILS */
 
         .filter-section {
             width: 100%;
@@ -69,11 +74,15 @@
         }
 
         .subdept {
+            width: 100%;
             border: 1px solid #000;
             padding: 6px;
             margin-bottom: 8px;
             font-size: 10px;
+            min-height: 26px;
         }
+
+        /* EMPLOYEE TABLE */
 
         .employee-table {
             width: 100%;
@@ -104,6 +113,11 @@
             text-align: left;
         }
 
+        .employee-table .account {
+            font-size: 8px;
+            overflow-wrap: anywhere;
+        }
+
         .employee-table .amount {
             text-align: right;
             white-space: nowrap;
@@ -114,16 +128,17 @@
             background: #f2f2f2;
         }
 
+        /* PAYMENT SUMMARY */
+
         .summary-title {
-            text-align: start;
+            text-align: left;
             font-size: 12px;
             font-weight: bold;
             margin: 14px 0 6px;
         }
 
         .summary-table {
-            /* width: 65%;
-            margin: 0 auto; */
+            width: 190px;
             border-collapse: collapse;
         }
 
@@ -136,6 +151,7 @@
         .summary-table td:last-child {
             text-align: right;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .summary-total td {
@@ -143,21 +159,26 @@
             background: #eaeaea;
         }
 
+        /* SIGNATURES */
+
         .signature-section {
             display: flex;
             justify-content: space-between;
+            align-items: flex-end;
             margin-top: 65px;
             page-break-inside: avoid;
         }
 
         .signature {
-            width: 30%;
+            width: 32%;
             text-align: center;
-           
             padding-top: 6px;
             font-size: 10px;
             font-weight: bold;
+            line-height: 1.5;
         }
+
+        /* FOOTER */
 
         .footer {
             display: flex;
@@ -166,11 +187,23 @@
             margin-top: 15px;
         }
 
+        /* PRINT SETTINGS */
+
         thead {
             display: table-header-group;
         }
 
+        tfoot {
+            display: table-footer-group;
+        }
+
         tr {
+            page-break-inside: avoid;
+        }
+
+        .summary-section,
+        .filter-section,
+        .subdept {
             page-break-inside: avoid;
         }
     </style>
@@ -179,10 +212,15 @@
 <body>
 
     <!-- HEADER -->
+
     <div class="header">
 
         {{#if corporationLogo}}
-            <img class="logo" src="{{corporationLogo}}" />
+            <img
+                class="logo"
+                src="{{corporationLogo}}"
+                alt="Corporation Logo"
+            />
         {{/if}}
 
         <div class="corporation-name">
@@ -199,112 +237,255 @@
 
     </div>
 
-    <!-- FILTER DETAILS -->
-    <table class="filter-section">
-        <tr>
-            <td class="filter-label">Department</td>
-            <td class="filter-value">{{department}}</td>
 
-            <td class="filter-label">Bank</td>
-            <td class="filter-value">{{bank}}</td>
+    <!-- FILTER DETAILS -->
+
+    <table class="filter-section">
+
+        <tr>
+            <td class="filter-label">
+                Department
+            </td>
+
+            <td class="filter-value">
+                {{department}}
+            </td>
+
+            <td class="filter-label">
+                Bank
+            </td>
+
+            <td class="filter-value">
+                {{bank}}
+            </td>
         </tr>
+
     </table>
 
+
+    <!-- SUB DEPARTMENT -->
+
     <div class="subdept">
+
         <strong>Sub Department:</strong>
-        <!-- {{subDept}} -->
+
+        {{subDept}}
+
     </div>
 
+
     <!-- EMPLOYEE DETAILS -->
+
     <table class="employee-table">
 
         <thead>
+
             <tr>
-                <th style="width: 5%;">Sr.</th>
-                <th style="width: 12%;">Bill No.</th>
-                <th style="width: 8%;">SlpNo</th>
-                <th style="width: 20%;">Emp Name</th>
-                <th style="width: 15%;">Adv Acc No.</th>
-                <th style="width: 15%;">Indian Acc No.</th>
-                <th style="width: 10%;">IFSC CODE</th>
-                <th style="width: 15%;">Payable Amount</th>
+                <th style="width: 5%;">
+                    Sr.
+                </th>
+
+                <th style="width: 10%;">
+                    Bill No.
+                </th>
+
+                <th style="width: 7%;">
+                    SlpNo
+                </th>
+
+                <th style="width: 19%;">
+                    Emp Name
+                </th>
+
+                <th style="width: 17%;">
+                    Indian Account No.
+                </th>
+
+                <th style="width: 17%;">
+                    Axis Account No.
+                </th>
+
+                <th style="width: 10%;">
+                    IFSC CODE
+                </th>
+
+                <th style="width: 15%;">
+                    Payable Amount
+                </th>
             </tr>
+
         </thead>
 
         <tbody>
+
             {{#each rows}}
+
                 <tr>
-                    <td>{{SRNO}}</td>
-                    <td>{{BILLNO}}</td>
-                    <td>{{SLPNO}}</td>
-                    <td class="name">{{EMPNAME}}</td>
-                    <td>{{ADVACCNO}}</td>
-                    <td>{{INDIANACCNO}}</td>
-                    <td>{{IFSCCODE}}</td>
-                    <td class="amount">{{PAYABLEAMT}}</td>
+
+                    <td>
+                        {{SRNO}}
+                    </td>
+
+                    <td>
+                        {{BILLNO}}
+                    </td>
+
+                    <td>
+                        {{SLPNO}}
+                    </td>
+
+                    <td class="name">
+                        {{EMPNAME}}
+                    </td>
+
+                    <td class="account">
+                        {{INDIANACCNO}}
+                    </td>
+
+                    <td class="account">
+                        {{AXISACCNO}}
+                    </td>
+
+                    <td>
+                        {{IFSCCODE}}
+                    </td>
+
+                    <td class="amount">
+                        {{PAYABLEAMT}}
+                    </td>
+
                 </tr>
+
             {{/each}}
 
+
+            <!-- GRAND TOTAL -->
+
             <tr class="total-row">
-                <td colspan="7">GRAND TOTAL</td>
-                <td class="amount">{{grandTotal}}</td>
+
+                <td colspan="7">
+                    GRAND TOTAL
+                </td>
+
+                <td class="amount">
+                    {{grandTotal}}
+                </td>
+
             </tr>
+
         </tbody>
 
     </table>
 
+
     <!-- PAYMENT SUMMARY -->
-    <div class="summary-title">
-        PAYMENT SUMMARY
+
+    <div class="summary-section">
+
+        <div class="summary-title">
+            PAYMENT SUMMARY
+        </div>
+
+        <table class="summary-table">
+
+            <tr>
+                <td>
+                    Cash / Cheque
+                </td>
+
+                <td>
+                    {{cashCheque}}
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    Indian Bank Payment
+                </td>
+
+                <td>
+                    {{indianBankPayment}}
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    Axis Bank Payment
+                </td>
+
+                <td>
+                    {{axisBankPayment}}
+                </td>
+            </tr>
+
+            <tr class="summary-total">
+
+                <td>
+                    TOTAL
+                </td>
+
+                <td>
+                    {{grandTotal}}
+                </td>
+
+            </tr>
+
+        </table>
+
     </div>
 
-    <table class="summary-table">
-        <tr>
-            <td>Cash / Cheque</td>
-            <td>{{cashCheque}}</td>
-        </tr>
-
-        <tr>
-            <td>Indian Bank Payment</td>
-            <td>{{indianBankPayment}}</td>
-        </tr>
-
-        <tr>
-            <td>Axis Bank Payment</td>
-            <td>{{axisBankPayment}}</td>
-        </tr>
-
-        <tr class="summary-total">
-            <td>TOTAL</td>
-            <td>{{grandTotal}}</td>
-        </tr>
-    </table>
 
     <!-- SIGNATURES -->
+
     <div class="signature-section">
-        <div class="signature">
-          लिपिक,<br>
-            आस्थापना विभाग,<br>
-            {{corporationName}}
-        </div>
 
         <div class="signature">
-             वरिष्ठ लिपिक,<br>
+
+            लिपिक,<br>
+
             आस्थापना विभाग,<br>
+
             {{corporationName}}
+
         </div>
 
+
         <div class="signature">
-              आस्थापना अधीक्षक,<br>
+
+            वरिष्ठ लिपिक,<br>
+
+            आस्थापना विभाग,<br>
+
             {{corporationName}}
+
         </div>
+
+
+        <div class="signature">
+
+            आस्थापना अधीक्षक,<br>
+
+            {{corporationName}}
+
+        </div>
+
     </div>
 
+
     <!-- FOOTER -->
+
     <div class="footer">
-        <span>Printed By: {{userId}}</span>
-        <span>Print Date: {{printDate}} {{printTime}}</span>
+
+        <span>
+            Printed By: {{userId}}
+        </span>
+
+        <span>
+            Print Date: {{printDate}} {{printTime}}
+        </span>
+
     </div>
 
 </body>
+
 </html>
