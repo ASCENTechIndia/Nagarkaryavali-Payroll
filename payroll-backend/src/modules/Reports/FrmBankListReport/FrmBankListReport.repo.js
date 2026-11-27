@@ -385,65 +385,59 @@ async function getBankListRepo({ ulbid }) {
 // }
 
 
+
+
 async function getBankListReportRepo({
-    ulbid,
-    lastDate,
-    deptId,
-    bankId,
-    subdeptId,
-    userId,
-    billNo,
-    empType
+    ulbid, lastDate, deptId, bankId, subdeptId, userId, billNo, empType
 }) {
     const ulbID = Number(ulbid);
+    const binds = { ulbid: ulbID, lastDate };
 
-    const binds = {
-        ulbid: ulbID,
-        lastDate
-    };
+   query = `
+    SELECT
+        num_employee_empid AS empid,
+        var_employee_engname AS empname,
+        var_deptslip_sequence AS slipno,
 
-    let query = `
-        SELECT
-            num_employee_empid AS empid,
-            var_employee_engname AS empname,
-            var_deptslip_sequence AS slipno,
+        num_employee_bankid AS bankid,
+        num_employee_bankaccno AS bankaccountno,
 
-            CASE
-                WHEN num_salary_ulbid = 1750
-                     AND num_bankmst_bankid <> 2
-                     AND TRIM(num_employee_bankaccno) IS NOT NULL
-                THEN num_employee_bankaccno
-                ELSE '-'
-            END AS indaccno,
+        CASE
+            WHEN num_salary_ulbid = 1750
+                 AND num_employee_bankid <> 2
+                 AND TRIM(num_employee_bankaccno) IS NOT NULL
+            THEN TRIM(num_employee_bankaccno)
+            ELSE '-'
+        END AS indaccno,
 
-            CASE
-                WHEN num_salary_ulbid = 1750
-                     AND num_bankmst_bankid = 2
-                     AND TRIM(num_employee_bankaccno) IS NOT NULL
-                THEN num_employee_bankaccno
-                ELSE '-'
-            END AS axisaccno,
+        CASE
+            WHEN num_salary_ulbid = 1750
+                 AND num_employee_bankid = 2
+                 AND TRIM(num_employee_bankaccno) IS NOT NULL
+            THEN TRIM(num_employee_bankaccno)
+            ELSE '-'
+        END AS axisaccno,
 
-            CASE
-                WHEN num_salary_ulbid <> 1750
-                     AND TRIM(num_employee_bankaccno) IS NOT NULL
-                THEN num_employee_bankaccno
-                ELSE '-'
-            END AS accno,
+        CASE
+            WHEN num_salary_ulbid <> 1750
+                 AND TRIM(num_employee_bankaccno) IS NOT NULL
+            THEN TRIM(num_employee_bankaccno)
+            ELSE '-'
+        END AS accno,
 
-            NVL(num_salary_totalearning, 0)
-                - NVL(num_salary_totaldeduct, 0) AS payableamt,
+        NVL(num_salary_totalearning, 0)
+            - NVL(num_salary_totaldeduct, 0) AS payableamt,
 
-            var_deptslip_code AS billno,
-            var_deptmst_deptnamee AS deptname,
-            var_bankmst_bankname AS bankname,
-            var_employee_oldempno AS oldempno,
-            num_employee_ulbid AS ulbid,
-            desig_mname AS designame,
-            var_deptsub_sdeptnamem AS subdeptname,
-            num_employee_deptid AS deptid,
-            num_employee_subdeptid AS subdeptid
-    `;
+        var_deptslip_code AS billno,
+        var_deptmst_deptnamee AS deptname,
+        var_bankmst_bankname AS bankname,
+        var_employee_oldempno AS oldempno,
+        num_employee_ulbid AS ulbid,
+        desig_mname AS designame,
+        var_deptsub_sdeptnamem AS subdeptname,
+        num_employee_deptid AS deptid,
+        num_employee_subdeptid AS subdeptid
+`;
 
     if (ulbID === 1750) {
         query += `,
@@ -478,7 +472,6 @@ async function getBankListReportRepo({
                AND num_userbill_userid = :userId
                AND num_userbill_billno = var_deptslip_code
         `;
-
         binds.userId = userId;
     }
 
@@ -503,51 +496,35 @@ async function getBankListReportRepo({
             ON num_bankmst_bankid = num_employee_bankid
 
         WHERE num_employee_ulbid = :ulbid
-
           AND date_salary_saldate =
-              TO_DATE(:lastDate, 'DD-MON-YYYY')
-
+              TO_DATE(:lastDate, 'DD-MON-YYYY', 'NLS_DATE_LANGUAGE=English')
           AND UPPER(TRIM(var_employee_engname)) NOT LIKE '%RIKT%'
     `;
 
-    if (
-        deptId != null &&
-        String(deptId).trim() !== "-1" &&
-        String(deptId).trim() !== "0" &&
-        String(deptId).trim() !== ""
-    ) {
-        query += ` AND num_employee_deptid = :deptId `;
+    if (deptId != null && String(deptId).trim() !== "-1") {
+        query += ` AND num_employee_deptid = :deptId`;
         binds.deptId = Number(deptId);
     }
 
     if (
         subdeptId != null &&
-        String(subdeptId).trim() !== "-1" &&
-        String(subdeptId).trim() !== "0" &&
-        String(subdeptId).trim() !== ""
+        !["-1", "0", ""].includes(String(subdeptId).trim())
     ) {
-        query += ` AND num_employee_subdeptid = :subdeptId `;
+        query += ` AND num_employee_subdeptid = :subdeptId`;
         binds.subdeptId = Number(subdeptId);
     }
 
     if (
         ulbID === 1750 &&
         billNo != null &&
-        String(billNo).trim() !== "-1" &&
-        String(billNo).trim() !== "0" &&
-        String(billNo).trim() !== ""
+        !["-1", "0", ""].includes(String(billNo).trim())
     ) {
-        query += ` AND var_deptslip_code = :billNo `;
+        query += ` AND var_deptslip_code = :billNo`;
         binds.billNo = String(billNo).trim();
     }
 
-    if (
-        bankId != null &&
-        String(bankId).trim() !== "-1" &&
-        String(bankId).trim() !== "0" &&
-        String(bankId).trim() !== ""
-    ) {
-        query += ` AND num_bankmst_bankid = :bankId `;
+    if (bankId != null && String(bankId).trim() !== "-1") {
+        query += ` AND num_bankmst_bankid = :bankId`;
         binds.bankId = Number(bankId);
     }
 
@@ -556,13 +533,11 @@ async function getBankListReportRepo({
             AND VAR_EMPLOYEE_EMPSTATUS = :empType
             AND TRIM(UPPER(var_employee_engname)) NOT LIKE '%RIKT%'
         `;
-
-        binds.empType = String(empType).trim().toUpperCase();
+        binds.empType = String(empType).trim();
     }
 
     query += `
         AND UPPER(var_employee_engname) <> 'RIKT'
-
         AND (
             NVL(num_salary_totalearning, 0)
             - NVL(num_salary_totaldeduct, 0)
@@ -572,16 +547,8 @@ async function getBankListReportRepo({
     if (ulbID === 1630) {
         query += `
             AND UPPER(var_employee_oldempno) NOT IN (
-                'COM1',
-                'HLTH1',
-                'ACOM1',
-                'DCOM7',
-                'ACCT1',
-                'WCWD1',
-                'TPD1',
-                'TPD2',
-                'TPD3',
-                'TPD4'
+                'COM1', 'HLTH1', 'ACOM1', 'DCOM7', 'ACCT1',
+                'WCWD1', 'TPD1', 'TPD2', 'TPD3', 'TPD4'
             )
         `;
     }
@@ -594,7 +561,6 @@ async function getBankListReportRepo({
                     WHEN REGEXP_LIKE(var_deptslip_code, '^[0-9]') THEN 1
                     ELSE 2
                 END,
-
                 CASE
                     WHEN REGEXP_LIKE(var_deptslip_code, '^[0-9]+$')
                     THEN TO_NUMBER(var_deptslip_code)
@@ -602,9 +568,7 @@ async function getBankListReportRepo({
                         NVL(REGEXP_SUBSTR(var_deptslip_code, '^[0-9]+'), '0')
                     )
                 END,
-
                 NVL(REGEXP_SUBSTR(var_deptslip_code, '[A-Za-z]+'), ''),
-
                 TO_NUMBER(
                     NVL(REGEXP_SUBSTR(var_deptslip_code, '[0-9]+$'), '0')
                 )
@@ -613,27 +577,20 @@ async function getBankListReportRepo({
         query += `
             ORDER BY
                 REGEXP_SUBSTR(var_employee_oldempno, '^[A-Za-z]+'),
-
-                TO_NUMBER(
-                    REGEXP_SUBSTR(var_employee_oldempno, '[0-9]+')
-                ),
-
+                TO_NUMBER(REGEXP_SUBSTR(var_employee_oldempno, '[0-9]+')),
                 NVL(
                     TO_NUMBER(
                         REGEXP_SUBSTR(
                             var_employee_oldempno,
                             '-([0-9]+)$',
-                            1,
-                            1,
-                            NULL,
-                            1
+                            1, 1, NULL, 1
                         )
                     ),
                     0
                 )
         `;
     } else {
-        query += ` ORDER BY num_employee_empid `;
+        query += ` ORDER BY num_employee_empid`;
     }
 
     const result = await executeQuery(query, binds);
@@ -645,6 +602,8 @@ async function getBankListReportRepo({
 
     return result.rows;
 }
+
+
 
 module.exports = {
   getDepartmentListRepo,
